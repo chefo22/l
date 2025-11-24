@@ -2,47 +2,109 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Activación de Acceso</title>
     <style>
-        /* La página estará en blanco y solo mostrará un mensaje simple */
-        body { 
-            background-color: #111111; 
-            color: #e0e0e0; 
-            font-family: sans-serif; 
-            text-align: center; 
-            padding-top: 50px; 
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #151515; /* Fondo oscuro similar al modo TV */
+            color: #e0e0e0;
+            text-align: center;
+            flex-direction: column;
         }
-        .message-box {
+        .container {
+            padding: 2rem;
+            border-radius: 12px;
             background-color: #282828;
-            border: 1px solid #383838;
-            padding: 20px;
-            border-radius: 5px;
-            max-width: 400px;
-            margin: 0 auto;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            max-width: 90%;
+            width: 350px;
+        }
+        h1 {
+            color: #2563eb; /* Color principal */
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+        p {
+            font-size: 1rem;
+            color: #bbb;
+            margin: 0.5rem 0;
+        }
+        .loading {
+            border: 5px solid #444444;
+            border-top: 5px solid #2563eb; 
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 1.5rem auto 0;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
-
-    <script>
-        // Clave de prueba: Usaremos 'darkMode' ya que es una de las claves que siempre se inicializa.
-        // El valor no importa, solo su EXISTENCIA.
-        const ACTIVATION_KEY = 'darkMode'; 
-        const ACTIVATION_VALUE = 'false'; // 'false' es el valor que toma por defecto en la primera carga si no hay nada.
-
-        try {
-            // Guarda la clave en localStorage, simulando la primera visita.
-            localStorage.setItem(ACTIVATION_KEY, ACTIVATION_VALUE);
-        } catch (e) {
-            console.error('Error al guardar en localStorage:', e);
-            // Si falla, el mensaje lo reflejará.
-        }
-    </script>
 </head>
 <body>
-    <div class="message-box">
-        <h1>✅ Acceso Activado</h1>
-        <p>Tu navegador ha sido verificado.</p>
-        <p>Puedes cerrar esta página y acceder a la web principal.</p>
-        <button onclick="window.location.href='index.html'" style="padding: 10px 20px; margin-top: 15px; cursor: pointer; background-color: var(--primary); color: white; border: none; border-radius: 3px;">Ir a la Web Principal</button>
+
+    <div class="container">
+        <h1>🔑 Activando Acceso...</h1>
+        <p>Configurando las claves iniciales de tu sesión.</p>
+        <p>Serás redirigido a la interfaz principal en breve.</p>
+        <div class="loading"></div>
     </div>
+
+    <script>
+        /**
+         * Script de Activación de Acceso Robusto
+         * --------------------------------------
+         * Este script establece múltiples claves de configuración iniciales 
+         * en localStorage para garantizar que la página de destino conceda el acceso.
+         */
+        
+        // Claves esenciales para que la página principal conceda el acceso
+        const CLAVES_INICIALES = [
+            { nombre: 'darkMode', valor: 'true' }, // Clave de acceso original
+            { nombre: 'primaryColor', valor: '#2563eb' }, // Otra clave de configuración inicial
+            { nombre: 'hideEventDetails', valor: 'false' } // Configuración por defecto
+        ];
+        
+        // URL a la que se redirigirá después de la activación
+        const URL_DE_DESTINO = 'https://ciento20.github.io/a';
+        
+        try {
+            console.log("Iniciando configuración de claves de acceso...");
+
+            // Establecer todas las claves definidas
+            CLAVES_INICIALES.forEach(clave => {
+                // Solo establecemos la clave si NO existe ya (para no sobrescribir configuraciones manuales)
+                if (localStorage.getItem(clave.nombre) === null) {
+                    localStorage.setItem(clave.nombre, clave.valor);
+                    console.log(`Clave '${clave.nombre}' establecida.`);
+                } else {
+                    console.log(`Clave '${clave.nombre}' ya existe. Saltando.`);
+                }
+            });
+            
+            console.log("Configuración completada. Redirigiendo a " + URL_DE_DESTINO + "...");
+
+        } catch (error) {
+            console.error("Error al acceder a localStorage:", error);
+            alert("Error: No se pudo establecer la clave de acceso. Asegúrate de que el almacenamiento local esté habilitado en tu navegador.");
+        }
+        
+        // Redirigir a la URL de destino después de 2 segundos.
+        setTimeout(() => {
+            window.location.href = URL_DE_DESTINO; 
+        }, 2000); 
+
+    </script>
+    
 </body>
 </html>
