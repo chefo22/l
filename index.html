@@ -3,104 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Activación de Acceso</title>
-    <style>
-        /* Estilos para que se vea bien, usando la misma familia de fuentes que tu index.html */
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-            background-color: #151515; /* Fondo oscuro como tu TV Mode */
-            color: #e0e0e0; /* Texto claro */
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            text-align: center;
-        }
-
-        .container {
-            max-width: 400px;
-            padding: 30px;
-            background: #282828; /* Contenedor oscuro */
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-            border: 1px solid #444;
-        }
-
-        h1 {
-            color: #4cc9f0; /* Color de éxito similar a tu código */
-            font-size: 2em;
-            margin-bottom: 0.5em;
-        }
-
-        p {
-            font-size: 1.1em;
-            color: #aaaaaa;
-            margin-bottom: 2em;
-        }
-
-        .activate-btn {
-            background-color: #2563eb; /* Tu color primario */
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            font-size: 1em;
-            cursor: pointer;
-            transition: background-color 0.2s, transform 0.1s;
-        }
-
-        .activate-btn:hover {
-            background-color: #1e50c7;
-            transform: translateY(-1px);
-        }
-    </style>
+    <title>Activando Acceso...</title>
 </head>
-<body>
-
-    <div class="container">
-        <h1>Acceso a la Web</h1>
-        <p>Haz clic en el botón para activar tu acceso y poder usar la interfaz.</p>
-        <button class="activate-btn" onclick="activateAccess()">
-            Activar Acceso Ahora
-        </button>
-    </div>
+<body style="background: #151515; color: white; display: flex; justify-content: center; align-items: center; height: 100vh;">
+    <h1>Activando el acceso. Redirigiendo...</h1>
 
     <script>
-        // La clave principal que tu index.html está buscando
-        const CLAVE_DE_ACTIVACION = 'darkMode'; 
-        // Claves adicionales que tu index.html también considera como "usuario existente"
-        const INDICADORES_ADICIONALES = ['favorites', 'channelHistory', 'primaryColor']; 
+        const CLAVE_DE_ACTIVACION = 'darkMode';
+        
+        // La clave necesita un valor que NO sea null
+        localStorage.setItem(CLAVE_DE_ACTIVACION, 'true');
 
-        function activateAccess() {
-            try {
-                // 1. Establecer la clave principal 'darkMode'. 
-                // Tu script comprueba si es 'null', por lo que cualquier valor que NO sea 'null' activará el acceso.
-                localStorage.setItem(CLAVE_DE_ACTIVACION, 'true'); 
-
-                // 2. Establecer algunas claves adicionales (por robustez, aunque con 'darkMode' es suficiente).
-                INDICADORES_ADICIONALES.forEach(key => {
-                    // Establecer solo si no existen para no sobrescribir datos reales de un usuario.
-                    if (localStorage.getItem(key) === null) {
-                        // Se inicializa con un array o string vacío para que el valor NO sea 'null'
-                        localStorage.setItem(key, key === 'primaryColor' ? '#2563eb' : '[]'); 
-                    }
-                });
-
-                // 3. Notificación y Redirección
-                alert('¡Acceso activado! Ahora serás redirigido a la página principal.');
-                
-                // Opcional: Redirigir a la página principal (asumiendo que es index.html en el mismo directorio)
-                window.location.href = 'index.html'; 
-
-            } catch (e) {
-                alert('ERROR: No se pudo activar el acceso. Asegúrate de que tu navegador tiene activado el almacenamiento local (localStorage).');
-                console.error("Error al establecer localStorage:", e);
-            }
-        }
+        // Opcional: Establecer otras claves que tu index.html busca (por si acaso)
+        localStorage.setItem('favorites', '[]');
+        localStorage.setItem('channelHistory', '{}');
+        localStorage.setItem('primaryColor', '#2563eb');
+        
+        // Espera un momento para asegurar que el navegador guarda la clave.
+        setTimeout(() => {
+            // Redirigir a tu página principal
+            window.location.href = 'index.html';
+        }, 500);
     </script>
-
 </body>
 </html>
