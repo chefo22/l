@@ -3,63 +3,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Activando Acceso...</title>
+    <title>Generador de Configuración de Acceso</title>
     <style>
         body {
-            font-family: sans-serif;
-            background: #151515;
-            color: #e0e0e0;
+            font-family: Arial, sans-serif;
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
+            height: 100vh;
+            background-color: #f4f4f9;
+            margin: 0;
+            flex-direction: column;
             text-align: center;
         }
-        h1 {
-            color: #4cc9f0;
+        .container {
+            background: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .color-picker {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        .color-option {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            cursor: pointer;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .color-option.active {
+            border-color: #555;
+            transform: scale(1.1);
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            color: white;
+            background-color: #2563eb;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #1e50c7;
+        }
+        #statusMessage {
+            margin-top: 15px;
+            font-weight: bold;
+            color: #16a34a;
         }
     </style>
 </head>
 <body>
-    <h1>Activando el acceso. Redirigiendo...</h1>
-    <p id="status-message">Estableciendo claves de acceso...</p>
 
-    <script>
-        function activateAccess() {
-            try {
-                // Clave principal
-                localStorage.setItem('darkMode', 'true'); 
-                
-                // Claves adicionales para asegurar el pase del script de bloqueo en <head>
-                localStorage.setItem('favorites', '[]'); // Array vacío de favoritos
-                localStorage.setItem('channelHistory', '{}'); // Objeto vacío de historial
-                localStorage.setItem('primaryColor', '#2563eb'); // Color por defecto
-                localStorage.setItem('channelRatings', '{}'); // Objeto vacío de puntuaciones
-                localStorage.setItem('lastChannelPlay', 'null'); // Última reproducción
-                localStorage.setItem('firstSeen', '{}'); // Fechas de primer visionado
-                localStorage.setItem('hideEventDetails', 'false'); // Mostrar detalles
-                localStorage.setItem('tvCurrentFilter', 'all'); // Filtro por defecto
-                localStorage.setItem('tvSportFilter', 'all'); // Filtro de deporte por defecto
-                localStorage.setItem('lastPlayedByChannel', '{}'); // Último reproducido por nombre
-                localStorage.setItem('fullScreenOnClick', 'false'); // Pantalla completa desactivada
-                localStorage.setItem('hideOptionsButton', 'false'); // Botón de opciones visible
+<div class="container">
+    <h2>Generar Acceso de Usuario</h2>
+    <p>Selecciona tu color principal preferido para crear la clave de acceso:</p>
+    
+    <div class="color-picker" id="colorPicker">
+        <div class="color-option" data-color="#2563eb" style="background:#2563eb"></div>
+        <div class="color-option" data-color="#dc2626" style="background:#dc2626"></div>
+        <div class="color-option" data-color="#16a34a" style="background:#16a34a"></div>
+        <div class="color-option" data-color="#79006f" style="background:#79006f"></div>
+    </div>
+    
+    <button id="saveButton">Guardar Configuración y Desbloquear</button>
+    <p id="statusMessage"></p>
+</div>
 
-                document.getElementById('status-message').textContent = '¡Acceso activado! Redirigiendo...';
-                
-                // Redirigir después de un pequeño retraso
-                setTimeout(() => {
-                    window.location.href = 'index.html'; 
-                }, 1000); 
+<script>
+    const colorPicker = document.getElementById('colorPicker');
+    const saveButton = document.getElementById('saveButton');
+    const statusMessage = document.getElementById('statusMessage');
+    let selectedColor = '#2563eb'; // Color por defecto
 
-            } catch (e) {
-                document.getElementById('status-message').textContent = 'ERROR: No se pudo activar el acceso. El almacenamiento local está desactivado.';
-                console.error("Error al establecer localStorage:", e);
-            }
+    // Inicializar la selección y los event listeners
+    document.querySelectorAll('.color-option').forEach(option => {
+        option.addEventListener('click', () => {
+            // Desactivar todos
+            document.querySelectorAll('.color-option').forEach(o => o.classList.remove('active'));
+            
+            // Activar el seleccionado
+            option.classList.add('active');
+            selectedColor = option.dataset.color;
+            statusMessage.textContent = `Color seleccionado: ${selectedColor}`;
+            statusMessage.style.color = '#2563eb';
+        });
+
+        // Aplicar la clase activa al color por defecto al cargar
+        if (option.dataset.color === selectedColor) {
+            option.classList.add('active');
         }
-        
-        // Ejecutar la activación al cargar la página
-        activateAccess();
-    </script>
+    });
+
+    saveButton.addEventListener('click', () => {
+        if (selectedColor) {
+            // Guarda la clave 'primaryColor' en el localStorage
+            localStorage.setItem('primaryColor', selectedColor);
+            
+            statusMessage.textContent = '✅ Configuración guardada. ¡Ya puedes acceder a la página principal!';
+            statusMessage.style.color = '#16a34a';
+            saveButton.disabled = true;
+            
+            setTimeout(() => {
+                saveButton.disabled = false;
+            }, 3000);
+
+        } else {
+            statusMessage.textContent = '❌ Por favor, selecciona un color.';
+            statusMessage.style.color = '#dc2626';
+        }
+    });
+
+    // Mostrar el color inicial seleccionado
+    statusMessage.textContent = `Color por defecto: ${selectedColor}`;
+    statusMessage.style.color = '#2563eb';
+
+</script>
+
 </body>
 </html>
