@@ -241,8 +241,9 @@
 
         <div id="panelEntrada">
             <div class="section-title" style="display: flex; justify-content: space-between; align-items: center;">
-                <span>Entrada de Datos (ID, Producto...)</span>                <label id="labelEscaneo" for="imgUpload" style="cursor:pointer; background:var(--surface-variant); padding:4px 8px; border-radius:8px; display:flex; align-items:center; gap:4px; color:var(--primary); font-size:10px; transition: 0.2s;">
-                    <span id="iconEscaneo" class="material-icons-round" style="font-size:14px;">camera_alt</span> <span id="textEscaneo">ESCANEAR ALBARÁN</span>
+                <span>Entrada de Datos (ID, Producto...)</span>
+                <label for="imgUpload" style="cursor:pointer; background:var(--surface-variant); padding:4px 8px; border-radius:8px; display:flex; align-items:center; gap:4px; color:var(--primary); font-size:10px; transition: 0.2s;">
+                    <span class="material-icons-round" style="font-size:14px;">camera_alt</span> ESCANEAR ALBARÁN
                 </label>
                 <input type="file" id="imgUpload" accept="image/*" style="display:none;" onchange="procesarImagen(this)">
             </div>
@@ -290,46 +291,7 @@
                     <div class="input-box"><label>PASILLO</label><input type="number" id="tPasillo" value="4"></div>
                     <div class="input-box"><label>ESTANTE</label><input type="number" id="tEstanteria" value="2"></div>
                     <div class="input-box"><label>BALDA</label><input type="number" id="tBalda" value="1"></div>
-                </div>
-
-                <div style="font-size: 11px; color: var(--primary); margin-top: 15px; margin-bottom: 8px;">CONFIGURACIÓN DE VOZ</div>
-                <div class="inputs-grid">
-                    <div class="input-box" style="grid-column: span 2;"><label>VELOCIDAD</label><input type="range" id="vVelocidad" min="0.5" max="2" step="0.1" value="1" oninput="this.previousElementSibling.innerText='VELOCIDAD ('+this.value+')'"></div>
-                </div>                <div style="font-size: 11px; color: var(--primary); margin-top: 15px; margin-bottom: 8px;">PREFERENCIA DE ESCANEO</div>
-                <select id="prefEscaneo" style="width: 100%; background: var(--surface-variant); color: white; border: 1px solid var(--outline); border-radius: 12px; padding: 10px; margin-bottom: 15px;">
-                    <option value="camera">Usar Cámara (Foto Directa)</option>
-                    <option value="gallery">Usar Galería (Subir Archivo)</option>
-                </select>
-
-                <div style="font-size: 11px; color: var(--primary); margin-top: 5px; margin-bottom: 8px;">DISEÑO DE GARAJES (PERSONALIZAR)</div>
-                <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px;">
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <span style="font-size:10px; width:25px;">G1:</span>
-                        <select id="dg1" style="flex:1; background:var(--surface-variant); color:white; border:1px solid var(--outline); border-radius:8px; padding:5px; font-size:11px;">
-                            <option value="reloj">Diseño 1: Reloj (Círculos)</option>
-                            <option value="u">Diseño 2: Pasillo en U</option>
-                            <option value="tramos">Diseño 3: Tramos L/C</option>
-                        </select>
-                    </div>
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <span style="font-size:10px; width:25px;">G2:</span>
-                        <select id="dg2" style="flex:1; background:var(--surface-variant); color:white; border:1px solid var(--outline); border-radius:8px; padding:5px; font-size:11px;">
-                            <option value="reloj">Diseño 1: Reloj (Círculos)</option>
-                            <option value="u" selected>Diseño 2: Pasillo en U</option>
-                            <option value="tramos">Diseño 3: Tramos L/C</option>
-                        </select>
-                    </div>
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <span style="font-size:10px; width:25px;">G3:</span>
-                        <select id="dg3" style="flex:1; background:var(--surface-variant); color:white; border:1px solid var(--outline); border-radius:8px; padding:5px; font-size:11px;">
-                            <option value="reloj">Diseño 1: Reloj (Círculos)</option>
-                            <option value="u">Diseño 2: Pasillo en U</option>
-                            <option value="tramos" selected>Diseño 3: Tramos L/C</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div style="font-size: 11px; color: var(--primary); margin-top: 15px; margin-bottom: 8px;">SISTEMA IA (GEMINI)</div>
+                </div>                <div style="font-size: 11px; color: var(--primary); margin-top: 15px; margin-bottom: 8px;">SISTEMA IA (GEMINI)</div>
                 <div style="display: flex; gap: 8px; margin-bottom: 12px;">
                     <button class="fab-button" onclick="localStorage.removeItem('gemini_api_key'); alert('Clave eliminada.');" style="flex:1; background: var(--surface-variant); color: var(--error); border: 1px solid var(--error); height: 32px; font-size: 10px; padding: 0;">
                         <span class="material-icons-round" style="font-size:14px;">key_off</span> BORRAR KEY
@@ -471,40 +433,16 @@
             if (config.pegRoja) document.getElementById('peg Roja').value = config.pegRoja;
             if (config.pegVerde) document.getElementById('peg Verde').value = config.pegVerde;
             if (config.pegAmarilla) document.getElementById('peg Amarilla').value = config.pegAmarilla;
-            if (config.velocidad) document.getElementById('vVelocidad').value = config.velocidad;
-            if (config.modoEscaneo) document.getElementById('prefEscaneo').value = config.modoEscaneo;
-            if (config.dg1) document.getElementById('dg1').value = config.dg1;
-            if (config.dg2) document.getElementById('dg2').value = config.dg2;
-            if (config.dg3) document.getElementById('dg3').value = config.dg3;
         }
-    }    function aplicarModoEscaneo(modo) {
-        const input = document.getElementById('imgUpload');
-        const icon = document.getElementById('iconEscaneo');
-        const text = document.getElementById('textEscaneo');
+    }
 
-        if (modo === 'gallery') {
-            input.removeAttribute('capture');
-            icon.innerText = 'photo_library';
-            text.innerText = 'SUBIR ALBARÁN';
-        } else {
-            input.setAttribute('capture', 'environment');
-            icon.innerText = 'camera_alt';
-            text.innerText = 'ESCANEAR ALBARÁN';
-        }
-    }    function guardarAjustesGlobales() {
-        const modo = document.getElementById('prefEscaneo').value;
+    function guardarAjustesGlobales() {
         const config = {
             pegRoja: document.getElementById('peg Roja').value,
             pegVerde: document.getElementById('peg Verde').value,
-            pegAmarilla: document.getElementById('peg Amarilla').value,
-            velocidad: document.getElementById('vVelocidad').value,
-            modoEscaneo: modo,
-            dg1: document.getElementById('dg1').value,
-            dg2: document.getElementById('dg2').value,
-            dg3: document.getElementById('dg3').value
+            pegAmarilla: document.getElementById('peg Amarilla').value
         };
         localStorage.setItem('audiolog_config_gral', JSON.stringify(config));
-        aplicarModoEscaneo(modo);
         toggleAjustes();
     }
 
@@ -550,17 +488,6 @@
         }
     }
 
-    function hablarTexto(texto, callback) {
-        window.speechSynthesis.cancel();
-        const config = JSON.parse(localStorage.getItem('audiolog_config_gral') || '{}');
-        const utterance = new SpeechSynthesisUtterance(texto);
-        utterance.lang = 'es-ES';
-        utterance.rate = parseFloat(config.velocidad || 1);
-        utterance.pitch = 1;
-        if (callback) utterance.onend = callback;
-        window.speechSynthesis.speak(utterance);
-    }
-
     function ejecutarBusqueda() {
         const query = document.getElementById('inputBusqueda').value.trim().toLowerCase();
         const resDiv = document.getElementById('resBusqueda');
@@ -573,16 +500,19 @@
         if (idEncontrado) {
             const p = dbProductos[idEncontrado];
             resDiv.innerHTML = `<div style="color:var(--primary); font-size:24px; font-weight:bold; font-family:monospace;">${p.ubiBase}</div><div style="font-size:14px; color:white; margin-top:4px;">${p.nombre}</div>`;
-            hablarTexto(`Ubicación ${p.ubiBase}`);
+            // Locución rápida
+            const tts = `Ubicación ${p.ubiBase}`;
+            player.src = `https://translate.google.com/translate_tts?ie=UTF-8&tl=es-ES&client=tw-ob&q=${encodeURIComponent(tts)}`;
+            player.play();
         } else {
             resDiv.innerHTML = `<span style="color:var(--error);">No se encontró el producto</span>`;
         }
     }    const getUbi = (txt) => {
-        // Regex mejorada para capturar nombres alfanuméricos como 'G COVID', 'G 1' o 'S CENTRAL'
-        const sMatch = txt.match(/(S|G)\s*([A-Z0-9\s_-]+?)(?=\s*[PEB]|\.|$|PAL)/i) || [];
+        const sMatch = txt.match(/(S|G)\s*(\d+)/i) || [];
         return {
-            s: (sMatch[2] || "").trim(), 
-            st: (sMatch[1] || "S").toUpperCase(), p: (txt.match(/P\s*(\d+)/i) || [])[1] || "",
+            s: sMatch[2] || "", 
+            st: (sMatch[1] || "S").toUpperCase(), 
+            p: (txt.match(/P\s*(\d+)/i) || [])[1] || "",
             e: (txt.match(/E\s*(\d+)/i) || [])[1] || "",
             b: (txt.match(/B\s*(\d+)/i) || [])[1] || "",
             pal: txt.match(/PAL/i) ? (txt.match(/PAL\s*(\d+)/i) || ["", ""])[1] || "OK" : undefined,
@@ -615,13 +545,7 @@
     function saltarPaso(direccion) {
         pasoActual += direccion; if (pasoActual < 0) pasoActual = 0;
         segundosRestantes = 0; estaPausado = false; actualizarInterfazPausa(); procesarPaso();
-    }    // Inicializar modo de escaneo al cargar
-    document.addEventListener('DOMContentLoaded', () => {
-        const config = JSON.parse(localStorage.getItem('audiolog_config_gral') || '{}');
-        aplicarModoEscaneo(config.modoEscaneo || 'camera');
-    });
-
-    function comenzarTransmision() {
+    }    function comenzarTransmision() {
         const raw = document.getElementById('textoEntrada').value;
         const lineas = raw.split(/\n|---/).map(t => t.trim()).filter(t => t.length > 2);
         
@@ -736,28 +660,28 @@
             } else if (cAct.s === '3') {
                 if (configUbi.pasilloTipo) cAct.pasilloTipo = configUbi.pasilloTipo.replace('PS:', '');
             }
-        }        // Lógica especial de Garajes (Voz Dinámica)
-        if (cAct.st === 'G') {            const configGral = JSON.parse(localStorage.getItem('audiolog_config_gral') || '{}');
-            // Si no hay configuración específica, los garajes desconocidos (como COVID) usan por defecto el diseño 'u'
-            const disenioAsignado = configGral['dg' + cAct.s] || (cAct.s === '1' ? 'reloj' : (cAct.s === '3' ? 'tramos' : 'u'));
+        }
 
-            if (disenioAsignado === 'reloj') {
+        // Lógica especial de Garajes (Voz)
+        if (cAct.st === 'G') {
+            if (cAct.s === '1') {
                 if (cAct.circulo) partes.push(cAct.circulo === 'INT' ? "Círculo Interior" : "Círculo Exterior");
                 if (cAct.hora) partes.push("a las " + cAct.hora + " en punto");
-            } else if (disenioAsignado === 'u') {
+            } else if (cAct.s === '2') {
                 if (cAct.lado === 'DER') partes.push("Lado Derecho");
                 else if (cAct.lado === 'IZQ') partes.push("Lado Izquierdo");
                 else if (cAct.lado === 'FON') partes.push("al Fondo");
-            } else if (disenioAsignado === 'tramos') {
+            } else if (cAct.s === '3') {
                 if (cAct.pasilloTipo) partes.push(cAct.pasilloTipo === 'LAR' ? "Pasillo Largo" : "Pasillo Corto");
             }
-        }        let locVoz = partes.length > 0 ? "Ubicación " + partes.join(", ") : "";        // Extraemos componentes para reordenar (Nombre al final)
+        }        let locVoz = partes.length > 0 ? "Ubicación " + partes.join(", ") : "";
+        
+        // Extraemos componentes para reordenar (Nombre al final)
         const idVal = (textoOriginal.match(/ID:\s*(\d+)/i) || ["", ""])[1];
         const cantVal = (textoOriginal.match(/Cantidad:\s*(\d+)/i) || ["", ""])[1];
         const prodVal = (textoOriginal.match(/Producto:\s*([^.]+)/i) || ["", ""])[1];
 
-        const idPronunciable = idVal.split('').join(' ');
-        let textoVoz = `${idPronunciable}. ${locVoz}. Cantidad ${cantVal}.`;
+        let textoVoz = `ID ${idVal}. ${locVoz}. Cantidad ${cantVal}.`;
         
         // --- LÓGICA DE PEGATINAS (CAJA APARTE) ---
         const configGral = JSON.parse(localStorage.getItem('audiolog_config_gral') || '{}');
@@ -801,29 +725,12 @@
         const panelG = document.getElementById('panelGarajeUI');
         const cg1 = document.getElementById('controlesG1');
         const cg2 = document.getElementById('controlesG2');
-        const cg3 = document.getElementById('controlesG3');        panelG.style.display = cAct.st === 'G' ? 'block' : 'none';
+        const cg3 = document.getElementById('controlesG3');
         
-        // Lógica Dinámica de Diseño de Garajes
-        if (cAct.st === 'G') {            const configGral = JSON.parse(localStorage.getItem('audiolog_config_gral') || '{}');
-            // Si no hay configuración específica, los garajes desconocidos (como COVID) usan por defecto el diseño 'u'
-            const disenioAsignado = configGral['dg' + cAct.s] || (cAct.s === '1' ? 'reloj' : (cAct.s === '3' ? 'tramos' : 'u'));
-            
-            cg1.style.display = (disenioAsignado === 'reloj') ? 'grid' : 'none';
-            cg2.style.display = (disenioAsignado === 'u') ? 'grid' : 'none';
-            cg3.style.display = (disenioAsignado === 'tramos') ? 'grid' : 'none';
-            
-            // Forzamos que la locución use el diseño asignado
-            if (disenioAsignado === 'reloj') { 
-                if (configUbi?.circulo) cAct.circulo = configUbi.circulo.replace('C:', '');
-                if (configUbi?.hora) cAct.hora = configUbi.hora;
-            } else if (disenioAsignado === 'u') {
-                if (configUbi?.lado) cAct.lado = configUbi.lado.replace('L:', '');
-            } else if (disenioAsignado === 'tramos') {
-                if (configUbi?.pasilloTipo) cAct.pasilloTipo = configUbi.pasilloTipo.replace('PS:', '');
-            }
-        } else {
-            cg1.style.display = cg2.style.display = cg3.style.display = 'none';
-        }        if (idMatch && cantMatch) {
+        panelG.style.display = cAct.st === 'G' ? 'block' : 'none';
+        cg1.style.display = (cAct.st === 'G' && cAct.s === '1') ? 'grid' : 'none';
+        cg2.style.display = (cAct.st === 'G' && cAct.s === '2') ? 'grid' : 'none';
+        cg3.style.display = (cAct.st === 'G' && cAct.s === '3') ? 'grid' : 'none';        if (idMatch && cantMatch) {
             const id = idMatch[1];
             const total = parseInt(cantMatch[1]);
             const config = dbProductos[id];
@@ -870,7 +777,9 @@
         actualizarMetadatos(`Ítem ${pasoActual + 1}`, textoOriginal);
         statusDiv.innerHTML = `<span class="pulse"></span> PROCESANDO...`;
         subStatusDiv.innerHTML = `<strong>${textoOriginal}</strong>`;
-        hablarTexto(textoVoz, () => { if (!estaPausado) iniciarEspera(); });
+        player.src = `https://translate.google.com/translate_tts?ie=UTF-8&tl=es-ES&client=tw-ob&q=${encodeURIComponent(textoVoz)}`;
+        player.play().catch(() => { statusDiv.innerHTML = "⚠️ TOCA PARA ACTIVAR"; });
+        player.onended = () => { if (!estaPausado) iniciarEspera(); };
     }    function iniciarEspera() {
         if (estaPausado) return;
         const actual = listaTareas[pasoActual]; const siguiente = listaTareas[pasoActual + 1];
@@ -891,7 +800,9 @@
         if (aviso) {
             statusDiv.innerHTML = `<span class="pulse"></span> 📢 ${aviso.toUpperCase()}`;
             actualizarMetadatos("Aviso de Trayecto", aviso);
-            hablarTexto(aviso, () => { if (!estaPausado) reproducirSilencio(); });
+            player.src = `https://translate.google.com/translate_tts?ie=UTF-8&tl=es-ES&client=tw-ob&q=${encodeURIComponent(aviso)}`;
+            player.onended = () => { if (!estaPausado) reproducirSilencio(); };
+            player.play().catch(() => { if (!estaPausado) reproducirSilencio(); });
         } else {
             reproducirSilencio();
         }
