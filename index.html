@@ -291,7 +291,43 @@
                     <div class="input-box"><label>PASILLO</label><input type="number" id="tPasillo" value="4"></div>
                     <div class="input-box"><label>ESTANTE</label><input type="number" id="tEstanteria" value="2"></div>
                     <div class="input-box"><label>BALDA</label><input type="number" id="tBalda" value="1"></div>
-                </div>                <div style="font-size: 11px; color: var(--primary); margin-top: 15px; margin-bottom: 8px;">SISTEMA IA (GEMINI)</div>
+                </div>                <div style="font-size: 11px; color: var(--primary); margin-top: 15px; margin-bottom: 8px;">MODO DE ESCANEO (CÁMARA)</div>
+                <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                    <select id="modoCaptura" style="width: 100%; background: var(--surface-variant); color: white; border: 1px solid var(--outline); border-radius: 12px; padding: 10px; font-size: 13px;">
+                        <option value="gallery">📂 Abrir Galería / Selector</option>
+                        <option value="camera">📸 Abrir Cámara Directamente</option>
+                    </select>
+                </div>
+
+                <div style="font-size: 11px; color: var(--primary); margin-top: 5px; margin-bottom: 8px;">DISEÑO DE GARAJES (PERSONALIZABLE)</div>
+                <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:10px; width:25px;">G1:</span>
+                        <select id="dg1" style="flex:1; background:var(--surface-variant); color:white; border:1px solid var(--outline); border-radius:8px; padding:5px; font-size:11px;">
+                            <option value="reloj">Reloj (Círculos/Horas)</option>
+                            <option value="u">Pasillo en U (Lados)</option>
+                            <option value="tramos">Tramos (Pasillo L/C)</option>
+                        </select>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:10px; width:25px;">G2:</span>
+                        <select id="dg2" style="flex:1; background:var(--surface-variant); color:white; border:1px solid var(--outline); border-radius:8px; padding:5px; font-size:11px;">
+                            <option value="reloj">Reloj (Círculos/Horas)</option>
+                            <option value="u">Pasillo en U (Lados)</option>
+                            <option value="tramos">Tramos (Pasillo L/C)</option>
+                        </select>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:10px; width:25px;">G3:</span>
+                        <select id="dg3" style="flex:1; background:var(--surface-variant); color:white; border:1px solid var(--outline); border-radius:8px; padding:5px; font-size:11px;">
+                            <option value="reloj">Reloj (Círculos/Horas)</option>
+                            <option value="u">Pasillo en U (Lados)</option>
+                            <option value="tramos">Tramos (Pasillo L/C)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="font-size: 11px; color: var(--primary); margin-top: 15px; margin-bottom: 8px;">SISTEMA IA (GEMINI)</div>
                 <div style="display: flex; gap: 8px; margin-bottom: 12px;">
                     <button class="fab-button" onclick="localStorage.removeItem('gemini_api_key'); alert('Clave eliminada.');" style="flex:1; background: var(--surface-variant); color: var(--error); border: 1px solid var(--error); height: 32px; font-size: 10px; padding: 0;">
                         <span class="material-icons-round" style="font-size:14px;">key_off</span> BORRAR KEY
@@ -427,22 +463,38 @@
     }    function toggleAjustes() {
         const modal = document.getElementById('modalAjustes');
         const isOpening = (modal.style.display === 'none' || modal.style.display === '');
-        modal.style.display = isOpening ? 'flex' : 'none';
-        if (isOpening) {
+        modal.style.display = isOpening ? 'flex' : 'none';        if (isOpening) {
             const config = JSON.parse(localStorage.getItem('audiolog_config_gral') || '{}');
             if (config.pegRoja) document.getElementById('peg Roja').value = config.pegRoja;
             if (config.pegVerde) document.getElementById('peg Verde').value = config.pegVerde;
             if (config.pegAmarilla) document.getElementById('peg Amarilla').value = config.pegAmarilla;
+            if (config.modoCaptura) document.getElementById('modoCaptura').value = config.modoCaptura;
+            // Cargar diseños de garajes
+            if (config.dg1) document.getElementById('dg1').value = config.dg1;
+            if (config.dg2) document.getElementById('dg2').value = config.dg2;
+            if (config.dg3) document.getElementById('dg3').value = config.dg3;
         }
-    }
-
-    function guardarAjustesGlobales() {
+    }    function guardarAjustesGlobales() {
+        const modo = document.getElementById('modoCaptura').value;
         const config = {
             pegRoja: document.getElementById('peg Roja').value,
             pegVerde: document.getElementById('peg Verde').value,
-            pegAmarilla: document.getElementById('peg Amarilla').value
+            pegAmarilla: document.getElementById('peg Amarilla').value,
+            modoCaptura: modo,
+            dg1: document.getElementById('dg1').value,
+            dg2: document.getElementById('dg2').value,
+            dg3: document.getElementById('dg3').value
         };
         localStorage.setItem('audiolog_config_gral', JSON.stringify(config));
+        
+        // Aplicar cambio al input de archivo
+        const inputImg = document.getElementById('imgUpload');
+        if (modo === 'camera') {
+            inputImg.setAttribute('capture', 'environment');
+        } else {
+            inputImg.removeAttribute('capture');
+        }
+        
         toggleAjustes();
     }
 
@@ -543,8 +595,54 @@
     }
 
     function saltarPaso(direccion) {
-        pasoActual += direccion; if (pasoActual < 0) pasoActual = 0;
-        segundosRestantes = 0; estaPausado = false; actualizarInterfazPausa(); procesarPaso();
+        const indexAnterior = pasoActual;
+        const nuevoIndice = pasoActual + direccion;
+
+        // Validar que no nos salgamos de la lista
+        if (nuevoIndice < 0) { 
+            pasoActual = 0; 
+            procesarPaso(); 
+            return; 
+        }
+        if (nuevoIndice >= listaTareas.length) { 
+            statusDiv.innerHTML = "✅ FINALIZADO";
+            return; 
+        }
+
+        const ubiAnterior = getUbi(listaTareas[indexAnterior]);
+        const ubiNueva = getUbi(listaTareas[nuevoIndice]);
+
+        // Actualizar el índice y limpiar esperas
+        pasoActual = nuevoIndice;
+        segundosRestantes = 0;
+        estaPausado = false;
+        actualizarInterfazPausa();
+
+        // Determinar el aviso de cambio de ubicación específico
+        let avisoTrayecto = "";
+        if (ubiAnterior.s !== ubiNueva.s || ubiAnterior.st !== ubiNueva.st) {
+            const lugar = ubiNueva.st === 'G' ? 'Garaje' : 'Sala';
+            avisoTrayecto = `Cambia al ${lugar} ${ubiNueva.s}`;
+        } else if (ubiAnterior.p !== ubiNueva.p) {
+            avisoTrayecto = `Cambia al Pasillo ${ubiNueva.p}`;
+        } else if (ubiNueva.pal !== undefined && ubiAnterior.pal !== ubiNueva.pal) {
+            avisoTrayecto = `Cambia al Palet ${ubiNueva.pal === "OK" ? "" : ubiNueva.pal}`;
+        } else if (ubiAnterior.e !== ubiNueva.e) {
+            avisoTrayecto = `Cambia al Estante ${ubiNueva.e}`;
+        } else if (ubiAnterior.b !== ubiNueva.b) {
+            avisoTrayecto = `Cambia a la Balda ${ubiNueva.b}`;
+        }
+
+        // Si hay un cambio de ubicación, lo dice antes de leer el producto
+        if (avisoTrayecto) {
+            statusDiv.innerHTML = `<span class="pulse"></span> 📢 ${avisoTrayecto.toUpperCase()}`;
+            player.src = `https://translate.google.com/translate_tts?ie=UTF-8&tl=es-ES&client=tw-ob&q=${encodeURIComponent(avisoTrayecto)}`;
+            player.onended = () => { if (!estaPausado) procesarPaso(); };
+            player.play().catch(() => procesarPaso());
+        } else {
+            // Si es la misma ubicación, lee directamente el producto
+            procesarPaso();
+        }
     }    function comenzarTransmision() {
         const raw = document.getElementById('textoEntrada').value;
         const lineas = raw.split(/\n|---/).map(t => t.trim()).filter(t => t.length > 2);
@@ -660,28 +758,29 @@
             } else if (cAct.s === '3') {
                 if (configUbi.pasilloTipo) cAct.pasilloTipo = configUbi.pasilloTipo.replace('PS:', '');
             }
-        }
-
-        // Lógica especial de Garajes (Voz)
+        }        // Lógica especial de Garajes (Voz Dinámica por Diseño)
         if (cAct.st === 'G') {
-            if (cAct.s === '1') {
+            const configGral = JSON.parse(localStorage.getItem('audiolog_config_gral') || '{}');
+            const disenio = configGral['dg' + cAct.s] || (cAct.s === '1' ? 'reloj' : (cAct.s === '2' ? 'u' : 'tramos'));
+
+            if (disenio === 'reloj') {
                 if (cAct.circulo) partes.push(cAct.circulo === 'INT' ? "Círculo Interior" : "Círculo Exterior");
                 if (cAct.hora) partes.push("a las " + cAct.hora + " en punto");
-            } else if (cAct.s === '2') {
+            } else if (disenio === 'u') {
                 if (cAct.lado === 'DER') partes.push("Lado Derecho");
                 else if (cAct.lado === 'IZQ') partes.push("Lado Izquierdo");
                 else if (cAct.lado === 'FON') partes.push("al Fondo");
-            } else if (cAct.s === '3') {
+            } else if (disenio === 'tramos') {
                 if (cAct.pasilloTipo) partes.push(cAct.pasilloTipo === 'LAR' ? "Pasillo Largo" : "Pasillo Corto");
             }
-        }        let locVoz = partes.length > 0 ? "Ubicación " + partes.join(", ") : "";
+        }        let locVoz = partes.length > 0 ? partes.join(", ") : "";
         
         // Extraemos componentes para reordenar (Nombre al final)
         const idVal = (textoOriginal.match(/ID:\s*(\d+)/i) || ["", ""])[1];
         const cantVal = (textoOriginal.match(/Cantidad:\s*(\d+)/i) || ["", ""])[1];
         const prodVal = (textoOriginal.match(/Producto:\s*([^.]+)/i) || ["", ""])[1];
-
-        let textoVoz = `ID ${idVal}. ${locVoz}. Cantidad ${cantVal}.`;
+        const sufijoUnidades = parseInt(cantVal) === 1 ? "unidad" : "unidades";
+        let textoVoz = `${idVal}. ${locVoz}. ${cantVal} ${sufijoUnidades}.`;
         
         // --- LÓGICA DE PEGATINAS (CAJA APARTE) ---
         const configGral = JSON.parse(localStorage.getItem('audiolog_config_gral') || '{}');
@@ -725,12 +824,30 @@
         const panelG = document.getElementById('panelGarajeUI');
         const cg1 = document.getElementById('controlesG1');
         const cg2 = document.getElementById('controlesG2');
-        const cg3 = document.getElementById('controlesG3');
-        
-        panelG.style.display = cAct.st === 'G' ? 'block' : 'none';
-        cg1.style.display = (cAct.st === 'G' && cAct.s === '1') ? 'grid' : 'none';
-        cg2.style.display = (cAct.st === 'G' && cAct.s === '2') ? 'grid' : 'none';
-        cg3.style.display = (cAct.st === 'G' && cAct.s === '3') ? 'grid' : 'none';        if (idMatch && cantMatch) {
+        const cg3 = document.getElementById('controlesG3');        panelG.style.display = cAct.st === 'G' ? 'block' : 'none';
+
+        // Lógica Dinámica de Diseño de Garajes
+        if (cAct.st === 'G') {
+            const configGral = JSON.parse(localStorage.getItem('audiolog_config_gral') || '{}');
+            // Mapeo: si no existe en ajustes, usamos los originales por defecto
+            const disenio = configGral['dg' + cAct.s] || (cAct.s === '1' ? 'reloj' : (cAct.s === '2' ? 'u' : 'tramos'));
+
+            cg1.style.display = (disenio === 'reloj') ? 'grid' : 'none';
+            cg2.style.display = (disenio === 'u') ? 'grid' : 'none';
+            cg3.style.display = (disenio === 'tramos') ? 'grid' : 'none';
+
+            // Sincronizar datos GPS guardados con los parámetros del diseño activo
+            if (disenio === 'reloj') {
+                if (configUbi?.circulo) cAct.circulo = configUbi.circulo.replace('C:', '');
+                if (configUbi?.hora) cAct.hora = configUbi.hora;
+            } else if (disenio === 'u') {
+                if (configUbi?.lado) cAct.lado = configUbi.lado.replace('L:', '');
+            } else if (disenio === 'tramos') {
+                if (configUbi?.pasilloTipo) cAct.pasilloTipo = configUbi.pasilloTipo.replace('PS:', '');
+            }
+        } else {
+            cg1.style.display = cg2.style.display = cg3.style.display = 'none';
+        }        if (idMatch && cantMatch) {
             const id = idMatch[1];
             const total = parseInt(cantMatch[1]);
             const config = dbProductos[id];
@@ -769,10 +886,8 @@
                 document.getElementById('g2lado').value = "L:IZQ";
                 document.getElementById('g3pas').value = "PS:LAR";
             }
-        }
-
-        // Añadimos el nombre del producto al final de la locución
-        textoVoz += `. Artículo: ${prodVal}.`;
+        }        // Añadimos el nombre del producto al final de la locución
+        textoVoz += `. ${prodVal}.`;
 
         actualizarMetadatos(`Ítem ${pasoActual + 1}`, textoOriginal);
         statusDiv.innerHTML = `<span class="pulse"></span> PROCESANDO...`;
@@ -861,7 +976,13 @@
             if (uA.b !== uS.b) return parseInt(document.getElementById('tBalda').value);
         }
         return 0;
-    }
+    }    // Aplicar configuración de cámara al cargar la página
+    document.addEventListener('DOMContentLoaded', () => {
+        const config = JSON.parse(localStorage.getItem('audiolog_config_gral') || '{}');
+        if (config.modoCaptura === 'camera') {
+            document.getElementById('imgUpload').setAttribute('capture', 'environment');
+        }
+    });
 
     // --- FUNCIONES DEL GESTOR DE DB ---
     function toggleGestorDB() {
