@@ -162,97 +162,202 @@
             padding: 8px; 
             outline: none;
             cursor: pointer;
-        }
-        
-        #timer-msg {
+        }        #timer-msg {
             color: #4a90e2;
             font-size: 0.8rem;
             margin-top: 10px;
             min-height: 15px;
         }
+
+        #library-list {
+            max-height: 350px;
+            overflow-y: auto;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            padding: 10px;
+            scrollbar-width: none;
+        }
+
+        .book-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            position: relative;
+            transition: transform 0.2s;
+        }
+
+        .book-card:active { transform: scale(0.95); }
+
+        .book-thumb {
+            width: 130px;
+            height: 130px;
+            background: #333;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 8px;
+            position: relative;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            border: 1px solid #444;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .status-dot {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 18px;
+            height: 18px;
+            background: #4a90e2;
+            border-radius: 50%;
+            border: 3px solid #1a1a1a;
+            box-shadow: 0 0 5px rgba(0,0,0,0.5);
+            z-index: 2;
+        }
+
+        .book-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #ffffff;
+            text-transform: uppercase;
+            text-align: center;
+            width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            letter-spacing: 0.5px;
+        }
+
+        .delete-btn-mini {
+            position: absolute;
+            bottom: 25px;
+            right: 0;
+            background: rgba(239, 71, 111, 0.9);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 3;
+        }
     </style>
 </head>
 <body>
 
+
+<div style="position: fixed; top: 20px; right: 20px; z-index: 1001;">
+    <button onclick="toggleSettings()" style="padding: 10px 16px; border-radius: 12px; font-size: 1.1rem; border: 1px solid #333; background: #1a1a1a; color: #4a90e2; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.4);">⚙️ Ajustes</button>
+</div>
+
 <div class="player-container">
-    <div class="upload-section">
-        <label for="file-input" class="custom-file-upload" id="drop-zone">
-            <b id="file-label">📁 Selecciona tu Audiolibro</b>
-        </label>
-        <input type="file" id="file-input" accept="audio/*">
+
+    
+    <div id="settings-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:1000; align-items:center; justify-content:center; backdrop-filter: blur(5px);">
+        <div class="player-container" style="background:#1a1a1a; border: 1px solid #333; position: relative;">
+            <h3 style="color:#4a90e2; margin-top:0; margin-bottom: 20px;">Configuración</h3>
+            
+            <div class="upload-section" style="margin-bottom: 25px;">
+                <label for="file-input" class="custom-file-upload" id="drop-zone">
+                    <b id="file-label">📁 Añadir nuevo Audiolibro</b>
+                </label>
+                <input type="file" id="file-input" accept="audio/*">
+            </div>
+
+            <div style="background: #252525; padding: 20px; border-radius: 12px; border: 1px solid #333; margin-bottom: 20px; display: flex; flex-direction: column; gap: 15px;">
+                <div style="display: flex; align-items: center; justify-content: flex-start;">
+                    <input type="checkbox" id="normalize-vol" onchange="toggleNormalization()" style="width: 20px; height: 20px; cursor: pointer; margin-right: 12px;">
+                    <label for="normalize-vol" style="cursor: pointer; color: #4a90e2; font-weight: bold; font-size: 0.95rem;">🔊 Modo Noche (Audio Plano)</label>
+                </div>
+                
+                <div style="display: flex; flex-direction: column; align-items: flex-start; border-top: 1px solid #333; padding-top: 15px; gap: 10px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <input type="checkbox" id="silence-beep" onchange="toggleSilenceDetection()" style="width: 18px; height: 18px; cursor: pointer;">
+                        <label for="silence-beep" style="cursor: pointer; color: #06d6a0; font-size: 0.9rem; font-weight: 500;">🔔 Bip en Silencio cada:</label>
+                    </div>
+                    <select id="beep-interval" style="width: 100%; padding: 8px; font-size: 0.85rem; background: #333; color: white; border: none; border-radius: 8px;">
+                        <option value="300" selected>5 minutos</option>
+                        <option value="600">10 minutos</option>
+                        <option value="900">15 minutos</option>
+                        <option value="1200">20 minutos</option>
+                        <option value="1800">30 minutos</option>
+                    </select>
+                </div>
+            </div>
+
+            <button onclick="toggleSettings()" style="width:100%; background:#4a90e2; color:white; border:none; padding: 12px; font-size: 1rem;">Listo</button>
+        </div>
     </div>
 
-    <div class="book-info">
-        <div id="cover-container" style="margin-bottom: 20px; display: none;">
-            <img id="cover-art" src="" alt="Portada" style="width: 200px; height: 200px; object-fit: cover; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 2px solid #333;">
+    
+    <div id="library-container" style="background: #252525; border-radius: 15px; padding: 15px; margin-bottom: 25px; border: 1px solid #333; text-align: left;">
+        <h3 style="font-size: 0.9rem; margin: 0 0 12px 0; color: #4a90e2; display: flex; justify-content: space-between; align-items: center;">
+            📚 Biblioteca Local
+            <span id="db-status" style="font-size: 0.6rem; color: #666;">Conectando...</span>
+        </h3>
+        <div id="library-list">
+            <small style="color:#666; text-align:center; display:block; padding: 10px;">Cargando archivos guardados...</small>
         </div>
-        <h2 id="title">Sin archivo</h2>
-        <p id="author">Reproductor Local</p>
     </div>
 
     <audio id="audio-player"></audio>
 
-    <div class="progress-container" style="position: relative; height: 40px; display: flex; flex-direction: column; justify-content: center;">
-        <div id="marker-layer" style="position: absolute; width: 100%; height: 6px; pointer-events: none;"></div>
-        <input type="range" id="progress-bar" value="0" step="1" style="position: relative; z-index: 2;">
-        <div class="time-display">
-            <span id="current-time">0:00</span>
-            <span id="duration">0:00</span>
+    <div id="player-ui-container" style="display: none;">
+        <div class="book-info">
+            <div id="cover-container" style="margin-bottom: 20px; display: none;">
+                <img id="cover-art" src="" alt="Portada" style="width: 200px; height: 200px; object-fit: cover; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 2px solid #333;">
+            </div>
+            <h2 id="title">Sin archivo</h2>
+            <p id="author">Reproductor Local</p>
+        </div>
+
+        <div class="progress-container" style="position: relative; height: 40px; display: flex; flex-direction: column; justify-content: center;">
+            <div id="marker-layer" style="position: absolute; width: 100%; height: 6px; pointer-events: none;"></div>
+            <input type="range" id="progress-bar" value="0" step="1" style="position: relative; z-index: 2;">
+            <div class="time-display">
+                <span id="current-time">0:00</span>
+                <span id="duration">0:00</span>
+            </div>
+        </div>
+
+        <div class="controls" style="justify-content: space-between; align-items: center; margin-top: 10px;">
+            <button id="speed-display" onclick="cycleSpeed()" style="border:none; color: #888; font-size: 1rem; min-width: 45px; padding: 5px;">1x</button>
+            <button onclick="skip(-15)" style="border:none; font-size: 1.6rem;">↺</button>
+            <button id="play-pause" class="play-btn" onclick="togglePlay()">▶</button>
+            <button onclick="skip(15)" style="border:none; font-size: 1.6rem;">↻</button>
+            <button id="timer-icon" onclick="openTimerModal()" style="border:none; color: #888; font-size: 1.4rem; padding: 5px;">⏲</button>
+        </div>
+    </div>
+    <div id="timer-msg" style="font-size: 0.75rem; color: #4a90e2; margin-top: 5px; height: 12px;"></div>
+
+    
+    <div id="timer-bottom-modal" style="display:none; position:fixed; bottom:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:2000; align-items:flex-end;">
+        <div style="width:100%; background:#1e1e1e; border-radius: 20px 20px 0 0; padding: 20px; box-sizing: border-box; animation: slideUp 0.3s ease-out;">
+            <div style="width: 40px; height: 4px; background: #444; border-radius: 2px; margin: 0 auto 20px;"></div>
+            <h3 style="text-align:center; margin-bottom: 20px; font-size: 1.1rem;">Temporizador</h3>
+            <div style="display:flex; flex-direction:column; gap: 5px;">
+                <button onclick="setTimer(0)" style="width:100%; text-align:left; border:none; padding:15px; color:white;">Desactivado</button>
+                <button onclick="setTimer(5)" style="width:100%; text-align:left; border:none; padding:15px; color:white;">5 minutos</button>
+                <button onclick="setTimer(15)" style="width:100%; text-align:left; border:none; padding:15px; color:white;">15 minutos</button>
+                <button onclick="setTimer(30)" style="width:100%; text-align:left; border:none; padding:15px; color:white;">30 minutos</button>
+                <button onclick="setTimer(45)" style="width:100%; text-align:left; border:none; padding:15px; color:white;">45 minutos</button>
+                <button onclick="setTimer(60)" style="width:100%; text-align:left; border:none; padding:15px; color:white;">1 hora</button>
+                <button onclick="closeTimerModal()" style="width:100%; text-align:center; border:none; padding:15px; color:#4a90e2; font-weight:bold; margin-top:10px;">Cerrar</button>
+            </div>
         </div>
     </div>
 
-    <div class="controls">
-        <button onclick="skip(-15)">-15s</button>
-        <button id="play-pause" class="play-btn" onclick="togglePlay()">▶</button>
-        <button onclick="skip(15)">+15s</button>
-    </div>    <div class="settings-grid">
-        <div class="setting-item">
-            <label for="speed">Velocidad:</label>
-            <select id="speed" onchange="changeSpeed()">
-                <option value="0.5">0.5x</option>
-                <option value="0.6">0.6x</option>
-                <option value="0.7">0.7x</option>
-                <option value="0.8">0.8x</option>
-                <option value="0.9">0.9x</option>
-                <option value="1" selected>1.0x (Normal)</option>
-                <option value="1.1">1.1x</option>
-                <option value="1.2">1.2x</option>
-                <option value="1.3">1.3x</option>
-                <option value="1.4">1.4x</option>
-                <option value="1.5">1.5x</option>
-                <option value="1.75">1.75x</option>
-                <option value="2">2.0x</option>
-                <option value="2.5">2.5x</option>
-            </select>
-        </div>
-        <div class="setting-item">
-            <label for="sleep-timer">Apagar en:</label>
-            <select id="sleep-timer" onchange="setTimer()">
-                <option value="0" selected>Desactivado</option>
-                <option value="15">15 minutos</option>
-                <option value="30">30 minutos</option>
-                <option value="60">1 hora</option>
-            </select>
-        </div>
-        <div class="setting-item" style="grid-column: span 2; display: flex; flex-direction: column; gap: 8px; background: #252525; padding: 15px; border-radius: 12px; margin-top: 5px; border: 1px solid #333;">
-            <div style="display: flex; align-items: center; justify-content: center;">
-                <input type="checkbox" id="normalize-vol" onchange="toggleNormalization()" style="width: 20px; height: 20px; cursor: pointer; margin-right: 12px;">
-                <label for="normalize-vol" style="cursor: pointer; color: #4a90e2; font-weight: bold; font-size: 0.9rem;">🔊 Modo Noche (Audio Plano)</label>
-            </div>
-            <div style="display: flex; align-items: center; justify-content: center; border-top: 1px solid #333; margin-top: 5px; padding-top: 10px; gap: 10px;">
-                <input type="checkbox" id="silence-beep" onchange="toggleSilenceDetection()" style="width: 18px; height: 18px; cursor: pointer;">
-                <label for="silence-beep" style="cursor: pointer; color: #06d6a0; font-size: 0.85rem; font-weight: 500;">🔔 Bip en Silencio cada:</label>
-                <select id="beep-interval" style="padding: 2px 5px; font-size: 0.8rem; background: #333; color: white; border: none; border-radius: 4px;">
-                    <option value="300" selected>5 min</option>
-                    <option value="600">10 min</option>
-                    <option value="900">15 min</option>
-                    <option value="1200">20 min</option>
-                    <option value="1800">30 min</option>
-                </select>
-            </div>
-        </div>
-    </div>
-    <div id="timer-msg"></div>
+    <style>
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    </style>
 </div>
 
 <script>
@@ -268,62 +373,176 @@
     const timerSelect = document.getElementById('sleep-timer');
     const timerMsg = document.getElementById('timer-msg');
 
-    let sleepTimerTimeout; // Variable para guardar la referencia del temporizador
-    let currentFileName = ""; // Para guardar el nombre del archivo y usarlo como llave de guardado
+    let sleepTimerTimeout;
+    let currentFileName = "";
+    let db;
 
-    // 1. Carga del archivo y recuperación de progreso
+    function toggleSettings() {
+        const modal = document.getElementById('settings-modal');
+        if (modal.style.display === 'flex') {
+            modal.style.display = 'none';
+        } else {
+            modal.style.display = 'flex';
+        }
+    }
+
+    // Inicialización de Base de Datos (IndexedDB) para persistencia real
+    const dbRequest = indexedDB.open("AudiobookProDB", 1);
+
+    dbRequest.onupgradeneeded = (e) => {
+        db = e.target.result;
+        if (!db.objectStoreNames.contains("books")) {
+            db.createObjectStore("books", { keyPath: "name" });
+        }
+    };
+
+    dbRequest.onsuccess = (e) => {
+        db = e.target.result;
+        document.getElementById('db-status').textContent = "En línea ✓";
+        displayLibrary();
+    };
+
+    dbRequest.onerror = () => {
+        document.getElementById('db-status').textContent = "Error DB ✗";
+    };
+
+    function saveToLibrary(file) {
+        if (!db) return;
+        const transaction = db.transaction(["books"], "readwrite");
+        const store = transaction.objectStore("books");
+        
+        const bookData = { 
+            name: file.name, 
+            data: file, 
+            added: new Date().getTime()
+        };
+
+        const request = store.put(bookData);
+        request.onsuccess = () => {
+            timerMsg.textContent = "Guardado en biblioteca ✓";
+            displayLibrary();
+            setTimeout(() => timerMsg.textContent = "", 3000);
+        };
+    }    function displayLibrary() {
+        const list = document.getElementById('library-list');
+        if (!list) return;
+        list.innerHTML = "";
+
+        const transaction = db.transaction(["books"], "readonly");
+        const store = transaction.objectStore("books");
+        
+        store.openCursor().onsuccess = (e) => {
+            const cursor = e.target.result;
+            if (cursor) {
+                const bookData = cursor.value;
+                const bookName = bookData.name;
+                const escapedName = bookName.replace(/'/g, "\\'");
+                
+                const card = document.createElement('div');
+                card.className = 'book-card';
+                
+                // Formatear nombre para que siempre se vea limpio
+                const labelName = bookName.replace(/\.[^/.]+$/, "").substring(0, 20).toUpperCase();
+
+                card.innerHTML = `
+                    <div class="book-thumb" onclick="loadFromLibrary('${escapedName}')">
+                        <div class="status-dot"></div>
+                        <span style="font-size: 2.5rem; opacity: 0.15;">🎧</span>
+                        <button class="delete-btn-mini" onclick="event.stopPropagation(); deleteFromLibrary('${escapedName}')">✕</button>
+                    </div>
+                    <div class="book-label">${labelName}</div>
+                `;
+                
+                const currentThumb = card.querySelector('.book-thumb');
+                list.appendChild(card);
+
+                // Procesar tags usando la referencia directa al elemento actual (evita mezclas)
+                try {
+                    window.jsmediatags.read(bookData.data, {
+                        onSuccess: function(tag) {
+                            const { picture } = tag.tags;
+                            if (picture && currentThumb) {
+                                const { data, format } = picture;
+                                let base64String = "";
+                                for (let i = 0; i < data.length; i++) base64String += String.fromCharCode(data[i]);
+                                currentThumb.style.backgroundImage = `url(data:${format};base64,${window.btoa(base64String)})`;
+                                currentThumb.querySelector('span').style.display = 'none';
+                            }
+                        }
+                    });
+                } catch (err) {}
+
+                cursor.continue();
+            } else if (list.innerHTML === "") {
+                list.innerHTML = "<small style='color:#666; text-align:center; grid-column: 1 / span 2; padding: 20px;'>Biblioteca vacía.</small>";
+            }
+        };
+    }
+
+    function deleteFromLibrary(name) {
+        if (!confirm("¿Eliminar este libro de la memoria?")) return;
+        const transaction = db.transaction(["books"], "readwrite");
+        transaction.objectStore("books").delete(name);
+        transaction.oncomplete = () => {
+            if (currentFileName === name) location.reload();
+            else displayLibrary();
+        };
+    }
+
+    function loadFromLibrary(name) {
+        const transaction = db.transaction(["books"], "readonly");
+        const store = transaction.objectStore("books");
+        store.get(name).onsuccess = (e) => {
+            if (e.target.result) {
+                processAudioFile(e.target.result.data);
+                timerMsg.textContent = "Cargando de memoria...";
+                setTimeout(() => timerMsg.textContent = "", 2000);
+            }
+        };
+    }
+
+    function processAudioFile(file) {
+        document.getElementById('player-ui-container').style.display = 'block';
+        currentFileName = file.name;
+        fileLabel.textContent = "Libro: " + (currentFileName.length > 15 ? currentFileName.substring(0,12) + "..." : currentFileName);
+        
+        document.getElementById('cover-container').style.display = 'none';
+        titleEl.textContent = currentFileName.replace(/\.[^/.]+$/, "");
+        document.getElementById('author').textContent = "Leyendo etiquetas...";
+
+        try {
+            window.jsmediatags.read(file, {
+                onSuccess: function(tag) {
+                    const { title, artist, picture } = tag.tags;
+                    if (title) titleEl.textContent = title;
+                    if (artist) document.getElementById('author').textContent = artist;
+                    else document.getElementById('author').textContent = "Autor Desconocido";
+                    if (picture) {
+                        const { data, format } = picture;
+                        let base64String = "";
+                        for (let i = 0; i < data.length; i++) base64String += String.fromCharCode(data[i]);
+                        document.getElementById('cover-art').src = "data:" + format + ";base64," + window.btoa(base64String);
+                        document.getElementById('cover-container').style.display = 'block';
+                    }
+                },
+                onError: () => { document.getElementById('author').textContent = "Reproductor Local"; }
+            });
+        } catch (e) {}
+
+        const objectURL = URL.createObjectURL(file);
+        audio.src = objectURL;
+        audio.load();
+        playPauseBtn.textContent = '▶';
+
+        const savedTime = localStorage.getItem('audiobook_progress_' + currentFileName);
+        if(savedTime) audio.currentTime = parseFloat(savedTime);
+    }
+
     fileInput.addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (file) {
-            currentFileName = file.name;
-            fileLabel.textContent = "Archivo cargado ✓";
-            
-            // Reset de imagen y textos
-            document.getElementById('cover-container').style.display = 'none';
-            titleEl.textContent = currentFileName.replace(/\.[^/.]+$/, "");
-            document.getElementById('author').textContent = "Cargando...";
-
-            // Intento de lectura de Metadatos con JS Media Tags
-            try {
-                window.jsmediatags.read(file, {
-                    onSuccess: function(tag) {
-                        const { title, artist, picture } = tag.tags;
-                        if (title) titleEl.textContent = title;
-                        if (artist) document.getElementById('author').textContent = artist;
-                        else document.getElementById('author').textContent = "Autor Desconocido";
-
-                        if (picture) {
-                            const { data, format } = picture;
-                            let base64String = "";
-                            for (let i = 0; i < data.length; i++) {
-                                base64String += String.fromCharCode(data[i]);
-                            }
-                            const base64 = "data:" + format + ";base64," + window.btoa(base64String);
-                            const img = document.getElementById('cover-art');
-                            img.src = base64;
-                            document.getElementById('cover-container').style.display = 'block';
-                        }
-                    },
-                    onError: function(error) {
-                        console.log('Error de tags:', error);
-                        document.getElementById('author').textContent = "Reproductor Local";
-                    }
-                });
-            } catch (e) { console.error("Librería no cargada"); }
-            
-            const objectURL = URL.createObjectURL(file);
-            audio.src = objectURL;
-            playPauseBtn.textContent = '▶';
-            audio.load(); 
-
-            // Recuperar el progreso guardado usando el nombre del archivo como identificador
-            const savedTime = localStorage.getItem('audiobook_progress_' + currentFileName);
-            if(savedTime) {
-                // Si existe un tiempo guardado, adelantamos el audio a ese punto
-                audio.currentTime = parseFloat(savedTime);
-                timerMsg.textContent = "Progreso recuperado.";
-                setTimeout(() => timerMsg.textContent = "", 3000);
-            }
+            saveToLibrary(file);
+            processAudioFile(file);
         }
     });
 
@@ -370,32 +589,41 @@
 
     function skip(seconds) {
         audio.currentTime += seconds;
+    }    const speeds = [1, 1.2, 1.5, 1.7, 2, 0.8];
+    let currentSpeedIndex = 0;
+
+    function cycleSpeed() {
+        currentSpeedIndex = (currentSpeedIndex + 1) % speeds.length;
+        const newSpeed = speeds[currentSpeedIndex];
+        audio.playbackRate = newSpeed;
+        document.getElementById('speed-display').textContent = newSpeed + 'x';
+        document.getElementById('speed-display').style.color = newSpeed === 1 ? '#888' : '#4a90e2';
     }
 
-    function changeSpeed() {
-        audio.playbackRate = speedSelect.value;
-    }
+    function openTimerModal() { document.getElementById('timer-bottom-modal').style.display = 'flex'; }
+    function closeTimerModal() { document.getElementById('timer-bottom-modal').style.display = 'none'; }
 
-    // 3. Lógica del temporizador de apagado
-    function setTimer() {
-        // Limpiamos cualquier temporizador anterior
+    function setTimer(minutes) {
         clearTimeout(sleepTimerTimeout);
-        const minutes = parseInt(timerSelect.value);
+        closeTimerModal();
+        
+        const timerIcon = document.getElementById('timer-icon');
 
         if (minutes > 0) {
             const milliseconds = minutes * 60 * 1000;
-            timerMsg.textContent = `El audio se pausará en ${minutes} minutos.`;
+            timerMsg.textContent = `Pausa en ${minutes} min`;
+            timerIcon.style.color = '#4a90e2';
             
             sleepTimerTimeout = setTimeout(() => {
                 audio.pause();
                 playPauseBtn.textContent = '▶';
-                timerMsg.textContent = "Temporizador finalizado. Audio pausado.";
-                timerSelect.value = "0"; // Reiniciamos el selector
-                saveProgress(); // Nos aseguramos de guardar donde se paró
+                timerMsg.textContent = "Zzz...";
+                timerIcon.style.color = '#888';
+                saveProgress();
             }, milliseconds);
         } else {
-            timerMsg.textContent = "Temporizador desactivado.";
-            setTimeout(() => timerMsg.textContent = "", 3000);
+            timerMsg.textContent = "";
+            timerIcon.style.color = '#888';
         }
     }
 
