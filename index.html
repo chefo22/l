@@ -1,1164 +1,520 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AudioLog - Formato Estructurado</title>
-    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500&family=Roboto:wght@400;500&display=swap" rel="stylesheet">    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
-    
-    
+    <title>Reproductor de Audiolibros Pro - Dark Mode</title>
     <style>
-        :root {
-            --primary: #D0BCFF;
-            --on-primary: #381E72;
-            --surface: #1C1B1F;
-            --surface-variant: #49454F;
-            --on-surface: #E6E1E5;
-            --outline: #938F99;
-            --bg: #141218;
-            --error: #F2B8B5;
-            --on-error: #601410;
-        }
-
-        * { box-sizing: border-box; }
-
+        /* Estilos generales y fondo */
         body {
-            font-family: 'Roboto', sans-serif;
-            background-color: var(--bg);
-            color: var(--on-surface);
-            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
             display: flex;
             justify-content: center;
-            padding: 20px;
-        }
-
-        .app-container {
-            width: 100%;
-            max-width: 450px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        .header {
-            padding: 10px 0;
-            display: flex;
             align-items: center;
-            justify-content: space-between;
-        }
-
-        .header h1 {
-            font-family: 'Google Sans', sans-serif;
-            font-size: 22px;
+            height: 100vh;
             margin: 0;
-            font-weight: 500;
+            color: #ffffff;
         }
 
-        .card {
-            background-color: var(--surface);
-            border-radius: 24px;
-            padding: 20px;
-            border: 1px solid var(--surface-variant);
-        }
-
-        .section-title {
-            font-size: 12px;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-            color: var(--primary);
-            margin-bottom: 16px;
-            font-weight: 500;
-        }
-
-        .text-field {
+        /* Contenedor principal */
+        .player-container {
+            background-color: #1a1a1a;
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
             width: 100%;
-            background: #000;
-            border: 1px solid var(--outline);
+            max-width: 380px;
+            text-align: center;
+        }
+
+        .book-info h2 { 
+            margin: 10px 0 5px; 
+            color: #ffffff; 
+            font-weight: 600; 
+            font-size: 1.4rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .book-info p { color: #a0a0a0; margin-bottom: 30px; }
+
+        /* Sección de carga de archivo */
+        .upload-section {
+            margin-bottom: 25px;
+            padding: 15px;
+            border: 2px dashed #4a90e2;
             border-radius: 12px;
-            color: #afff94; /* Color tipo terminal para los datos */
-            padding: 12px;
-            font-size: 13px;
-            font-family: monospace;
-            margin-bottom: 16px;
-            resize: vertical;
-            transition: border 0.2s;
+            transition: border-color 0.3s;
+        }
+        
+        #file-input { display: none; }
+
+        .custom-file-upload {
+            color: #4a90e2;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: block;
         }
 
-        .text-field:focus {
-            outline: none;
-            border: 2px solid var(--primary);
+        /* Barra de progreso personalizada */
+        .progress-container { width: 100%; margin-bottom: 25px; }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+            cursor: pointer;
         }
 
-        .inputs-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
+        input[type="range"]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 6px;
+            background: #333;
+            border-radius: 3px;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: #4a90e2;
+            margin-top: -5px;
+            box-shadow: 0 0 10px rgba(74, 144, 226, 0.4);
+        }
+
+        .time-display {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 10px;
+        }
+
+        /* Controles de reproducción */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            align-items: center;
             margin-bottom: 20px;
         }
 
-        .input-box {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .input-box label {
-            font-size: 11px;
-            color: var(--outline);
-            padding-left: 4px;
-        }
-
-        .input-box input {
-            background: var(--surface-variant);
-            border: none;
-            border-radius: 12px;
-            color: white;
-            padding: 12px;
-            font-size: 16px;
-            text-align: center;
-            width: 100%;
-        }
-
-        .button-group {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-
-        .fab-button {
-            background-color: var(--primary);
-            color: var(--on-primary);
-            border: none;
-            border-radius: 16px;
-            padding: 18px;
-            font-size: 14px;
-            font-weight: 500;
+        button {
+            background: none;
+            border: 2px solid #1e5bb8;
+            color: #4a90e2;
+            padding: 10px 18px;
+            border-radius: 30px;
             cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+
+        button:hover { background-color: rgba(74, 144, 226, 0.1); }
+
+        .play-btn { 
+            width: 70px; 
+            height: 70px; 
+            border-radius: 50%; 
+            font-size: 1.5rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
 
-        .fab-button.pause {
-            background-color: var(--surface-variant);
-            color: var(--on-surface);
+        /* Ajustes (Velocidad y Temporizador) */
+        .beep-marker {
+            position: absolute;
+            width: 2px;
+            height: 8px;
+            background-color: #ffffff;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+            z-index: 5;
+            box-shadow: 0 0 5px rgba(255,255,255,0.8);
+        }
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+            text-align: left;
         }
 
-        .fab-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
+        .setting-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            font-size: 0.85rem;
+            color: #aaa;
         }
 
-        .status-panel {
-            background: linear-gradient(180deg, var(--surface) 0%, var(--bg) 100%);
-            border-radius: 28px;
-            padding: 24px;
-            text-align: center;
-            border: 1px solid var(--surface-variant);
-            min-height: 120px;
+        select { 
+            background-color: #333; 
+            color: white; 
+            border: none;
+            border-radius: 8px; 
+            padding: 8px; 
+            outline: none;
+            cursor: pointer;
         }
-
-        #status {
-            font-size: 18px;
-            font-weight: 500;
-            color: var(--primary);
-            margin-bottom: 8px;
+        
+        #timer-msg {
+            color: #4a90e2;
+            font-size: 0.8rem;
+            margin-top: 10px;
+            min-height: 15px;
         }
-
-        #sub-status {
-            font-size: 14px;
-            color: var(--on-surface);
-            line-height: 1.4;
-        }
-
-        .pulse {
-            width: 10px;
-            height: 10px;
-            background: var(--primary);
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 8px;
-            animation: blink 1s infinite;
-        }
-
-        @keyframes blink { 50% { opacity: 0.3; } }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
+<div class="player-container">
+    <div class="upload-section">
+        <label for="file-input" class="custom-file-upload" id="drop-zone">
+            <b id="file-label">📁 Selecciona tu Audiolibro</b>
+        </label>
+        <input type="file" id="file-input" accept="audio/*">
+    </div>
 
-<div id="loadingOverlay" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 200; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(8px);">
-    <div style="width: 60px; height: 60px; border: 6px solid var(--surface-variant); border-top: 6px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 24px;"></div>
-    <div style="color: var(--primary); font-family: 'Google Sans', sans-serif; font-size: 20px; font-weight: 500; letter-spacing: 0.5px;">PROCESANDO IMAGEN</div>
-    <div style="color: var(--on-surface); font-size: 14px; margin-top: 8px; opacity: 0.7;">La IA de Gemini está extrayendo los datos...</div>
+    <div class="book-info">
+        <div id="cover-container" style="margin-bottom: 20px; display: none;">
+            <img id="cover-art" src="" alt="Portada" style="width: 200px; height: 200px; object-fit: cover; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 2px solid #333;">
+        </div>
+        <h2 id="title">Sin archivo</h2>
+        <p id="author">Reproductor Local</p>
+    </div>
+
+    <audio id="audio-player"></audio>
+
+    <div class="progress-container" style="position: relative; height: 40px; display: flex; flex-direction: column; justify-content: center;">
+        <div id="marker-layer" style="position: absolute; width: 100%; height: 6px; pointer-events: none;"></div>
+        <input type="range" id="progress-bar" value="0" step="1" style="position: relative; z-index: 2;">
+        <div class="time-display">
+            <span id="current-time">0:00</span>
+            <span id="duration">0:00</span>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button onclick="skip(-15)">-15s</button>
+        <button id="play-pause" class="play-btn" onclick="togglePlay()">▶</button>
+        <button onclick="skip(15)">+15s</button>
+    </div>    <div class="settings-grid">
+        <div class="setting-item">
+            <label for="speed">Velocidad:</label>
+            <select id="speed" onchange="changeSpeed()">
+                <option value="0.5">0.5x</option>
+                <option value="0.6">0.6x</option>
+                <option value="0.7">0.7x</option>
+                <option value="0.8">0.8x</option>
+                <option value="0.9">0.9x</option>
+                <option value="1" selected>1.0x (Normal)</option>
+                <option value="1.1">1.1x</option>
+                <option value="1.2">1.2x</option>
+                <option value="1.3">1.3x</option>
+                <option value="1.4">1.4x</option>
+                <option value="1.5">1.5x</option>
+                <option value="1.75">1.75x</option>
+                <option value="2">2.0x</option>
+                <option value="2.5">2.5x</option>
+            </select>
+        </div>
+        <div class="setting-item">
+            <label for="sleep-timer">Apagar en:</label>
+            <select id="sleep-timer" onchange="setTimer()">
+                <option value="0" selected>Desactivado</option>
+                <option value="15">15 minutos</option>
+                <option value="30">30 minutos</option>
+                <option value="60">1 hora</option>
+            </select>
+        </div>
+        <div class="setting-item" style="grid-column: span 2; display: flex; flex-direction: column; gap: 8px; background: #252525; padding: 15px; border-radius: 12px; margin-top: 5px; border: 1px solid #333;">
+            <div style="display: flex; align-items: center; justify-content: center;">
+                <input type="checkbox" id="normalize-vol" onchange="toggleNormalization()" style="width: 20px; height: 20px; cursor: pointer; margin-right: 12px;">
+                <label for="normalize-vol" style="cursor: pointer; color: #4a90e2; font-weight: bold; font-size: 0.9rem;">🔊 Modo Noche (Audio Plano)</label>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: center; border-top: 1px solid #333; margin-top: 5px; padding-top: 10px; gap: 10px;">
+                <input type="checkbox" id="silence-beep" onchange="toggleSilenceDetection()" style="width: 18px; height: 18px; cursor: pointer;">
+                <label for="silence-beep" style="cursor: pointer; color: #06d6a0; font-size: 0.85rem; font-weight: 500;">🔔 Bip en Silencio cada:</label>
+                <select id="beep-interval" style="padding: 2px 5px; font-size: 0.8rem; background: #333; color: white; border: none; border-radius: 4px;">
+                    <option value="300" selected>5 min</option>
+                    <option value="600">10 min</option>
+                    <option value="900">15 min</option>
+                    <option value="1200">20 min</option>
+                    <option value="1800">30 min</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    <div id="timer-msg"></div>
 </div>
-
-<div class="app-container">
-    <div class="header">
-        <div style="display: flex; align-items: center; gap: 12px;">
-            <span class="material-icons-round" style="color: var(--primary)">inventory_2</span>
-            <h1>AudioLog</h1>
-        </div>
-        <div style="display: flex; gap: 8px;">
-            <button class="fab-button pause" title="Buscador" onclick="toggleBuscador()" style="padding: 8px; border-radius: 12px; background-color: var(--surface-variant);">
-                <span class="material-icons-round">search</span>
-            </button>
-            <button class="fab-button pause" title="Gestor de Base de Datos" onclick="toggleGestorDB()" style="padding: 8px; border-radius: 12px; background-color: var(--surface-variant);">
-                <span class="material-icons-round">storage</span>
-            </button>
-            <button class="fab-button pause" title="Ajustes" onclick="toggleAjustes()" style="padding: 8px; border-radius: 12px;">
-                <span class="material-icons-round">settings</span>
-            </button>
-        </div>
-    </div>
-
-    <div class="card">
-        
-        <div class="button-group" style="margin-bottom: 12px;">
-            <button class="fab-button" onclick="comenzarTransmision()">
-                <span class="material-icons-round">play_arrow</span>
-                INICIAR
-            </button>
-            <button id="btnPausa" class="fab-button pause" onclick="alternarPausa()" disabled>
-                <span class="material-icons-round" id="iconPausa">pause</span>
-                <span id="textPausa">PAUSAR</span>
-            </button>
-        </div>
-
-        <div class="button-group" style="margin-bottom: 20px;">
-            <button class="fab-button pause" onclick="saltarPaso(-1)" title="Ítem Anterior" style="background-color: var(--surface-variant); border: 1px solid var(--outline);">
-                <span class="material-icons-round">arrow_back</span>
-                ANTERIOR
-            </button>
-            <button class="fab-button pause" onclick="saltarPaso(1)" title="Siguiente Ítem" style="background-color: var(--surface-variant); border: 1px solid var(--outline);">
-                SIGUIENTE
-                <span class="material-icons-round">arrow_forward</span>
-            </button>
-        </div>
-
-        <div id="panelEntrada">
-            <div class="section-title" style="display: flex; justify-content: space-between; align-items: center;">
-                <span>Entrada de Datos (ID, Producto...)</span>
-                <label for="imgUpload" style="cursor:pointer; background:var(--surface-variant); padding:4px 8px; border-radius:8px; display:flex; align-items:center; gap:4px; color:var(--primary); font-size:10px; transition: 0.2s;">
-                    <span class="material-icons-round" style="font-size:14px;">camera_alt</span> ESCANEAR ALBARÁN
-                </label>
-                <input type="file" id="imgUpload" accept="image/*" style="display:none;" onchange="procesarImagen(this)">
-            </div>
-            <textarea id="textoEntrada" class="text-field" rows="8" placeholder="ID: 2015. Ubicación: S1 P2 E1 B1. Producto: GUANTES. Cantidad: 43."></textarea>
-        </div>
-
-        <div id="panelAjusteEmpaque" style="display: none; background: rgba(255,255,255,0.05); border-radius: 16px; padding: 15px; margin-bottom: 16px; border: 1px dashed var(--outline);">
-            <div class="section-title" style="margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
-                <span class="material-icons-round" style="font-size: 16px;">inventory</span> AJUSTE DE EMPAQUE (ID ACTUAL)
-            </div>            <div class="inputs-grid" style="margin-bottom: 10px;">
-                <div class="input-box"><label>UDS / CAJITA</label><input type="number" id="pUdsCajita" value="1"></div>
-                <div class="input-box"><label>CAJITAS / CAJA</label><input type="number" id="pCajitasCaja" value="1"></div>
-            </div>
-            <div id="panelGarajeUI" style="background: rgba(208, 188, 255, 0.1); border-radius: 12px; padding: 10px; margin-bottom: 15px; border: 1px solid var(--primary); display: none;">
-                <div class="section-title" style="font-size: 10px; color: white;">ASISTENTE DE DISEÑO GARAGE</div>
-                <div id="controlesG1" class="inputs-grid" style="display:none; margin-bottom:0;">
-                   <div class="input-box"><label>CÍRCULO</label><select id="g1circ" style="background:var(--surface-variant); color:white; border:none; border-radius:8px; padding:5px;"><option value="C:INT">Interior</option><option value="C:EXT">Exterior</option></select></div>
-                   <div class="input-box"><label>HORA (1-12)</label><input type="number" id="g1hora" placeholder="12" min="1" max="12"></div>
-                </div>
-                <div id="controlesG2" class="inputs-grid" style="display:none; margin-bottom:0;">
-                   <div class="input-box" style="grid-column: span 2;"><label>POSICIÓN U</label><select id="g2lado" style="background:var(--surface-variant); color:white; border:none; border-radius:8px; padding:5px;"><option value="L:IZQ">Izquierda</option><option value="L:FON">Fondo</option><option value="L:DER">Derecha</option></select></div>
-                </div>
-                <div id="controlesG3" class="inputs-grid" style="display:none; margin-bottom:0;">
-                   <div class="input-box" style="grid-column: span 2;"><label>TRAMO L</label><select id="g3pas" style="background:var(--surface-variant); color:white; border:none; border-radius:8px; padding:5px;"><option value="PS:LAR">Pasillo Largo</option><option value="PS:COR">Pasillo Corto</option></select></div>
-                </div>
-            </div>
-            <button class="fab-button" onclick="guardarConfigProducto()" style="width: 100%; height: 40px; font-size: 12px; background-color: var(--surface-variant); color: var(--primary); border: 1px solid var(--primary);">
-                <span class="material-icons-round">save</span> GUARDAR EMPAQUE
-            </button>
-            <button class="fab-button" onclick="marcarSinStock()" style="width: 100%; height: 40px; font-size: 12px; margin-top: 10px; background-color: #442b2b; color: var(--error); border: 1px solid var(--error);">
-                <span class="material-icons-round">block</span> SIN STOCK HOY
-            </button>
-        </div>
-        
-        <div id="modalAjustes" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px);">
-            <div class="card" style="width: 100%; max-width: 400px; border: 1px solid var(--primary); max-height: 90vh; overflow-y: auto;">
-                <div class="section-title" style="display: flex; justify-content: space-between; align-items: center;">
-                    CONFIGURACIÓN GENERAL
-                    <span class="material-icons-round" onclick="toggleAjustes()" style="cursor: pointer; color: var(--error)">close</span>
-                </div>
-                
-                <div style="font-size: 11px; color: var(--primary); margin-bottom: 8px;">TIEMPOS DE ESPERA (SEG)</div>
-                <div class="inputs-grid">
-                    <div class="input-box"><label>SALA</label><input type="number" id="tSala" value="8"></div>
-                    <div class="input-box"><label>PASILLO</label><input type="number" id="tPasillo" value="4"></div>
-                    <div class="input-box"><label>ESTANTE</label><input type="number" id="tEstanteria" value="2"></div>
-                    <div class="input-box"><label>BALDA</label><input type="number" id="tBalda" value="1"></div>
-                </div>                <div style="font-size: 11px; color: var(--primary); margin-top: 15px; margin-bottom: 8px;">MODO DE ESCANEO (CÁMARA)</div>
-                <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-                    <select id="modoCaptura" style="width: 100%; background: var(--surface-variant); color: white; border: 1px solid var(--outline); border-radius: 12px; padding: 10px; font-size: 13px;">
-                        <option value="gallery">📂 Abrir Galería / Selector</option>
-                        <option value="camera">📸 Abrir Cámara Directamente</option>
-                    </select>
-                </div>
-
-                <div style="font-size: 11px; color: var(--primary); margin-top: 5px; margin-bottom: 8px;">DISEÑO DE GARAJES (PERSONALIZABLE)</div>
-                <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px;">
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <span style="font-size:10px; width:25px;">G1:</span>
-                        <select id="dg1" style="flex:1; background:var(--surface-variant); color:white; border:1px solid var(--outline); border-radius:8px; padding:5px; font-size:11px;">
-                            <option value="reloj">Reloj (Círculos/Horas)</option>
-                            <option value="u">Pasillo en U (Lados)</option>
-                            <option value="tramos">Tramos (Pasillo L/C)</option>
-                        </select>
-                    </div>
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <span style="font-size:10px; width:25px;">G2:</span>
-                        <select id="dg2" style="flex:1; background:var(--surface-variant); color:white; border:1px solid var(--outline); border-radius:8px; padding:5px; font-size:11px;">
-                            <option value="reloj">Reloj (Círculos/Horas)</option>
-                            <option value="u">Pasillo en U (Lados)</option>
-                            <option value="tramos">Tramos (Pasillo L/C)</option>
-                        </select>
-                    </div>
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <span style="font-size:10px; width:25px;">G3:</span>
-                        <select id="dg3" style="flex:1; background:var(--surface-variant); color:white; border:1px solid var(--outline); border-radius:8px; padding:5px; font-size:11px;">
-                            <option value="reloj">Reloj (Círculos/Horas)</option>
-                            <option value="u">Pasillo en U (Lados)</option>
-                            <option value="tramos">Tramos (Pasillo L/C)</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div style="font-size: 11px; color: var(--primary); margin-top: 15px; margin-bottom: 8px;">SISTEMA IA (GEMINI)</div>
-                <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-                    <button class="fab-button" onclick="localStorage.removeItem('gemini_api_key'); alert('Clave eliminada.');" style="flex:1; background: var(--surface-variant); color: var(--error); border: 1px solid var(--error); height: 32px; font-size: 10px; padding: 0;">
-                        <span class="material-icons-round" style="font-size:14px;">key_off</span> BORRAR KEY
-                    </button>
-                    <button class="fab-button" onclick="const k = prompt('Nueva API Key:'); if(k) { localStorage.setItem('gemini_api_key', k.trim()); alert('Key guardada'); }" style="flex:1; background: var(--surface-variant); color: var(--primary); border: 1px solid var(--primary); height: 32px; font-size: 10px; padding: 0;">
-                        <span class="material-icons-round" style="font-size:14px;">vpn_key</span> CAMBIAR
-                    </button>
-                </div>
-
-                <div style="font-size: 11px; color: var(--primary); margin-top: 15px; margin-bottom: 8px;">BASE DE DATOS (BACKUP)</div>
-                <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-                    <button class="fab-button" onclick="exportarDB()" style="flex:1; background: var(--surface-variant); color: var(--primary); border: 1px solid var(--primary); height: 32px; font-size: 10px; padding: 0;">
-                        <span class="material-icons-round" style="font-size:14px;">download</span> EXPORTAR
-                    </button>
-                    <button class="fab-button" onclick="document.getElementById('importFileInput').click()" style="flex:1; background: var(--surface-variant); color: var(--primary); border: 1px solid var(--primary); height: 32px; font-size: 10px; padding: 0;">
-                        <span class="material-icons-round" style="font-size:14px;">upload</span> IMPORTAR
-                    </button>
-                    <input type="file" id="importFileInput" accept=".json" style="display:none;" onchange="importarDB(this)">
-                </div>
-                <div style="font-size: 11px; color: var(--primary); margin-top: 15px; margin-bottom: 8px;">PEGATINAS (CAJA APARTE)</div>
-                <div style="display: flex; flex-direction: column; gap: 10px;">
-                    <div class="input-box">
-                        <label style="color: #ff5252;">🔴 PEGATINA ROJA (IDs, Nombres, Ubis...)</label>
-                        <textarea id="peg Roja" style="background: var(--surface-variant); color: white; border: none; border-radius: 8px; padding: 8px; font-size: 12px;" rows="2" placeholder="Ej: 2015, S1, Tiras reactivas"></textarea>
-                    </div>
-                    <div class="input-box">
-                        <label style="color: #69f0ae;">🟢 PEGATINA VERDE (IDs, Nombres, Ubis...)</label>
-                        <textarea id="peg Verde" style="background: var(--surface-variant); color: white; border: none; border-radius: 8px; padding: 8px; font-size: 12px;" rows="2" placeholder="Ej: 3040, G2, Gasas"></textarea>
-                    </div>
-                    <div class="input-box">
-                        <label style="color: #ffd740;">🟡 PEGATINA AMARILLA (IDs, Nombres, Ubis...)</label>
-                        <textarea id="peg Amarilla" style="background: var(--surface-variant); color: white; border: none; border-radius: 8px; padding: 8px; font-size: 12px;" rows="2" placeholder="Ej: P5, B1, Alcohol"></textarea>
-                    </div>
-                </div>
-
-                <button class="fab-button" onclick="guardarAjustesGlobales()" style="width: 100%; margin-top: 20px;">GUARDAR Y CERRAR</button>
-            </div>
-        </div>        <div id="modalBuscador" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 110; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px);">
-            <div class="card" style="width: 100%; max-width: 350px; border: 1px solid var(--primary);">
-                <div class="section-title" style="display: flex; justify-content: space-between; align-items: center;">
-                    BUSCADOR DE UBICACIÓN
-                    <span class="material-icons-round" onclick="toggleBuscador()" style="cursor: pointer; color: var(--error)">close</span>
-                </div>
-                <input type="text" id="inputBusqueda" placeholder="ID o Nombre..." style="width:100%; background:var(--surface-variant); border:1px solid var(--outline); border-radius:12px; color:white; padding:15px; font-size:16px; margin-bottom:15px;">
-                <button class="fab-button" onclick="ejecutarBusqueda()" style="width:100%; margin-bottom:15px;">
-                    <span class="material-icons-round">search</span> BUSCAR AHORA
-                </button>
-                <div id="resBusqueda" style="background:rgba(0,0,0,0.3); border-radius:12px; padding:15px; text-align:center; min-height:80px; display:flex; flex-direction:column; justify-content:center;">
-                    <span style="color:var(--outline); font-size:13px;">El resultado aparecerá aquí</span>
-                </div>
-            </div>
-        </div>
-
-        
-        <div id="modalGestorDB" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 120; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(6px);">
-            <div class="card" style="width: 100%; max-width: 400px; max-height: 80vh; border: 1px solid var(--primary); display: flex; flex-direction: column;">
-                <div class="section-title" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    GESTOR DE PRODUCTOS (GPS)
-                    <span class="material-icons-round" onclick="toggleGestorDB()" style="cursor: pointer; color: var(--error)">close</span>
-                </div>
-                <div id="listaProductosDB" style="overflow-y: auto; flex-grow: 1; display: flex; flex-direction: column; gap: 10px; padding-right: 5px;">
-                    
-                </div>
-                <button class="fab-button" onclick="toggleGestorDB()" style="width: 100%; margin-top: 20px;">CERRAR</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="status-panel">
-        <div id="status">ESPERANDO LISTA</div>
-        <div id="sub-status">Pega las líneas de inventario para comenzar</div>
-    </div>
-</div>
-
-<audio id="reproductorMaster"></audio>
 
 <script>
-    const player = document.getElementById('reproductorMaster');
-    const statusDiv = document.getElementById('status');
-    const subStatusDiv = document.getElementById('sub-status');
-    const btnPausa = document.getElementById('btnPausa');
-    const iconPausa = document.getElementById('iconPausa');
-    const textPausa = document.getElementById('textPausa');
-    const silencioUrl = "https://raw.githubusercontent.com/anars/blank-audio/master/1-second-of-silence.mp3";    let listaTareas = [];
-    let pasoActual = 0;
-    let segundosRestantes = 0;
-    let estaPausado = false;    let dbProductos = JSON.parse(localStorage.getItem('audiolog_db') || '{}');
-    let dbSinStock = JSON.parse(localStorage.getItem('audiolog_sin_stock') || '{}');    function marcarSinStock() {
-        const texto = listaTareas[pasoActual] || document.getElementById('textoEntrada').value.split('\n')[0];
-        const idMatch = texto.match(/ID:\s*(\d+)/i);
-        if (!idMatch) return alert("No hay un ID válido para marcar como agotado.");
-        
-        const id = idMatch[1];
-        const hoy = new Date().toLocaleDateString();
-        // Guardamos solo en la base temporal diaria
-        dbSinStock[id] = hoy;
-        localStorage.setItem('audiolog_sin_stock', JSON.stringify(dbSinStock));
-        
-        const btn = event.currentTarget;
-        const original = btn.innerHTML;
-        btn.innerHTML = "<span class='material-icons-round'>event_busy</span> AGOTADO (SOLO HOY)";
-        setTimeout(() => { btn.innerHTML = original; }, 2000);
-    }    function guardarConfigProducto() {
-        const texto = listaTareas[pasoActual] || document.getElementById('textoEntrada').value.split('\n')[0];
-        const idMatch = texto.match(/ID:\s*(\d+)/i);
-        if (!idMatch) return alert("No hay un ID válido para guardar.");
-        
-        const id = idMatch[1];
-        const ubiMatch = texto.match(/Ubicación:\s*([^.]+)/i);
-        const prodMatch = texto.match(/Producto:\s*([^.]+)/i);
+    const audio = document.getElementById('audio-player');
+    const playPauseBtn = document.getElementById('play-pause');
+    const progressBar = document.getElementById('progress-bar');
+    const currentTimeEl = document.getElementById('current-time');
+    const durationEl = document.getElementById('duration');
+    const speedSelect = document.getElementById('speed');
+    const fileInput = document.getElementById('file-input');
+    const fileLabel = document.getElementById('file-label');
+    const titleEl = document.getElementById('title');
+    const timerSelect = document.getElementById('sleep-timer');
+    const timerMsg = document.getElementById('timer-msg');
 
-        // Guardamos los datos fijos (El "GPS" permanente del producto)
-        dbProductos[id] = {
-            udsCajita: parseInt(document.getElementById('pUdsCajita').value) || 1,
-            cajitasCaja: parseInt(document.getElementById('pCajitasCaja').value) || 1,
-            circulo: document.getElementById('g1circ').value,
-            hora: document.getElementById('g1hora').value,
-            lado: document.getElementById('g2lado').value,
-            pasilloTipo: document.getElementById('g3pas').value,
-            nombre: prodMatch ? prodMatch[1].trim() : (dbProductos[id]?.nombre || ""),
-            ubiBase: ubiMatch ? ubiMatch[1].trim() : (dbProductos[id]?.ubiBase || "")
-        };
-        
-        localStorage.setItem('audiolog_db', JSON.stringify(dbProductos));
-        
-        const btn = event.currentTarget;
-        btn.innerHTML = "<span class='material-icons-round'>gps_fixed</span> GPS Y EMPAQUE FIJADOS";
-        btn.style.borderColor = "#afff94";
-        setTimeout(() => { 
-            btn.innerHTML = "<span class='material-icons-round'>save</span> GUARDAR EMPAQUE"; 
-            btn.style.borderColor = "var(--primary)"; 
-        }, 1500);
-    }    function toggleAjustes() {
-        const modal = document.getElementById('modalAjustes');
-        const isOpening = (modal.style.display === 'none' || modal.style.display === '');
-        modal.style.display = isOpening ? 'flex' : 'none';        if (isOpening) {
-            const config = JSON.parse(localStorage.getItem('audiolog_config_gral') || '{}');
-            if (config.pegRoja) document.getElementById('peg Roja').value = config.pegRoja;
-            if (config.pegVerde) document.getElementById('peg Verde').value = config.pegVerde;
-            if (config.pegAmarilla) document.getElementById('peg Amarilla').value = config.pegAmarilla;
-            if (config.modoCaptura) document.getElementById('modoCaptura').value = config.modoCaptura;
-            // Cargar diseños de garajes
-            if (config.dg1) document.getElementById('dg1').value = config.dg1;
-            if (config.dg2) document.getElementById('dg2').value = config.dg2;
-            if (config.dg3) document.getElementById('dg3').value = config.dg3;
-        }
-    }    function guardarAjustesGlobales() {
-        const modo = document.getElementById('modoCaptura').value;
-        const config = {
-            pegRoja: document.getElementById('peg Roja').value,
-            pegVerde: document.getElementById('peg Verde').value,
-            pegAmarilla: document.getElementById('peg Amarilla').value,
-            modoCaptura: modo,
-            dg1: document.getElementById('dg1').value,
-            dg2: document.getElementById('dg2').value,
-            dg3: document.getElementById('dg3').value
-        };
-        localStorage.setItem('audiolog_config_gral', JSON.stringify(config));
-        
-        // Aplicar cambio al input de archivo
-        const inputImg = document.getElementById('imgUpload');
-        if (modo === 'camera') {
-            inputImg.setAttribute('capture', 'environment');
-        } else {
-            inputImg.removeAttribute('capture');
-        }
-        
-        toggleAjustes();
-    }
+    let sleepTimerTimeout; // Variable para guardar la referencia del temporizador
+    let currentFileName = ""; // Para guardar el nombre del archivo y usarlo como llave de guardado
 
-    function exportarDB() {
-        const data = {
-            gps: JSON.parse(localStorage.getItem('audiolog_db') || '{}'),
-            config: JSON.parse(localStorage.getItem('audiolog_config_gral') || '{}')
-        };
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `audiolog_backup_${new Date().toISOString().split('T')[0]}.json`;
-        a.click();
-    }
+    // 1. Carga del archivo y recuperación de progreso
+    fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            currentFileName = file.name;
+            fileLabel.textContent = "Archivo cargado ✓";
+            
+            // Reset de imagen y textos
+            document.getElementById('cover-container').style.display = 'none';
+            titleEl.textContent = currentFileName.replace(/\.[^/.]+$/, "");
+            document.getElementById('author').textContent = "Cargando...";
 
-    function importarDB(input) {
-        const file = input.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (e) => {
+            // Intento de lectura de Metadatos con JS Media Tags
             try {
-                const data = JSON.parse(e.target.result);
-                if (data.gps) localStorage.setItem('audiolog_db', JSON.stringify(data.gps));
-                if (data.config) localStorage.setItem('audiolog_config_gral', JSON.stringify(data.config));
-                alert('Base de datos importada con éxito. Recargando...');
-                location.reload();
-            } catch (err) {
-                alert('Error al importar: Archivo JSON no válido');
-            }
-        };
-        reader.readAsText(file);
-    }
+                window.jsmediatags.read(file, {
+                    onSuccess: function(tag) {
+                        const { title, artist, picture } = tag.tags;
+                        if (title) titleEl.textContent = title;
+                        if (artist) document.getElementById('author').textContent = artist;
+                        else document.getElementById('author').textContent = "Autor Desconocido";
 
-    function toggleBuscador() {
-        const modal = document.getElementById('modalBuscador');
-        const isOpening = (modal.style.display === 'none' || modal.style.display === '');
-        modal.style.display = isOpening ? 'flex' : 'none';
-        if(isOpening) {
-            document.getElementById('inputBusqueda').value = "";
-            document.getElementById('resBusqueda').innerHTML = '<span style="color:var(--outline); font-size:13px;">El resultado aparecerá aquí</span>';
-            setTimeout(() => document.getElementById('inputBusqueda').focus(), 100);
-        }
-    }
-
-    function ejecutarBusqueda() {
-        const query = document.getElementById('inputBusqueda').value.trim().toLowerCase();
-        const resDiv = document.getElementById('resBusqueda');
-        if (!query) return;
-
-        let idEncontrado = dbProductos[query] ? query : Object.keys(dbProductos).find(id => 
-            dbProductos[id].nombre && dbProductos[id].nombre.toLowerCase().includes(query)
-        );
-
-        if (idEncontrado) {
-            const p = dbProductos[idEncontrado];
-            resDiv.innerHTML = `<div style="color:var(--primary); font-size:24px; font-weight:bold; font-family:monospace;">${p.ubiBase}</div><div style="font-size:14px; color:white; margin-top:4px;">${p.nombre}</div>`;
-            // Locución rápida
-            const tts = `Ubicación ${p.ubiBase}`;
-            player.src = `https://translate.google.com/translate_tts?ie=UTF-8&tl=es-ES&client=tw-ob&q=${encodeURIComponent(tts)}`;
-            player.play();
-        } else {
-            resDiv.innerHTML = `<span style="color:var(--error);">No se encontró el producto</span>`;
-        }
-    }    const getUbi = (txt) => {
-        const sMatch = txt.match(/(S|G)\s*(\d+)/i) || [];
-        return {
-            s: sMatch[2] || "", 
-            st: (sMatch[1] || "S").toUpperCase(), 
-            p: (txt.match(/P\s*(\d+)/i) || [])[1] || "",
-            e: (txt.match(/E\s*(\d+)/i) || [])[1] || "",
-            b: (txt.match(/B\s*(\d+)/i) || [])[1] || "",
-            pal: txt.match(/PAL/i) ? (txt.match(/PAL\s*(\d+)/i) || ["", ""])[1] || "OK" : undefined,
-            // Nuevos parámetros para lógica de Garajes
-            circulo: (txt.match(/C:\s*(INT|EXT)/i) || [])[1], 
-            hora: (txt.match(/H:\s*(\d+)/i) || [])[1],
-            lado: (txt.match(/L:\s*(DER|IZQ|FON)/i) || [])[1],
-            pasilloTipo: (txt.match(/PS:\s*(LAR|COR)/i) || [])[1]
-        };
-    };
-
-    function configurarMediaSession() {
-        if ('mediaSession' in navigator) {
-            navigator.mediaSession.setActionHandler('play', () => { if (estaPausado) alternarPausa(); });
-            navigator.mediaSession.setActionHandler('pause', () => { if (!estaPausado) alternarPausa(); });
-            navigator.mediaSession.setActionHandler('nexttrack', () => { saltarPaso(1); });
-            navigator.mediaSession.setActionHandler('previoustrack', () => { saltarPaso(-1); });
-        }
-    }
-
-    function actualizarMetadatos(titulo, subtitulo) {
-        if ('mediaSession' in navigator) {
-            navigator.mediaSession.metadata = new MediaMetadata({
-                title: titulo, artist: subtitulo, album: 'AudioLog',
-                artwork: [{ src: 'https://cdn-icons-png.flaticon.com/512/2232/2232688.png', sizes: '512x512', type: 'image/png' }]
-            });
-        }
-    }
-
-    function saltarPaso(direccion) {
-        const indexAnterior = pasoActual;
-        const nuevoIndice = pasoActual + direccion;
-
-        // Validar que no nos salgamos de la lista
-        if (nuevoIndice < 0) { 
-            pasoActual = 0; 
-            procesarPaso(); 
-            return; 
-        }
-        if (nuevoIndice >= listaTareas.length) { 
-            statusDiv.innerHTML = "✅ FINALIZADO";
-            return; 
-        }
-
-        const ubiAnterior = getUbi(listaTareas[indexAnterior]);
-        const ubiNueva = getUbi(listaTareas[nuevoIndice]);
-
-        // Actualizar el índice y limpiar esperas
-        pasoActual = nuevoIndice;
-        segundosRestantes = 0;
-        estaPausado = false;
-        actualizarInterfazPausa();
-
-        // Determinar el aviso de cambio de ubicación específico
-        let avisoTrayecto = "";
-        if (ubiAnterior.s !== ubiNueva.s || ubiAnterior.st !== ubiNueva.st) {
-            const lugar = ubiNueva.st === 'G' ? 'Garaje' : 'Sala';
-            avisoTrayecto = `Cambia al ${lugar} ${ubiNueva.s}`;
-        } else if (ubiAnterior.p !== ubiNueva.p) {
-            avisoTrayecto = `Cambia al Pasillo ${ubiNueva.p}`;
-        } else if (ubiNueva.pal !== undefined && ubiAnterior.pal !== ubiNueva.pal) {
-            avisoTrayecto = `Cambia al Palet ${ubiNueva.pal === "OK" ? "" : ubiNueva.pal}`;
-        } else if (ubiAnterior.e !== ubiNueva.e) {
-            avisoTrayecto = `Cambia al Estante ${ubiNueva.e}`;
-        } else if (ubiAnterior.b !== ubiNueva.b) {
-            avisoTrayecto = `Cambia a la Balda ${ubiNueva.b}`;
-        }
-
-        // Si hay un cambio de ubicación, lo dice antes de leer el producto
-        if (avisoTrayecto) {
-            statusDiv.innerHTML = `<span class="pulse"></span> 📢 ${avisoTrayecto.toUpperCase()}`;
-            player.src = `https://translate.google.com/translate_tts?ie=UTF-8&tl=es-ES&client=tw-ob&q=${encodeURIComponent(avisoTrayecto)}`;
-            player.onended = () => { if (!estaPausado) procesarPaso(); };
-            player.play().catch(() => procesarPaso());
-        } else {
-            // Si es la misma ubicación, lee directamente el producto
-            procesarPaso();
-        }
-    }    function comenzarTransmision() {
-        const raw = document.getElementById('textoEntrada').value;
-        const lineas = raw.split(/\n|---/).map(t => t.trim()).filter(t => t.length > 2);
-        
-        // Sincronizar y Auto-Guardar albarán completo
-        dbProductos = JSON.parse(localStorage.getItem('audiolog_db') || '{}');
-        let huboCambios = false;
-
-        listaTareas = lineas.map(linea => {
-            const idMatch = linea.match(/ID:\s*(\d+)/i);
-            const ubiMatch = linea.match(/Ubicación:\s*([^.]+)/i);
-            const prodMatch = linea.match(/Producto:\s*([^.]+)/i);
-
-            if (idMatch && idMatch[1]) {
-                const id = idMatch[1];
-
-                // Si la línea trae ubicación, la guardamos/actualizamos automáticamente
-                if (ubiMatch && ubiMatch[1]) {
-                    const ubiLimpia = ubiMatch[1].trim();
-                    const nombreLimpio = prodMatch ? prodMatch[1].trim() : (dbProductos[id]?.nombre || "PRODUCTO");
-
-                    // Solo guardamos si es nuevo o la ubicación ha cambiado
-                    if (!dbProductos[id] || dbProductos[id].ubiBase !== ubiLimpia) {
-                        dbProductos[id] = {
-                            ...dbProductos[id], // Mantener empaque si ya existía
-                            ubiBase: ubiLimpia,
-                            nombre: nombreLimpio,
-                            udsCajita: dbProductos[id]?.udsCajita || 1,
-                            cajitasCaja: dbProductos[id]?.cajitasCaja || 1
-                        };
-                        huboCambios = true;
+                        if (picture) {
+                            const { data, format } = picture;
+                            let base64String = "";
+                            for (let i = 0; i < data.length; i++) {
+                                base64String += String.fromCharCode(data[i]);
+                            }
+                            const base64 = "data:" + format + ";base64," + window.btoa(base64String);
+                            const img = document.getElementById('cover-art');
+                            img.src = base64;
+                            document.getElementById('cover-container').style.display = 'block';
+                        }
+                    },
+                    onError: function(error) {
+                        console.log('Error de tags:', error);
+                        document.getElementById('author').textContent = "Reproductor Local";
                     }
-                } 
-                // Si la línea es SOLO un ID, intentamos recuperar su GPS guardado
-                else if (linea.length < 20 && dbProductos[id]) {
-                    return `ID: ${id}. Ubicación: ${dbProductos[id].ubiBase}. Producto: ${dbProductos[id].nombre}. Cantidad: 1.`;
-                }
-            }
-            return linea;
-        });
-
-        if (huboCambios) {
-            localStorage.setItem('audiolog_db', JSON.stringify(dbProductos));
-            console.log("Base de datos GPS actualizada automáticamente con el nuevo albarán.");
-        }
-
-        if (listaTareas.length === 0) return alert("Por favor, pega el listado de IDs o Ubicaciones.");
-        pasoActual = 0; estaPausado = false; actualizarInterfazPausa(); btnPausa.disabled = false;
-        document.getElementById('panelEntrada').style.display = 'none';
-        document.getElementById('panelAjusteEmpaque').style.display = 'block';
-        configurarMediaSession(); procesarPaso();
-    }
-
-    function alternarPausa() {
-        if (listaTareas.length === 0) return;
-        estaPausado = !estaPausado; actualizarInterfazPausa();
-        if (estaPausado) {
-            player.pause(); statusDiv.innerHTML = "⏸️ PAUSADO";
-            if ('mediaSession' in navigator) navigator.mediaSession.playbackState = "paused";
-        } else {
-            if ('mediaSession' in navigator) navigator.mediaSession.playbackState = "playing";
-            procesarPaso();
-        }
-    }
-
-    function actualizarInterfazPausa() {
-        if (estaPausado) {
-            iconPausa.innerText = "play_arrow"; textPausa.innerText = "REANUDAR";
-            btnPausa.style.backgroundColor = "var(--primary)"; btnPausa.style.color = "var(--on-primary)";
-        } else {
-            iconPausa.innerText = "pause"; textPausa.innerText = "PAUSAR";
-            btnPausa.style.backgroundColor = "var(--surface-variant)"; btnPausa.style.color = "var(--on-surface)";
-        }
-    }
-
-    function procesarPaso() {
-        if (estaPausado) return;
-        if (pasoActual >= listaTareas.length) {
-            statusDiv.innerHTML = "✅ FINALIZADO"; subStatusDiv.innerHTML = "Se han procesado todos los ítems.";
-            btnPausa.disabled = true;
-            document.getElementById('panelEntrada').style.display = 'block';
-            document.getElementById('panelAjusteEmpaque').style.display = 'none';
-            return;
-        }
-
-        const textoOriginal = listaTareas[pasoActual];
-        const anterior = pasoActual > 0 ? listaTareas[pasoActual - 1] : null;
-        const cAct = getUbi(textoOriginal); const cAnt = anterior ? getUbi(anterior) : {};
-
-        let partes = [];
-        if (!anterior || cAct.s !== cAnt.s || cAct.st !== cAnt.st) {
-            if (cAct.s) {
-                const etiqueta = cAct.st === 'G' ? 'Garaje' : 'Sala';
-                partes.push(`${etiqueta} ${cAct.s}`);
-            }
-        }        if (!anterior || cAct.p !== cAnt.p) partes.push(`Pasillo ${cAct.p}`);        if (cAct.pal !== undefined) {
-            if (!anterior || cAct.pal !== cAnt.pal) partes.push(`Palet ${cAct.pal === "OK" ? "" : cAct.pal}`);
-        } else {
-            if (cAct.e && (!anterior || cAct.e !== cAnt.e)) partes.push(`Estante ${cAct.e}`);
-            if (cAct.b && (!anterior || cAct.b !== cAnt.b)) partes.push(`Balda ${cAct.b}`);
-        }
-
-        // Recuperar ubicación guardada si existe para este ID
-        const idMatchUbi = textoOriginal.match(/ID:\s*(\d+)/i);
-        const configUbi = idMatchUbi ? dbProductos[idMatchUbi[1]] : null;
-
-        if (configUbi && cAct.st === 'G') {
-            if (cAct.s === '1') {
-                if (configUbi.circulo) cAct.circulo = configUbi.circulo.replace('C:', '');
-                if (configUbi.hora) cAct.hora = configUbi.hora;
-            } else if (cAct.s === '2') {
-                if (configUbi.lado) cAct.lado = configUbi.lado.replace('L:', '');
-            } else if (cAct.s === '3') {
-                if (configUbi.pasilloTipo) cAct.pasilloTipo = configUbi.pasilloTipo.replace('PS:', '');
-            }
-        }        // Lógica especial de Garajes (Voz Dinámica por Diseño)
-        if (cAct.st === 'G') {
-            const configGral = JSON.parse(localStorage.getItem('audiolog_config_gral') || '{}');
-            const disenio = configGral['dg' + cAct.s] || (cAct.s === '1' ? 'reloj' : (cAct.s === '2' ? 'u' : 'tramos'));
-
-            if (disenio === 'reloj') {
-                if (cAct.circulo) partes.push(cAct.circulo === 'INT' ? "Círculo Interior" : "Círculo Exterior");
-                if (cAct.hora) partes.push("a las " + cAct.hora + " en punto");
-            } else if (disenio === 'u') {
-                if (cAct.lado === 'DER') partes.push("Lado Derecho");
-                else if (cAct.lado === 'IZQ') partes.push("Lado Izquierdo");
-                else if (cAct.lado === 'FON') partes.push("al Fondo");
-            } else if (disenio === 'tramos') {
-                if (cAct.pasilloTipo) partes.push(cAct.pasilloTipo === 'LAR' ? "Pasillo Largo" : "Pasillo Corto");
-            }
-        }        let locVoz = partes.length > 0 ? partes.join(", ") : "";
-        
-        // Extraemos componentes para reordenar (Nombre al final)
-        const idVal = (textoOriginal.match(/ID:\s*(\d+)/i) || ["", ""])[1];
-        const cantVal = (textoOriginal.match(/Cantidad:\s*(\d+)/i) || ["", ""])[1];
-        const prodVal = (textoOriginal.match(/Producto:\s*([^.]+)/i) || ["", ""])[1];
-        const sufijoUnidades = parseInt(cantVal) === 1 ? "unidad" : "unidades";
-        let textoVoz = `${idVal}. ${locVoz}. ${cantVal} ${sufijoUnidades}.`;
-        
-        // --- LÓGICA DE PEGATINAS (CAJA APARTE) ---
-        const configGral = JSON.parse(localStorage.getItem('audiolog_config_gral') || '{}');
-        const mappingPegatinas = {
-            "roja": configGral.pegRoja || "",
-            "verde": configGral.pegVerde || "",
-            "amarilla": configGral.pegAmarilla || ""
-        };
-
-        for (const [color, filtro] of Object.entries(mappingPegatinas)) {
-            if (!filtro) continue;
-            const terminos = filtro.split(',').map(t => t.trim().toLowerCase()).filter(t => t !== "");
-            const coincide = terminos.some(termino => {
-                const idMatch = textoOriginal.match(/ID:\s*(\d+)/i);
-                const id = idMatch ? idMatch[1] : "";
-                return textoOriginal.toLowerCase().includes(termino) || id === termino;
-            });
-
-            if (coincide) {
-                textoVoz += `. Atención: Va en caja aparte con pegatina ${color}.`;
-                break; 
-            }
-        }
-
-        // Lógica de verificación de Stock (Solo hoy)
-        const idMatchCheck = textoOriginal.match(/ID:\s*(\d+)/i);
-        if (idMatchCheck) {
-            const id = idMatchCheck[1];
-            const hoy = new Date().toLocaleDateString();
-            if (dbSinStock[id] === hoy) {
-                textoVoz = "Atención. Es posible que no quede stock de este artículo. " + textoVoz;
-                statusDiv.style.color = "var(--error)";
-            } else {
-                statusDiv.style.color = "var(--primary)";
-            }
-        }
-
-        // Lógica de cálculo de empaque
-        const idMatch = textoOriginal.match(/ID:\s*(\d+)/i);
-        const cantMatch = textoOriginal.match(/Cantidad:\s*(\d+)/i);        // Mostrar u ocultar controles de garaje según ubicación
-        const panelG = document.getElementById('panelGarajeUI');
-        const cg1 = document.getElementById('controlesG1');
-        const cg2 = document.getElementById('controlesG2');
-        const cg3 = document.getElementById('controlesG3');        panelG.style.display = cAct.st === 'G' ? 'block' : 'none';
-
-        // Lógica Dinámica de Diseño de Garajes
-        if (cAct.st === 'G') {
-            const configGral = JSON.parse(localStorage.getItem('audiolog_config_gral') || '{}');
-            // Mapeo: si no existe en ajustes, usamos los originales por defecto
-            const disenio = configGral['dg' + cAct.s] || (cAct.s === '1' ? 'reloj' : (cAct.s === '2' ? 'u' : 'tramos'));
-
-            cg1.style.display = (disenio === 'reloj') ? 'grid' : 'none';
-            cg2.style.display = (disenio === 'u') ? 'grid' : 'none';
-            cg3.style.display = (disenio === 'tramos') ? 'grid' : 'none';
-
-            // Sincronizar datos GPS guardados con los parámetros del diseño activo
-            if (disenio === 'reloj') {
-                if (configUbi?.circulo) cAct.circulo = configUbi.circulo.replace('C:', '');
-                if (configUbi?.hora) cAct.hora = configUbi.hora;
-            } else if (disenio === 'u') {
-                if (configUbi?.lado) cAct.lado = configUbi.lado.replace('L:', '');
-            } else if (disenio === 'tramos') {
-                if (configUbi?.pasilloTipo) cAct.pasilloTipo = configUbi.pasilloTipo.replace('PS:', '');
-            }
-        } else {
-            cg1.style.display = cg2.style.display = cg3.style.display = 'none';
-        }        if (idMatch && cantMatch) {
-            const id = idMatch[1];
-            const total = parseInt(cantMatch[1]);
-            const config = dbProductos[id];
+                });
+            } catch (e) { console.error("Librería no cargada"); }
             
-            if (config) {
-                // Cargar siempre los valores de empaque en la UI
-                document.getElementById('pUdsCajita').value = config.udsCajita || 1;
-                document.getElementById('pCajitasCaja').value = config.cajitasCaja || 1;
-                
-                // Cargar valores de garaje guardados en los selectores/inputs
-                if (config.circulo) document.getElementById('g1circ').value = config.circulo;
-                if (config.hora) document.getElementById('g1hora').value = config.hora;
-                if (config.lado) document.getElementById('g2lado').value = config.lado;
-                if (config.pasilloTipo) document.getElementById('g3pas').value = config.pasilloTipo;
+            const objectURL = URL.createObjectURL(file);
+            audio.src = objectURL;
+            playPauseBtn.textContent = '▶';
+            audio.load(); 
 
-                if (config.udsCajita > 1 || config.cajitasCaja > 1) {
-                    const udsPorCajaGrande = config.udsCajita * config.cajitasCaja;
-                    const cajasGrandes = Math.floor(total / udsPorCajaGrande);
-                    let resto = total % udsPorCajaGrande;
-                    const cajitas = Math.floor(resto / config.udsCajita);
-                    const sueltas = resto % config.udsCajita;
-                    
-                    let frasePrep = ". Coge ";
-                    let partesPrep = [];
-                    if (cajasGrandes > 0) partesPrep.push(`${cajasGrandes} ${cajasGrandes === 1 ? 'caja completa' : 'cajas completas'}`);
-                    if (cajitas > 0) partesPrep.push(`${cajitas} ${cajitas === 1 ? 'cajita' : 'cajitas'}`);
-                    if (sueltas > 0) partesPrep.push(`${sueltas} ${sueltas === 1 ? 'unidad suelta' : 'unidades sueltas'}`);
-                    
-                    if (partesPrep.length > 0) textoVoz += frasePrep + partesPrep.join(", ");
-                }            } else {
-                // Si no hay config, resetear todo a valores por defecto
-                document.getElementById('pUdsCajita').value = 1;
-                document.getElementById('pCajitasCaja').value = 1;
-                document.getElementById('g1circ').value = "C:INT";
-                document.getElementById('g1hora').value = "";
-                document.getElementById('g2lado').value = "L:IZQ";
-                document.getElementById('g3pas').value = "PS:LAR";
+            // Recuperar el progreso guardado usando el nombre del archivo como identificador
+            const savedTime = localStorage.getItem('audiobook_progress_' + currentFileName);
+            if(savedTime) {
+                // Si existe un tiempo guardado, adelantamos el audio a ese punto
+                audio.currentTime = parseFloat(savedTime);
+                timerMsg.textContent = "Progreso recuperado.";
+                setTimeout(() => timerMsg.textContent = "", 3000);
             }
-        }        // Añadimos el nombre del producto al final de la locución
-        textoVoz += `. ${prodVal}.`;
-
-        actualizarMetadatos(`Ítem ${pasoActual + 1}`, textoOriginal);
-        statusDiv.innerHTML = `<span class="pulse"></span> PROCESANDO...`;
-        subStatusDiv.innerHTML = `<strong>${textoOriginal}</strong>`;
-        player.src = `https://translate.google.com/translate_tts?ie=UTF-8&tl=es-ES&client=tw-ob&q=${encodeURIComponent(textoVoz)}`;
-        player.play().catch(() => { statusDiv.innerHTML = "⚠️ TOCA PARA ACTIVAR"; });
-        player.onended = () => { if (!estaPausado) iniciarEspera(); };
-    }    function iniciarEspera() {
-        if (estaPausado) return;
-        const actual = listaTareas[pasoActual]; const siguiente = listaTareas[pasoActual + 1];
-        segundosRestantes = calcularSegundos(pasoActual); pasoActual++; 
-
-        let aviso = "";
-        if (siguiente && segundosRestantes > 0) {
-            const uA = getUbi(actual); const uS = getUbi(siguiente);
-            if (uA.s !== uS.s || uA.st !== uS.st) { 
-                if (uS.s) { const etiqueta = uS.st === 'G' ? 'Garaje' : 'Sala'; aviso = `Cambia al ${etiqueta} ${uS.s}`; }
-            }
-            else if (uA.p !== uS.p) aviso = `Cambia al Pasillo ${uS.p}`;
-            else if (uS.pal !== undefined && uA.pal !== uS.pal) aviso = `Cambia al Palet ${uS.pal === "OK" ? "" : uS.pal}`;
-            else if (uA.e !== uS.e) aviso = `Cambio al Estante ${uS.e}`;
-            else if (uA.b !== uS.b) aviso = `Cambio a la Balda ${uS.b}`;
-        }
-
-        if (aviso) {
-            statusDiv.innerHTML = `<span class="pulse"></span> 📢 ${aviso.toUpperCase()}`;
-            actualizarMetadatos("Aviso de Trayecto", aviso);
-            player.src = `https://translate.google.com/translate_tts?ie=UTF-8&tl=es-ES&client=tw-ob&q=${encodeURIComponent(aviso)}`;
-            player.onended = () => { if (!estaPausado) reproducirSilencio(); };
-            player.play().catch(() => { if (!estaPausado) reproducirSilencio(); });
-        } else {
-            reproducirSilencio();
-        }
-    }    function reproducirSilencio() {
-        if (estaPausado) return;
-        
-        if (segundosRestantes > 0) {
-            statusDiv.innerHTML = "⏳ ESPERANDO";
-            subStatusDiv.innerHTML = `Siguiente ubicación en...<br>${segundosRestantes} segundos`;
-            
-            // Forzar al sistema a creer que hay música sonando permanentemente
-            if ('mediaSession' in navigator) {
-                navigator.mediaSession.playbackState = "playing";
-                actualizarMetadatos("Logística en curso...", `Próximo aviso en ${segundosRestantes}s`);
-            }
-
-            player.src = silencioUrl;
-            player.onended = null; 
-
-            // UNICO MANEJADOR: Si el sistema congela el audio, este timeout intenta despertar el hilo
-            const backupTimer = setTimeout(() => {
-                if (!estaPausado && segundosRestantes > 0) {
-                    console.log("Despertando hilo...");
-                    segundosRestantes--;
-                    reproducirSilencio();
-                }
-            }, 1050);
-
-            player.play().then(() => {
-                player.onended = () => {
-                    clearTimeout(backupTimer);
-                    if (!estaPausado) {
-                        segundosRestantes--;
-                        reproducirSilencio();
-                    }
-                };
-            }).catch(() => {
-                // Si falla por bloqueo de pantalla, el backupTimer tomará el control
-            });
-        } else {
-            // Al llegar a 0, ejecutamos inmediatamente
-            if ('mediaSession' in navigator) navigator.mediaSession.playbackState = "playing";
-            setTimeout(() => { if (!estaPausado) procesarPaso(); }, 100);
-        }
-    }    function calcularSegundos(idx) {
-        const actual = listaTareas[idx]; const siguiente = listaTareas[idx + 1];
-        if (!siguiente) return 0;
-        const uA = getUbi(actual); const uS = getUbi(siguiente);
-
-        if (uA.s !== uS.s || uA.st !== uS.st) return parseInt(document.getElementById('tSala').value);
-        if (uA.p !== uS.p) return parseInt(document.getElementById('tPasillo').value);
-        if (uS.pal !== undefined) {
-            if (uA.pal !== uS.pal) return parseInt(document.getElementById('tPalet').value || 2);
-        } else {
-            if (uA.e !== uS.e) return parseInt(document.getElementById('tEstanteria').value);
-            if (uA.b !== uS.b) return parseInt(document.getElementById('tBalda').value);
-        }
-        return 0;
-    }    // Aplicar configuración de cámara al cargar la página
-    document.addEventListener('DOMContentLoaded', () => {
-        const config = JSON.parse(localStorage.getItem('audiolog_config_gral') || '{}');
-        if (config.modoCaptura === 'camera') {
-            document.getElementById('imgUpload').setAttribute('capture', 'environment');
         }
     });
 
-    // --- FUNCIONES DEL GESTOR DE DB ---
-    function toggleGestorDB() {
-        const modal = document.getElementById('modalGestorDB');
-        const isOpening = (modal.style.display === 'none' || modal.style.display === '');
-        modal.style.display = isOpening ? 'flex' : 'none';
-        if (isOpening) renderizarListaDB();
-    }
+    audio.onloadedmetadata = () => {
+        progressBar.max = Math.floor(audio.duration);
+        durationEl.textContent = formatTime(audio.duration);
+    };
 
-    function renderizarListaDB() {
-        const contenedor = document.getElementById('listaProductosDB');
-        contenedor.innerHTML = '';
-        const ids = Object.keys(dbProductos).sort();
-
-        if (ids.length === 0) {
-            contenedor.innerHTML = '<div style="text-align:center; color:var(--outline); padding:20px;">Base de datos vacía</div>';
+    function togglePlay() {
+        if (!audio.src) {
+            alert("Por favor, selecciona primero un archivo de audio.");
             return;
         }
-
-        ids.forEach(id => {
-            const p = dbProductos[id];
-            const item = document.createElement('div');
-            item.style = "background:rgba(255,255,255,0.05); border-radius:12px; padding:12px; border:1px solid var(--surface-variant); position:relative;";
-            item.innerHTML = `
-                <div style="font-family:monospace; color:var(--primary); font-weight:bold; font-size:14px;">ID: ${id}</div>
-                <div style="font-size:12px; margin:4px 0;"><strong>Ubi:</strong> ${p.ubiBase || '---'}</div>
-                <div style="font-size:11px; color:var(--outline);">${p.nombre || 'Sin nombre'}</div>
-                <div style="display:flex; gap:8px; margin-top:8px;">
-                    <button onclick="cargarParaEditar('${id}')" style="flex:1; background:var(--surface-variant); border:none; color:white; border-radius:6px; padding:5px; font-size:10px; cursor:pointer;">EDITAR / CARGAR</button>
-                    <button onclick="eliminarDeDB('${id}')" style="background:rgba(242,184,181,0.1); border:none; color:var(--error); border-radius:6px; padding:5px; font-size:10px; cursor:pointer;">BORRAR</button>
-                </div>
-            `;
-            contenedor.appendChild(item);
-        });
-    }
-
-    function eliminarDeDB(id) {
-        if (confirm(`¿Estás seguro de eliminar el ID ${id}?`)) {
-            delete dbProductos[id];
-            localStorage.setItem('audiolog_db', JSON.stringify(dbProductos));
-            renderizarListaDB();
+        if (audio.paused) {
+            audio.play();
+            playPauseBtn.textContent = '⏸';
+        } else {
+            audio.pause();
+            playPauseBtn.textContent = '▶';
+            // Guardar progreso al pausar manualmente
+            saveProgress();
         }
     }
 
-    function cargarParaEditar(id) {
-        const info = dbProductos[id];
-        if (!info) return;
+    // 2. Guardado automático de progreso mientras avanza
+    audio.ontimeupdate = () => {
+        progressBar.value = Math.floor(audio.currentTime);
+        currentTimeEl.textContent = formatTime(audio.currentTime);
         
-        // Creamos una línea ficticia para que el sistema crea que estamos en ese paso
-        const simulado = `ID: ${id}. Ubicación: ${info.ubiBase}. Producto: ${info.nombre}. Cantidad: 1.`;
-        document.getElementById('textoEntrada').value = simulado;
-        toggleGestorDB();
-        
-        // Notificación visual
-        subStatusDiv.innerHTML = `<span style="color:var(--primary)">Cargado ID ${id} para edición</span>`;
-        
-        // Si quieres que se abran los paneles de edición inmediatamente:
-        document.getElementById('panelEntrada').style.display = 'block';
-        document.getElementById('panelAjusteEmpaque').style.display = 'block';
-        
-        // Actualizar los inputs de empaque con lo que hay en DB
-        document.getElementById('pUdsCajita').value = info.udsCajita || 1;
-        document.getElementById('pCajitasCaja').value = info.cajitasCaja || 1;
-        if(info.circulo) document.getElementById('g1circ').value = info.circulo;
-        if(info.hora) document.getElementById('g1hora').value = info.hora;
-        if(info.lado) document.getElementById('g2lado').value = info.lado;        if(info.pasilloTipo) document.getElementById('g3pas').value = info.pasilloTipo;
+        // Guardamos el progreso cada vez que el tiempo se actualiza
+        if(currentFileName && !audio.paused) {
+            saveProgress();
+        }
+    };
+
+    // Función para guardar en el navegador (localStorage)
+    function saveProgress() {
+        localStorage.setItem('audiobook_progress_' + currentFileName, audio.currentTime);
     }
 
-    async function procesarImagen(input) {
-        if (!input.files || input.files.length === 0) return;
-        const file = input.files[0];
-        const overlay = document.getElementById('loadingOverlay');
-        overlay.style.display = 'flex';
+    progressBar.oninput = () => {
+        audio.currentTime = progressBar.value;
+    };
 
-        let apiKey = localStorage.getItem('gemini_api_key');
-        if (!apiKey) {
-            apiKey = prompt('Por favor, introduce tu API Key de Gemini:');
-            if (!apiKey) {
-                input.value = '';
-                overlay.style.display = 'none';
-                return;
-            }
-            localStorage.setItem('gemini_api_key', apiKey.trim());
-        }
+    function skip(seconds) {
+        audio.currentTime += seconds;
+    }
 
-        statusDiv.innerHTML = `<span class="pulse"></span> LEYENDO ALBARÁN...`;
-        subStatusDiv.innerHTML = `Conectando con Gemini IA...`;
-        
-        try {
-            const base64String = await new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onloadend = () => resolve(reader.result.split(',')[1]);
-                reader.onerror = reject;
-                reader.readAsDataURL(file);
-            });
+    function changeSpeed() {
+        audio.playbackRate = speedSelect.value;
+    }
 
-            const modelsReq = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
-            const modelsData = await modelsReq.json();
+    // 3. Lógica del temporizador de apagado
+    function setTimer() {
+        // Limpiamos cualquier temporizador anterior
+        clearTimeout(sleepTimerTimeout);
+        const minutes = parseInt(timerSelect.value);
+
+        if (minutes > 0) {
+            const milliseconds = minutes * 60 * 1000;
+            timerMsg.textContent = `El audio se pausará en ${minutes} minutos.`;
             
-            if (modelsData.error) {
-                if(modelsData.error.code === 403 || modelsData.error.code === 400) localStorage.removeItem('gemini_api_key');
-                throw new Error("Verificando API: " + modelsData.error.message);
-            }
-
-            let targetModel = "models/gemini-1.5-flash";
-            if (modelsData.models) {
-                const valid = modelsData.models.filter(m => m.supportedGenerationMethods && m.supportedGenerationMethods.includes('generateContent'));
-                const flash = valid.find(m => m.name.includes('flash'));
-                const pro = valid.find(m => m.name.includes('pro'));
-                targetModel = flash ? flash.name : (pro ? pro.name : targetModel);
-            }
-
-            subStatusDiv.innerHTML = `Analizando con ${targetModel.split('/')[1]}...`;
-
-            const promptText = "Extrae los datos de inventario de este albarán. Devuelve ÚNICAMENTE el texto línea por línea usando estrictamente este formato: 'ID: [id]. Ubicación: [ubicacion]. Producto: [producto]. Cantidad: [cantidad].' No incluyas markdown, no saludes, ni añadas explicaciones adicionales. Si no encuentras datos, no devuelvas nada.";
-
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/${targetModel}:generateContent?key=${apiKey}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{
-                        parts: [
-                            { text: promptText },
-                            { inlineData: { mimeType: file.type, data: base64String } }
-                        ]
-                    }]
-                })
-            });
-
-            const data = await response.json();
-            if (data.error) throw new Error(data.error.message);
-
-            let textoFormateado = '';
-            if (data.candidates && data.candidates[0].content.parts.length > 0) {
-                textoFormateado = data.candidates[0].content.parts[0].text.trim();
-            }            if (!textoFormateado || textoFormateado === '') {
-                textoFormateado = "// ⚠️ No se detectó el formato tabular o la imagen es borrosa.";
-            } else {
-                // Validación cruzada con la base de datos (GPS)
-                const lineas = textoFormateado.split('\n');
-                const lineasCorregidas = lineas.map(linea => {
-                    const idMatch = linea.match(/ID:\s*(\d+)/i);
-                    if (idMatch) {
-                        const id = idMatch[1];
-                        // Si el ID existe en DB y tiene una ubicación guardada, la priorizamos
-                        if (dbProductos[id] && dbProductos[id].ubiBase) {
-                            return linea.replace(/Ubicación:\s*([^.]+)/i, `Ubicación: ${dbProductos[id].ubiBase}`);
-                        }
-                    }
-                    return linea;
-                });
-                textoFormateado = lineasCorregidas.join('\n');
-            }
-
-            const textArea = document.getElementById('textoEntrada');
-            textArea.value += (textArea.value ? '\n\n' : '') + textoFormateado;
-            
-            statusDiv.innerHTML = `✅ LECTURA COMPLETADA`;
-            subStatusDiv.innerHTML = `Revisa que las ubicaciones y cantidades sean correctas.`;
-        } catch (error) {
-            console.error(error);
-            statusDiv.innerHTML = `❌ ERROR DE ESCANEO`;
-            subStatusDiv.innerHTML = `Error: ${error.message}`;
-        } finally {
-            overlay.style.display = 'none';
+            sleepTimerTimeout = setTimeout(() => {
+                audio.pause();
+                playPauseBtn.textContent = '▶';
+                timerMsg.textContent = "Temporizador finalizado. Audio pausado.";
+                timerSelect.value = "0"; // Reiniciamos el selector
+                saveProgress(); // Nos aseguramos de guardar donde se paró
+            }, milliseconds);
+        } else {
+            timerMsg.textContent = "Temporizador desactivado.";
+            setTimeout(() => timerMsg.textContent = "", 3000);
         }
+    }
+
+    function formatTime(seconds) {
+        const min = Math.floor(seconds / 60);
+        const sec = Math.floor(seconds % 60);
+        return `${min}:${sec < 10 ? '0' + sec : sec}`;
+    }    audio.onerror = () => {
+        if (audio.src) {
+            alert("Error: No se pudo reproducir este archivo.");
+        }
+    };    // Lógica para Audio Plano (Compresión Dinámica) y Detector de Silencio
+    let audioCtx, source, compressor, analyser, dataArray;
+    let lastBeepTime = 0;
+    let silenceInterval;
+
+    function initAudioContext() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            source = audioCtx.createMediaElementSource(audio);
+            
+            // Configuración Compresor
+            compressor = audioCtx.createDynamicsCompressor();
+            compressor.threshold.setValueAtTime(-45, audioCtx.currentTime);
+            compressor.knee.setValueAtTime(30, audioCtx.currentTime);
+            compressor.ratio.setValueAtTime(12, audioCtx.currentTime);
+            compressor.attack.setValueAtTime(0.003, audioCtx.currentTime);
+            compressor.release.setValueAtTime(0.25, audioCtx.currentTime);
+
+            // Analizador para silencio
+            analyser = audioCtx.createAnalyser();
+            analyser.fftSize = 256;
+            dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+            // Conexión inicial estándar
+            source.connect(audioCtx.destination);
+        }
+    }
+
+    function toggleNormalization() {
+        if (!audio.src) { document.getElementById('normalize-vol').checked = false; alert("Carga un audio primero."); return; }
+        initAudioContext();
+
+        const isChecked = document.getElementById('normalize-vol').checked;
+        source.disconnect();
+
+        if (isChecked) {
+            source.connect(compressor);
+            compressor.connect(audioCtx.destination);
+            timerMsg.textContent = "Modo Noche activado.";
+        } else {
+            source.connect(audioCtx.destination);
+            timerMsg.textContent = "Audio normal.";
+        }
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        setTimeout(() => timerMsg.textContent = "", 3000);
+    }
+
+    function toggleSilenceDetection() {
+        if (!audio.src) { document.getElementById('silence-beep').checked = false; alert("Carga un audio primero."); return; }
+        initAudioContext();
         
-        setTimeout(() => {
-            if (statusDiv.innerHTML.includes("LECTURA COMPLETADA") || statusDiv.innerHTML.includes("ERROR DE ESCANEO")) {
-                statusDiv.innerHTML = "ESPERANDO LISTA";
-                subStatusDiv.innerHTML = "Pega las líneas de inventario para comenzar";
-            }
-        }, 5000);
+        const isEnabled = document.getElementById('silence-beep').checked;
+        if (isEnabled) {
+            source.connect(analyser);
+            silenceInterval = setInterval(checkSilence, 1000);
+            timerMsg.textContent = "Detector de silencio activo.";
+        } else {
+            clearInterval(silenceInterval);
+            timerMsg.textContent = "Detector desactivado.";
+        }
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        setTimeout(() => timerMsg.textContent = "", 3000);
+    }
+
+    function checkSilence() {
+        if (audio.paused) return;
+
+        analyser.getByteFrequencyData(dataArray);
+        let average = dataArray.reduce((a, b) => a + b) / dataArray.length;
         
-        input.value = '';
+        const currentTime = audio.currentTime;
+        const interval = parseInt(document.getElementById('beep-interval').value);
+
+        // Si hay silencio (volumen bajo) y ha pasado el tiempo necesario
+        if (average < 5 && (currentTime - lastBeepTime) >= interval) {
+            playBeep();
+            addMarker(currentTime);
+            lastBeepTime = currentTime;
+        }
+    }
+
+    function playBeep() {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(440, audioCtx.currentTime); // Nota La
+
+        gain.gain.setValueAtTime(0, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.1, audioCtx.currentTime + 0.1);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.7);
+    }
+
+    function addMarker(time) {
+        const markerLayer = document.getElementById('marker-layer');
+        const percent = (time / audio.duration) * 100;
+        const marker = document.createElement('div');
+        marker.className = 'beep-marker';
+        marker.style.left = `calc(${percent}% - 1px)`;
+        markerLayer.appendChild(marker);
     }
 </script>
+
 </body>
 </html>
