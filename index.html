@@ -167,15 +167,13 @@
             font-size: 0.8rem;
             margin-top: 10px;
             min-height: 15px;
-        }
-
-        #library-list {
-            max-height: 350px;
+        }        #library-list {
+            max-height: 280px;
             overflow-y: auto;
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-            padding: 10px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            padding: 5px;
             scrollbar-width: none;
         }
 
@@ -188,17 +186,19 @@
             transition: transform 0.2s;
         }
 
-        .book-card:active { transform: scale(0.95); }
+        .book-card:active {
+            transform: scale(0.95);
+        }
 
         .book-thumb {
-            width: 130px;
-            height: 130px;
+            width: 90px;
+            height: 90px;
             background: #333;
-            border-radius: 15px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             position: relative;
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
             border: 1px solid #444;
@@ -208,19 +208,19 @@
 
         .status-dot {
             position: absolute;
-            top: -5px;
-            right: -5px;
-            width: 18px;
-            height: 18px;
+            top: -4px;
+            right: -4px;
+            width: 14px;
+            height: 14px;
             background: #4a90e2;
             border-radius: 50%;
-            border: 3px solid #1a1a1a;
+            border: 2px solid #1a1a1a;
             box-shadow: 0 0 5px rgba(0,0,0,0.5);
             z-index: 2;
         }
 
         .book-label {
-            font-size: 0.7rem;
+            font-size: 0.6rem;
             font-weight: 700;
             color: #ffffff;
             text-transform: uppercase;
@@ -234,15 +234,15 @@
 
         .delete-btn-mini {
             position: absolute;
-            bottom: 25px;
-            right: 0;
+            bottom: 22px;
+            right: -2px;
             background: rgba(239, 71, 111, 0.9);
             color: white;
             border: none;
             border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            font-size: 0.7rem;
+            width: 20px;
+            height: 20px;
+            font-size: 0.6rem;
             display: flex;
             align-items: center;
             justify-content: center;
