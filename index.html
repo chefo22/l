@@ -415,7 +415,7 @@
                     <i class="material-icons" style="color:var(--color-principal); font-size: 32px; margin-bottom: 8px;">cloud_upload</i>
                     <span id="file-label" style="display:block; color:#eee; font-size: 0.9rem; font-weight: 500;">Importar Audiolibro</span>
                 </label>
-                <input type="file" id="file-input" accept="audio/*" style="display:none;">
+                <input type="file" id="file-input" accept="audio/*" multiple style="display:none;">
             </div>
 
             
@@ -890,16 +890,29 @@
                         if (reorderMode) {
                             let currentData = folderMap[bookName] || "";
                             let [oldTitle, oldAuthor] = currentData.split('|');
+                            
+                            // Obtener nombres de carpetas existentes para ayudar al usuario
+                            const existingFolders = [...new Set(Object.values(folderMap))].map(f => f.split('|')[0]);
+                            const folderHint = existingFolders.length > 0 ? "\n\nExistentes: " + existingFolders.join(", ") : "";
 
-                            const targetTitle = prompt("Nombre del Libro o Saga (vacío para sacar):", oldTitle || "");
+                            const targetTitle = prompt("Nombre de la Carpeta o Saga (vacío para extraer del grupo):" + folderHint, oldTitle || "");
                             
                             if (targetTitle !== null) {
-                                if (targetTitle.trim() === "") {
+                                const trimmedTitle = targetTitle.trim();
+                                if (trimmedTitle === "") {
                                     delete folderMap[bookName];
                                 } else {
-                                    const targetAuthor = prompt("Nombre del Autor o Narrador:", oldAuthor || "");
-                                    // Guardamos combinando con un separador
-                                    folderMap[bookName] = targetAuthor ? `${targetTitle.trim()}|${targetAuthor.trim()}` : targetTitle.trim();
+                                    // Buscar si la carpeta ya existe para heredar el autor automáticamente
+                                    const existingEntry = Object.values(folderMap).find(v => v.split('|')[0].toLowerCase() === trimmedTitle.toLowerCase());
+                                    let targetAuthor = oldAuthor || "";
+                                    
+                                    if (existingEntry && existingEntry.includes('|')) {
+                                        targetAuthor = existingEntry.split('|')[1];
+                                    } else {
+                                        targetAuthor = prompt("Autor o Narrador para '" + trimmedTitle + "':", targetAuthor);
+                                    }
+                                    
+                                    folderMap[bookName] = targetAuthor ? `${trimmedTitle}|${targetAuthor.trim()}` : trimmedTitle;
                                 }
                                 localStorage.setItem('audiobook_folders', JSON.stringify(folderMap));
                             }
@@ -1168,13 +1181,16 @@
             // Volver a mostrar suavemente
             ui.style.opacity = '1';
         }, 300);
-    }
-
-    fileInput.addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            saveToLibrary(file);
-            processAudioFile(file);
+    }    fileInput.addEventListener('change', function(e) {
+        const files = Array.from(e.target.files);
+        if (files.length > 0) {
+            files.forEach((file, index) => {
+                saveToLibrary(file);
+                // Solo reproducimos automáticamente el primero de la lista
+                if (index === 0) processAudioFile(file);
+            });
+            timerMsg.textContent = `${files.length} archivos añadidos`;
+            setTimeout(() => timerMsg.textContent = "", 3000);
         }
     });    audio.onloadedmetadata = () => {
         progressBar.max = Math.floor(audio.duration);
