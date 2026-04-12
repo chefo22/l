@@ -695,10 +695,19 @@
     const timerMsg = document.getElementById('timer-msg');    let sleepTimerTimeout;
     let sleepTimerInterval;
     let currentFileName = "";
-    let db;
-    let reorderMode = false;
+    let db;    let reorderMode = false;
     let pressTimer;
     let draggedItem = null;
+    let expandedFolder = null;
+
+    // Salir del modo reordenar al pulsar en cualquier parte de la pantalla
+    document.addEventListener('click', (e) => {
+        if (reorderMode && !e.target.closest('.book-card')) {
+            reorderMode = false;
+            const list = document.getElementById('library-list');
+            if (list) list.classList.remove('reorder-mode');
+        }
+    }, true);
 
     function toggleSettings() {
         const modal = document.getElementById('settings-modal');
@@ -762,42 +771,113 @@
         const transaction = db.transaction(["books"], "readonly");
         const store = transaction.objectStore("books");
         const books = [];
-        
-        store.openCursor().onsuccess = (e) => {
+        const folderMap = JSON.parse(localStorage.getItem('audiobook_folders') || "{}");        store.openCursor().onsuccess = (e) => {
             const cursor = e.target.result;
             if (cursor) {
                 books.push(cursor.value);
                 cursor.continue();
             } else {
                 const savedOrder = JSON.parse(localStorage.getItem('library_order') || "[]");
-                if (savedOrder.length > 0) {
-                    books.sort((a, b) => (savedOrder.indexOf(a.name) === -1 ? 999 : savedOrder.indexOf(a.name)) - (savedOrder.indexOf(b.name) === -1 ? 999 : savedOrder.indexOf(b.name)));
-                }
+                const folders = [...new Set(Object.values(folderMap))];
                 
-                books.forEach(bookData => {
+                // 1. Crear lista unificada de Entidades de Nivel Superior (Carpetas y Libros sueltos)
+                let topLevelEntities = [];
+                folders.forEach(f => topLevelEntities.push({ type: 'folder', id: f, name: f }));
+                books.forEach(b => {
+                    if (!folderMap[b.name]) topLevelEntities.push({ type: 'book', id: b.name, data: b });
+                });
+
+                // 2. Ordenar según la preferencia guardada (ahora incluye nombres de carpetas)
+                topLevelEntities.sort((a, b) => {
+                    let idxA = savedOrder.indexOf(a.id);
+                    let idxB = savedOrder.indexOf(b.id);
+                    return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
+                });
+
+                // 3. Renderizado unificado
+                topLevelEntities.forEach(entity => {
+                    if (entity.type === 'folder') {
+                        renderFolderCard(entity.name);
+                    } else {
+                        renderBookCard(entity.data);
+                    }
+                });                function renderFolderCard(folderName) {
+                    const folderBooks = books.filter(b => folderMap[b.name] === folderName);
+                    if (folderBooks.length === 0) return;
+                    const isExpanded = expandedFolder === folderName;
+
+                    const folderCard = document.createElement('div');
+                    folderCard.className = 'book-card';
+                    folderCard.draggable = true;
+                    folderCard.dataset.id = folderName;
+
+                    // Separar Título y Autor (formato Título|Autor)
+                    const [fTitle, fAuthor] = folderName.split('|');                    folderCard.innerHTML = `
+                        <div class="book-thumb" style="border: 2px solid var(--color-principal); background-color: #111; position: relative;">
+                            <button class="delete-btn-mini" onclick="event.stopPropagation(); if(confirm('¿Deshacer carpeta?')) { let fm = JSON.parse(localStorage.getItem('audiobook_folders') || '{}'); const target = '${folderName.replace(/'/g, "\\'")}'; Object.keys(fm).forEach(k => { if(fm[k] === target) delete fm[k]; }); localStorage.setItem('audiobook_folders', JSON.stringify(fm)); displayLibrary(); }"><i class="material-icons" style="font-size: 16px;">close</i></button>
+                        </div>
+                        <div class="book-label">
+                            ${fTitle.toUpperCase()}
+                            ${fAuthor ? `<br><span style="color: var(--color-principal); font-size: 0.85em; font-weight: 500; display: block; margin-top: 2px;">${fAuthor.toUpperCase()}</span>` : ''}
+                        </div>
+                    `;
+                    
+                    const thumb = folderCard.querySelector('.book-thumb');
+                    let coverBook = folderBooks.find(b => localStorage.getItem('audiobook_progress_' + b.name)) || folderBooks[0];
+                    window.jsmediatags.read(coverBook.data, {
+                        onSuccess: (tag) => {
+                            if (tag.tags.picture) {
+                                const { data, format } = tag.tags.picture;
+                                let b64 = ""; for (let i = 0; i < data.length; i++) b64 += String.fromCharCode(data[i]);
+                                thumb.style.backgroundImage = `url(data:${format};base64,${window.btoa(b64)})`;
+                            }
+                        }
+                    });                    const startPressFolder = () => {
+                        pressTimer = setTimeout(() => {
+                            reorderMode = true;
+                            list.classList.add('reorder-mode');
+                            if (navigator.vibrate) navigator.vibrate(60);
+                        }, 800);
+                    };
+                    thumb.addEventListener('touchstart', startPressFolder); thumb.addEventListener('mousedown', startPressFolder);
+                    thumb.addEventListener('touchend', () => clearTimeout(pressTimer)); thumb.addEventListener('mouseup', () => clearTimeout(pressTimer));                    thumb.onclick = () => {
+                        if (reorderMode) return;
+                        expandedFolder = isExpanded ? null : folderName;
+                        displayLibrary();
+                    };
+                    
+                    attachDragListeners(folderCard);
+                    list.appendChild(folderCard);
+
+                    // Si la carpeta está expandida, renderizar sus libros inmediatamente después
+                    if (isExpanded) {
+                        folderBooks.forEach(b => renderBookCard(b, true));
+                    }
+                }
+
+                function renderBookCard(bookData, isChild = false) {
                     const bookName = bookData.name;
                     const card = document.createElement('div');
                     card.className = 'book-card';
+                    if (isChild) {
+                        card.style.marginLeft = "15px";
+                        card.dataset.isChild = "true";
+                    }
                     card.draggable = true;
                     card.dataset.id = bookName;
                     
-                    const progress = localStorage.getItem('audiobook_progress_' + bookName);                    const cleanName = bookName.replace(/\.[^/.]+$/, "").toUpperCase();
-                    let formattedLabel = cleanName;
-                    if (cleanName.includes("-")) {
-                        const parts = cleanName.split("-").map(p => p.trim());
-                        // Primera parte normal, segunda parte en azul y ligeramente más pequeña
-                        formattedLabel = `${parts[0]}<br><span style="color: var(--color-principal); font-size: 0.9em;">${parts[1]}</span>`;
-                    }                    card.innerHTML = `
+                    const progress = localStorage.getItem('audiobook_progress_' + bookName);
+                    const cleanName = bookName.replace(/\.[^/.]+$/, "").toUpperCase();
+                    card.innerHTML = `
                         <div class="book-thumb" style="position:relative">
                             ${(progress && parseFloat(progress) > 0) ? '<div class="status-dot"></div>' : ''}
                             <i class="material-icons" style="font-size: 2.5rem; opacity: 0.15;">headset</i>
                             <button class="delete-btn-mini" onclick="event.stopPropagation(); deleteFromLibrary('${bookName.replace(/'/g, "\\'")}')"><i class="material-icons" style="font-size: 16px;">close</i></button>
                         </div>
-                        <div class="book-label">${formattedLabel}</div>
+                        <div class="book-label">${cleanName}</div>
                     `;
 
                     const thumb = card.querySelector('.book-thumb');
-                    
                     const startPress = () => {
                         pressTimer = setTimeout(() => {
                             reorderMode = true;
@@ -805,72 +885,115 @@
                             if (navigator.vibrate) navigator.vibrate(60);
                         }, 800);
                     };
-                    
-                    const endPress = () => clearTimeout(pressTimer);
-
-                    thumb.addEventListener('touchstart', startPress);
-                    thumb.addEventListener('mousedown', startPress);
-                    thumb.addEventListener('touchend', endPress);
-                    thumb.addEventListener('mouseup', endPress);
-
-                    thumb.addEventListener('click', () => {
+                    thumb.addEventListener('touchstart', startPress); thumb.addEventListener('mousedown', startPress);
+                    thumb.addEventListener('touchend', () => clearTimeout(pressTimer)); thumb.addEventListener('mouseup', () => clearTimeout(pressTimer));                    thumb.addEventListener('click', () => {
                         if (reorderMode) {
-                            reorderMode = false;
-                            list.classList.remove('reorder-mode');
-                            const newOrder = Array.from(list.querySelectorAll('.book-card')).map(c => c.dataset.id);
-                            localStorage.setItem('library_order', JSON.stringify(newOrder));
-                            return;
+                            let currentData = folderMap[bookName] || "";
+                            let [oldTitle, oldAuthor] = currentData.split('|');
+
+                            const targetTitle = prompt("Nombre del Libro o Saga (vacío para sacar):", oldTitle || "");
+                            
+                            if (targetTitle !== null) {
+                                if (targetTitle.trim() === "") {
+                                    delete folderMap[bookName];
+                                } else {
+                                    const targetAuthor = prompt("Nombre del Autor o Narrador:", oldAuthor || "");
+                                    // Guardamos combinando con un separador
+                                    folderMap[bookName] = targetAuthor ? `${targetTitle.trim()}|${targetAuthor.trim()}` : targetTitle.trim();
+                                }
+                                localStorage.setItem('audiobook_folders', JSON.stringify(folderMap));
+                            }
+                            reorderMode = false; list.classList.remove('reorder-mode');
+                            displayLibrary(); return;
                         }
                         loadFromLibrary(bookName);
                     });
 
-                    card.addEventListener('dragstart', (e) => {
-                        if(!reorderMode) return e.preventDefault();
-                        draggedItem = card;
-                        setTimeout(() => card.classList.add('dragging'), 0);
-                    });
-                    card.addEventListener('dragend', () => card.classList.remove('dragging'));
-                    card.addEventListener('dragover', e => {
-                        e.preventDefault();
-                        if (!reorderMode || draggedItem === card) return;
-                        const children = Array.from(list.children);
-                        const curr = children.indexOf(draggedItem), target = children.indexOf(card);
-                        if (curr < target) list.insertBefore(draggedItem, card.nextSibling);
-                        else list.insertBefore(draggedItem, card);
-                    });                    list.appendChild(card);
-                    // Priorizar metadatos para corregir nombres invertidos y aplicar colores
-                    try { 
-                        window.jsmediatags.read(bookData.data, { 
-                            onSuccess: (tag) => { 
-                                const { title, artist, picture } = tag.tags;
-                                const labelEl = card.querySelector('.book-label');
+                    attachDragListeners(card);
+                    list.appendChild(card);                    window.jsmediatags.read(bookData.data, { 
+                        onSuccess: (tag) => { 
+                            const { title, artist, picture } = tag.tags;
+                            const labelEl = card.querySelector('.book-label');
+                            if (title) labelEl.innerHTML = `${title.toUpperCase()}<br><span style="color: var(--color-principal); font-size: 0.9em;">${artist || ''}</span>`;
+                            if (picture) {
+                                const p = picture; 
+                                let base64Str = ""; 
+                                for(let i=0; i<p.data.length; i++) base64Str += String.fromCharCode(p.data[i]);
+                                const artworkUrl = `data:${p.format};base64,${window.btoa(base64Str)}`;
                                 
-                                // Si hay metadatos, reconstruimos el label con el autor en azul
-                                if (title) {
-                                    let cleanTitle = title.replace(/\.[^/.]+$/, "").toUpperCase();
-                                    let cleanArtist = artist || "Autor Desconocido";
-                                    
-                                    // Corregir si el tag de título ya trae el autor pegado con un guion
-                                    if (cleanTitle.includes(" - ")) {
-                                        const parts = cleanTitle.split(" - ");
-                                        cleanTitle = parts[0].trim();
-                                        if (!artist) cleanArtist = parts[1].trim();
-                                    }
-                                    
-                                    labelEl.innerHTML = `${cleanTitle}<br><span style="color: var(--color-principal); font-size: 0.95em; font-weight: 600;">${cleanArtist}</span>`;
-                                }
+                                thumb.style.backgroundImage = `url(${artworkUrl})`;
+                                const icon = thumb.querySelector('.material-icons'); 
+                                if(icon) icon.style.display = 'none';
 
-                                if(picture) { 
-                                    const p = picture;
-                                    let b = ""; for(let i=0; i<p.data.length; i++) b += String.fromCharCode(p.data[i]);
-                                    thumb.style.backgroundImage = `url(data:${p.format};base64,${window.btoa(b)})`;
-                                    const icon = thumb.querySelector('.material-icons');
-                                    if(icon) icon.style.display = 'none';
-                                }
+                                // Extraer color para el punto de estado (Chameleon Dot)
+                                const img = new Image();
+                                img.src = artworkUrl;
+                                img.onload = function() {                                    const canvas = document.createElement('canvas');
+                                    const ctx = canvas.getContext('2d');
+                                    canvas.width = 8; canvas.height = 8;
+                                    ctx.drawImage(img, 0, 0, 8, 8);
+                                    const data = ctx.getImageData(0, 0, 8, 8).data;
+                                    
+                                    let bestH = 0, bestS = 0, bestL = 0.5;
+                                    for (let i = 0; i < data.length; i += 4) {
+                                        let r = data[i]/255, g = data[i+1]/255, b = data[i+2]/255;
+                                        let max = Math.max(r, g, b), min = Math.min(r, g, b);
+                                        let l = (max + min) / 2, d = max - min;
+                                        let s = d === 0 ? 0 : (l > 0.5 ? d / (2 - max - min) : d / (max + min));
+                                        if (s > bestS && l > 0.2 && l < 0.8) {
+                                            bestS = s; bestL = l;
+                                            if (d === 0) bestH = 0;
+                                            else {
+                                                if (max === r) bestH = (g - b) / d + (g < b ? 6 : 0);
+                                                else if (max === g) bestH = (b - r) / d + 2;
+                                                else bestH = (r - g) / d + 4;
+                                                bestH /= 6;
+                                            }
+                                        }
+                                    }
+                                    let h = bestH, s = Math.max(bestS, 0.9), l = 0.65;
+                                    
+                                    const hslToHex = (h, s, l) => {
+                                        const f = (p, q, t) => {
+                                            if (t < 0) t += 1; if (t > 1) t -= 1;
+                                            if (t < 1/6) return p + (q - p) * 6 * t;
+                                            if (t < 1/2) return q;
+                                            if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                                            return p;
+                                        };
+                                        const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+                                        const p = 2 * l - q;
+                                        const toHex = x => Math.round(x * 255).toString(16).padStart(2, '0');
+                                        return `#${toHex(f(p,q,h+1/3))}${toHex(f(p,q,h))}${toHex(f(p,q,h-1/3))}`;
+                                    };
+                                    
+                                    const dot = card.querySelector('.status-dot');
+                                    if (dot) dot.style.backgroundColor = hslToHex(h, s, l);
+                                };
                             }
-                        }); 
-                    } catch(err) { console.error("Error en tags:", err); }
-                });
+                        }
+                    });
+                }
+
+                function attachDragListeners(el) {
+                    el.addEventListener('dragstart', (e) => {
+                        if(!reorderMode || el.dataset.isChild) return e.preventDefault();
+                        draggedItem = el; setTimeout(() => el.classList.add('dragging'), 0);
+                    });
+                    el.addEventListener('dragend', () => {
+                        el.classList.remove('dragging');
+                        const newOrder = Array.from(list.querySelectorAll('.book-card:not([data-is-child])')).map(c => c.dataset.id);
+                        localStorage.setItem('library_order', JSON.stringify(newOrder));
+                    });
+                    el.addEventListener('dragover', e => {
+                        e.preventDefault();
+                        if (!reorderMode || draggedItem === el || el.dataset.isChild) return;
+                        const children = Array.from(list.children).filter(c => !c.dataset.isChild);
+                        const curr = children.indexOf(draggedItem), target = children.indexOf(el);
+                        if (curr < target) list.insertBefore(draggedItem, el.nextSibling);
+                        else list.insertBefore(draggedItem, el);
+                    });
+                }
                 if (books.length === 0) {
                     list.innerHTML = `
                         <div style="grid-column: 1 / -1; padding: 60px 20px; display: flex; flex-direction: column; align-items: center; gap: 15px; width: 100%; animation: fadeIn 0.8s ease-out;">
@@ -965,32 +1088,42 @@
 
                             // Efecto Camaleón Pro: Extracción de color vibrante
                             img.onload = function() {
-                                try {
-                                    const canvas = document.createElement('canvas');
+                                try {                                    const canvas = document.createElement('canvas');
                                     const ctx = canvas.getContext('2d');
-                                    canvas.width = 1; canvas.height = 1;
-                                    ctx.drawImage(img, 0, 0, 1, 1);
-                                    const d = ctx.getImageData(0, 0, 1, 1).data;
+                                    canvas.width = 10; canvas.height = 10;
+                                    ctx.drawImage(img, 0, 0, 10, 10);
+                                    const imageData = ctx.getImageData(0, 0, 10, 10).data;
                                     
-                                    // Conversión HSL para inyección de vitalidad
-                                    let r = d[0]/255, g = d[1]/255, b = d[2]/255;
-                                    let max = Math.max(r, g, b), min = Math.min(r, g, b);
-                                    let h, s, l = (max + min) / 2;
+                                    let bestColor = { h: 0, s: 0, l: 0.5 };
+                                    let maxSaturation = -1;
 
-                                    if (max === min) { h = s = 0; } else {
-                                        let diff = max - min;
-                                        s = l > 0.5 ? diff / (2 - max - min) : diff / (max + min);
-                                        switch (max) {
-                                            case r: h = (g - b) / diff + (g < b ? 6 : 0); break;
-                                            case g: h = (b - r) / diff + 2; break;
-                                            case b: h = (r - g) / diff + 4; break;
+                                    for (let i = 0; i < imageData.length; i += 4) {
+                                        let r = imageData[i]/255, g = imageData[i+1]/255, b = imageData[i+2]/255;
+                                        let max = Math.max(r, g, b), min = Math.min(r, g, b);
+                                        let h, s, l = (max + min) / 2;
+                                        let d = max - min;
+                                        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                                        if (d === 0) s = 0;
+                                        
+                                        // Ignorar colores demasiado claros (blancos/cremas) o muy oscuros
+                                        if (l > 0.15 && l < 0.85) {
+                                            if (s > maxSaturation) {
+                                                maxSaturation = s;
+                                                if (d !== 0) {
+                                                    switch (max) {
+                                                        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                                                        case g: h = (b - r) / d + 2; break;
+                                                        case b: h = (r - g) / d + 4; break;
+                                                    }
+                                                    h /= 6;
+                                                } else h = 0;
+                                                bestColor = { h, s, l };
+                                            }
                                         }
-                                        h /= 6;
                                     }
-
-                                    // REGLA DE ORO: Forzar saturación y brillo para evitar colores "sucios"
-                                    s = Math.max(s, 0.75); // 75% Saturación mínima
-                                    l = Math.max(l, 0.65); // 65% Brillo mínimo
+                                    let { h, s, l } = bestColor;
+                                    s = Math.max(s, 0.8); 
+                                    l = 0.6; 
                                     
                                     const hslToHex = (h, s, l) => {
                                         const f = (p, q, t) => {
