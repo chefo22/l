@@ -569,27 +569,32 @@
     function hexToRgb(hex) {
         const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
         return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : "74, 144, 226";
-    }
-
-    function setThemeColor(hex) {
+    }    function setThemeColor(hex, save = true) {
+        const rgb = hexToRgb(hex);
         document.documentElement.style.setProperty('--color-principal', hex);
-        document.documentElement.style.setProperty('--color-principal-rgb', hexToRgb(hex));
-        localStorage.setItem('audiobook_theme_color', hex);
+        document.documentElement.style.setProperty('--color-principal-rgb', rgb);
         
-        // Feedback visual en los dots
-        document.querySelectorAll('.color-dot').forEach(dot => {
-            dot.style.transform = 'scale(1)';
-            dot.style.borderColor = '#333';
-        });
-        event.target.style.transform = 'scale(1.2)';
-        event.target.style.borderColor = 'white';
-    }
+        // Solo guardamos en localStorage si es una elección manual del usuario
+        if (save) {
+            localStorage.setItem('audiobook_theme_color', hex);
+        }
+        
+        document.body.style.background = `radial-gradient(circle at top, rgba(${rgb}, 0.15) 0%, #050505 100%)`;
+        document.body.style.backgroundColor = "#050505";
+        document.body.style.backgroundAttachment = "fixed";
 
-    // Cargar tema al inicio
+        if (window.event && window.event.target && window.event.target.classList.contains('color-dot')) {
+            document.querySelectorAll('.color-dot').forEach(dot => {
+                dot.style.transform = 'scale(1)';
+                dot.style.borderColor = '#333';
+            });
+            window.event.target.style.transform = 'scale(1.2)';
+            window.event.target.style.borderColor = 'white';
+        }
+    }    // Cargar tema al inicio
     const savedTheme = localStorage.getItem('audiobook_theme_color');
     if(savedTheme) {
-        document.documentElement.style.setProperty('--color-principal', savedTheme);
-        document.documentElement.style.setProperty('--color-principal-rgb', hexToRgb(savedTheme));
+        setThemeColor(savedTheme);
     }
 
     const audio = document.getElementById('audio-player');
@@ -852,14 +857,60 @@
                             titleEl.textContent = title.toUpperCase();
                         }
                         
-                        if (artist) document.getElementById('author').textContent = artist;
-                        if (picture) {
+                        if (artist) document.getElementById('author').textContent = artist;                        if (picture) {
                             const { data, format } = picture;
                             let base64String = "";
                             for (let i = 0; i < data.length; i++) base64String += String.fromCharCode(data[i]);
                             artworkUrl = "data:" + format + ";base64," + window.btoa(base64String);
-                            document.getElementById('cover-art').src = artworkUrl;
+                            const img = document.getElementById('cover-art');
+                            img.src = artworkUrl;
                             document.getElementById('cover-container').style.display = 'block';
+
+                            // Efecto Camaleón Pro: Extracción de color vibrante
+                            img.onload = function() {
+                                try {
+                                    const canvas = document.createElement('canvas');
+                                    const ctx = canvas.getContext('2d');
+                                    canvas.width = 1; canvas.height = 1;
+                                    ctx.drawImage(img, 0, 0, 1, 1);
+                                    const d = ctx.getImageData(0, 0, 1, 1).data;
+                                    
+                                    // Conversión HSL para inyección de vitalidad
+                                    let r = d[0]/255, g = d[1]/255, b = d[2]/255;
+                                    let max = Math.max(r, g, b), min = Math.min(r, g, b);
+                                    let h, s, l = (max + min) / 2;
+
+                                    if (max === min) { h = s = 0; } else {
+                                        let diff = max - min;
+                                        s = l > 0.5 ? diff / (2 - max - min) : diff / (max + min);
+                                        switch (max) {
+                                            case r: h = (g - b) / diff + (g < b ? 6 : 0); break;
+                                            case g: h = (b - r) / diff + 2; break;
+                                            case b: h = (r - g) / diff + 4; break;
+                                        }
+                                        h /= 6;
+                                    }
+
+                                    // REGLA DE ORO: Forzar saturación y brillo para evitar colores "sucios"
+                                    s = Math.max(s, 0.75); // 75% Saturación mínima
+                                    l = Math.max(l, 0.65); // 65% Brillo mínimo
+                                    
+                                    const hslToHex = (h, s, l) => {
+                                        const f = (p, q, t) => {
+                                            if (t < 0) t += 1; if (t > 1) t -= 1;
+                                            if (t < 1/6) return p + (q - p) * 6 * t;
+                                            if (t < 1/2) return q;
+                                            if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                                            return p;
+                                        };
+                                        const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+                                        const p = 2 * l - q;
+                                        const toHex = x => Math.round(x * 255).toString(16).padStart(2, '0');
+                                        return `#${toHex(f(p,q,h+1/3))}${toHex(f(p,q,h))}${toHex(f(p,q,h-1/3))}`;
+                                    };                                    // Aplicamos el color de la carátula sin guardarlo permanentemente
+                                    setThemeColor(hslToHex(h, s, l), false);
+                                } catch (e) { console.error("Error en Chameleon Pro:", e); }
+                            };
                         }
 
                         // Integración con Media Session API (Controles de sistema)
