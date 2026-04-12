@@ -32,10 +32,10 @@
 
         /* Contenedor principal - Más limpio y sin bordes pesados */        .player-container {
             background: #090909;
-            padding: 1.5rem 1rem;
-            border-radius: 40px;
+            padding: 1.35rem 0.9rem;
+            border-radius: 36px;
             width: 96%;
-            max-width: 400px;
+            max-width: 360px;
             text-align: center;
             margin: 0 auto;
             display: flex;
@@ -43,19 +43,19 @@
         }
 
         .book-info h2 {
-            margin: 25px 0 8px;
+            margin: 22px 0 7px;
             color: #ffffff;
             font-weight: 700;
-            font-size: 1.5rem;
+            font-size: 1.35rem;
             letter-spacing: -0.5px;
             text-transform: uppercase;
         }
 
         .book-info p {
             color: var(--color-principal);
-            margin-bottom: 35px;
+            margin-bottom: 31px;
             font-weight: 500;
-            font-size: 1rem;
+            font-size: 0.9rem;
             opacity: 0.8;
         }
 
@@ -134,10 +134,10 @@
         button:hover { background-color: rgba(var(--color-principal-rgb), 0.1); }
 
         .play-btn { 
-            width: 70px; 
-            height: 70px; 
+            width: 63px; 
+            height: 63px; 
             border-radius: 50%; 
-            font-size: 1.5rem;
+            font-size: 1.35rem;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -387,7 +387,7 @@
 </head>
 <body>
 
-<div style="width: 92%; max-width: 400px; margin-bottom: 10px; display: flex; justify-content: flex-start;">
+<div style="width: 92%; max-width: 360px; margin-bottom: 9px; display: flex; justify-content: flex-start;">
     <button onclick="toggleSettings()" style="width: 42px; height: 42px; border-radius: 12px; border: 1px solid #222; background: #111; color: #666; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.4);">
         <i class="material-icons" style="font-size: 24px;">settings</i>
     </button>
@@ -455,6 +455,17 @@
                     </label>
                 </div>
 
+                <div style="background:#1c1c1c; padding:14px 18px; border-radius:16px; display:flex; justify-content:space-between; align-items:center;">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <i class="material-icons" style="color:#888; font-size:20px;">more_time</i>
+                        <span style="color:#ccc; font-size:0.9rem;">Siguiente = +5 Min</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="next-as-timer" onchange="localStorage.setItem('audiobook_next_timer', this.checked)">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
                 <div style="background:#1c1c1c; padding:14px 18px; border-radius:16px;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
                         <div style="display:flex; align-items:center; gap:12px;">
@@ -493,7 +504,7 @@
     <div id="player-ui-container" style="display: none;">
         <div class="book-info">
             <div id="cover-container" style="margin-bottom: 20px; display: none;">
-                <img id="cover-art" src="" alt="Portada" style="width: 300px; height: 300px; object-fit: cover; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.8);">
+                <img id="cover-art" src="" alt="Portada" style="width: 270px; height: 270px; object-fit: cover; border-radius: 18px; box-shadow: 0 20px 50px rgba(0,0,0,0.8);">
             </div>
             <h2 id="title">Sin archivo</h2>
             <p id="author">Reproductor Local</p>
@@ -595,6 +606,12 @@
     const savedTheme = localStorage.getItem('audiobook_theme_color');
     if(savedTheme) {
         setThemeColor(savedTheme);
+    }
+
+    // Cargar preferencia de botón Siguiente
+    const nextAsTimerPref = localStorage.getItem('audiobook_next_timer');
+    if(nextAsTimerPref !== null) {
+        document.getElementById('next-as-timer').checked = nextAsTimerPref === 'true';
     }
 
     const audio = document.getElementById('audio-player');
@@ -962,8 +979,29 @@
         navigator.mediaSession.setActionHandler('play', () => audio.play());
         navigator.mediaSession.setActionHandler('pause', () => audio.pause());
         // Mapeamos avanzar/retroceder a botones de pista para asegurar visibilidad en la notificación
-        navigator.mediaSession.setActionHandler('previoustrack', () => skip(-10));
-        navigator.mediaSession.setActionHandler('nexttrack', () => skip(10));
+        navigator.mediaSession.setActionHandler('previoustrack', () => skip(-10));        navigator.mediaSession.setActionHandler('nexttrack', () => {
+            const isTimerMode = document.getElementById('next-as-timer').checked;
+            if (isTimerMode) {
+                // Si el temporizador no existe o está en 0, lo iniciamos
+                if (typeof timerTotalSeconds === 'undefined' || timerTotalSeconds <= 0) {
+                    setTimer(5); 
+                    timerMsg.textContent = "TIMER INICIADO: 5 MIN ⏱️";
+                } else {
+                    // Si ya está corriendo, sumamos 5 minutos
+                    timerTotalSeconds += 300;
+                    timerMsg.textContent = "+5 MIN (TOTAL: " + Math.ceil(timerTotalSeconds/60) + " min) 🎧";
+                }
+                
+                if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+                
+                // Feedback visual breve antes de volver a la cuenta atrás normal
+                setTimeout(() => {
+                    if (timerTotalSeconds <= 0) timerMsg.textContent = "";
+                }, 2500);
+            } else {
+                skip(10);
+            }
+        });
         navigator.mediaSession.setActionHandler('seekbackward', (details) => skip(details.seekOffset || -10));
         navigator.mediaSession.setActionHandler('seekforward', (details) => skip(details.seekOffset || 10));
         navigator.mediaSession.setActionHandler('stop', () => { audio.pause(); audio.currentTime = 0; });
