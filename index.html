@@ -2,50 +2,68 @@
 <html lang="es">
 <head>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reproductor de Audiolibros Pro - Dark Mode</title>
     <style>
-        /* Estilos generales y fondo */
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #121212;
+        :root {
+            --color-principal: #4a90e2;
+            --color-principal-rgb: 74, 144, 226;
+        }
+        /* Estilos generales y fondo */        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #050505;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
+            justify-content: flex-start;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
-            color: #ffffff;
+            padding: 20px 0;
+            color: #eeeeee;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        /* Contenedor principal */
-        .player-container {
-            background-color: #1a1a1a;
-            padding: 2.5rem;
-            border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
-            width: 100%;
-            max-width: 380px;
+        /* Elimina el borde de enfoque (outline) por defecto en todos los elementos */
+        :focus {
+            outline: none !important;
+        }
+
+        /* Contenedor principal - Más limpio y sin bordes pesados */        .player-container {
+            background: #090909;
+            padding: 1.5rem 1rem;
+            border-radius: 40px;
+            width: 96%;
+            max-width: 400px;
             text-align: center;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
         }
 
-        .book-info h2 { 
-            margin: 10px 0 5px; 
-            color: #ffffff; 
-            font-weight: 600; 
-            font-size: 1.4rem;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+        .book-info h2 {
+            margin: 25px 0 8px;
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 1.5rem;
+            letter-spacing: -0.5px;
+            text-transform: uppercase;
         }
 
-        .book-info p { color: #a0a0a0; margin-bottom: 30px; }
+        .book-info p {
+            color: var(--color-principal);
+            margin-bottom: 35px;
+            font-weight: 500;
+            font-size: 1rem;
+            opacity: 0.8;
+        }
 
         /* Sección de carga de archivo */
         .upload-section {
             margin-bottom: 25px;
             padding: 15px;
-            border: 2px dashed #4a90e2;
+            border: 2px dashed var(--color-principal);
             border-radius: 12px;
             transition: border-color 0.3s;
         }
@@ -53,26 +71,26 @@
         #file-input { display: none; }
 
         .custom-file-upload {
-            color: #4a90e2;
+            color: var(--color-principal);
             cursor: pointer;
             font-size: 0.9rem;
             display: block;
         }
 
         /* Barra de progreso personalizada */
-        .progress-container { width: 100%; margin-bottom: 25px; }
-
-        input[type="range"] {
+        .progress-container { width: 100%; margin-bottom: 25px; }        input[type="range"] {
             -webkit-appearance: none;
             width: 100%;
-            background: transparent;
+            background: #333; /* Fondo base */
             cursor: pointer;
+            height: 6px;
+            border-radius: 3px;
         }
 
         input[type="range"]::-webkit-slider-runnable-track {
             width: 100%;
             height: 6px;
-            background: #333;
+            background: transparent; /* El color lo controlaremos con el gradiente del input */
             border-radius: 3px;
         }
 
@@ -81,9 +99,9 @@
             height: 16px;
             width: 16px;
             border-radius: 50%;
-            background: #4a90e2;
+            background: var(--color-principal);
             margin-top: -5px;
-            box-shadow: 0 0 10px rgba(74, 144, 226, 0.4);
+            box-shadow: 0 0 10px rgba(var(--color-principal-rgb), 0.4);
         }
 
         .time-display {
@@ -105,16 +123,15 @@
 
         button {
             background: none;
-            border: 2px solid #1e5bb8;
-            color: #4a90e2;
-            padding: 10px 18px;
-            border-radius: 30px;
+            border: none;
+            color: #ffffff;
             cursor: pointer;
-            font-weight: bold;
-            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        button:hover { background-color: rgba(74, 144, 226, 0.1); }
+        button:hover { background-color: rgba(var(--color-principal-rgb), 0.1); }
 
         .play-btn { 
             width: 70px; 
@@ -163,47 +180,112 @@
             outline: none;
             cursor: pointer;
         }        #timer-msg {
-            color: #4a90e2;
+            color: var(--color-principal);
             font-size: 0.8rem;
             margin-top: 10px;
             min-height: 15px;
         }        #library-list {
-            max-height: 280px;
-            overflow-y: auto;
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            padding: 5px;
-            scrollbar-width: none;
+            grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+            gap: clamp(10px, 3vw, 20px);
+            padding: 10px 0;
+            justify-items: center;
+            align-items: start;
+            width: 100%;
         }
 
-        .book-card {
+        /* Cuando el reproductor está activo, vuelve a modo fila horizontal */
+        #library-list.player-active {
+            display: flex;
+            flex-direction: row;
+            overflow-x: auto;
+            gap: 14px;
+            padding: 5px 0;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            scroll-snap-type: x mandatory;
+        }
+        
+        #library-list::-webkit-scrollbar { display: none; }        .book-card {
             display: flex;
             flex-direction: column;
             align-items: center;
             cursor: pointer;
             position: relative;
-            transition: transform 0.2s;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            min-width: 90px;
+            scroll-snap-align: start;
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        .book-card:hover {
+            transform: translateY(-8px);
         }
 
         .book-card:active {
-            transform: scale(0.95);
+            transform: scale(0.92);
         }
 
-        .book-thumb {
-            width: 90px;
-            height: 90px;
-            background: #333;
-            border-radius: 12px;
+        #player-ui-container {
+            transition: opacity 0.4s ease-in-out;
+        }
+
+        .play-btn {
+            transition: all 0.3s ease !important;
+        }
+
+        .play-btn.playing {
+            animation: pulse 2s infinite;
+            border-color: var(--color-principal);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes modalPop {
+            0% { opacity: 0; transform: scale(0.9) translateY(30px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(var(--color-principal-rgb), 0.6); }
+            70% { box-shadow: 0 0 0 20px rgba(var(--color-principal-rgb), 0); }
+            100% { box-shadow: 0 0 0 0 rgba(var(--color-principal-rgb), 0); }
+        }
+
+        /* Animación de vibración para el modo reordenar */
+        @keyframes shake {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(1.2deg); }
+            50% { transform: rotate(0deg); }
+            75% { transform: rotate(-1.2deg); }
+            100% { transform: rotate(0deg); }
+        }
+
+        .reorder-mode .book-card {
+            animation: shake 0.3s infinite ease-in-out;
+        }
+
+        .book-card.dragging {
+            opacity: 0.4;
+            transform: scale(1.05);
+            animation: none !important;
+        }        .book-thumb {
+            width: 85px;
+            height: 85px;
+            background: #1a1a1a;
+            border-radius: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
             margin-bottom: 6px;
             position: relative;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            border: 1px solid #444;
+            border: 1px solid #252525;
             background-size: cover;
             background-position: center;
+            transition: transform 0.2s;
         }
 
         .status-dot {
@@ -212,99 +294,197 @@
             right: -4px;
             width: 14px;
             height: 14px;
-            background: #4a90e2;
+            background: var(--color-principal);
             border-radius: 50%;
-            border: 2px solid #1a1a1a;
-            box-shadow: 0 0 5px rgba(0,0,0,0.5);
+            border: 2px solid #111;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
             z-index: 2;
-        }
-
-        .book-label {
+        }        .book-label {
             font-size: 0.6rem;
             font-weight: 700;
             color: #ffffff;
             text-transform: uppercase;
             text-align: center;
             width: 100%;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+            /* Texto completo sin recortes */
+            display: block;
+            overflow: visible;
+            line-height: 1.3;
             letter-spacing: 0.5px;
+            word-wrap: break-word;
         }
 
         .delete-btn-mini {
             position: absolute;
-            bottom: 22px;
-            right: -2px;
-            background: rgba(239, 71, 111, 0.9);
+            top: -8px;
+            left: -8px;
+            background: #ff4757;
             color: white;
-            border: none;
+            border: 2px solid #111;
             border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            font-size: 0.6rem;
-            display: flex;
+            width: 26px;
+            height: 26px;
+            font-size: 0.75rem;
+            display: none;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            z-index: 3;
+            z-index: 10;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            line-height: 0;
+            padding: 0;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+
+        /* Solo se muestra cuando el contenedor tiene la clase reorder-mode */        .reorder-mode .delete-btn-mini {
+            display: flex;
+        }
+
+        /* Estilos para los Switches */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 42px;
+            height: 22px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #333;
+            transition: .3s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--color-principal);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(20px);
         }
     </style>
 </head>
 <body>
 
-
-<div style="position: fixed; top: 20px; right: 20px; z-index: 1001;">
-    <button onclick="toggleSettings()" style="padding: 10px 16px; border-radius: 12px; font-size: 1.1rem; border: 1px solid #333; background: #1a1a1a; color: #4a90e2; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.4);">⚙️ Ajustes</button>
+<div style="width: 92%; max-width: 400px; margin-bottom: 10px; display: flex; justify-content: flex-start;">
+    <button onclick="toggleSettings()" style="width: 42px; height: 42px; border-radius: 12px; border: 1px solid #222; background: #111; color: #666; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.4);">
+        <i class="material-icons" style="font-size: 24px;">settings</i>
+    </button>
 </div>
 
-<div class="player-container">
+<div class="player-container" style="transform: none;">
+    
+    
 
     
-    <div id="settings-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:1000; align-items:center; justify-content:center; backdrop-filter: blur(5px);">
-        <div class="player-container" style="background:#1a1a1a; border: 1px solid #333; position: relative;">
-            <h3 style="color:#4a90e2; margin-top:0; margin-bottom: 20px;">Configuración</h3>
-            
-            <div class="upload-section" style="margin-bottom: 25px;">
-                <label for="file-input" class="custom-file-upload" id="drop-zone">
-                    <b id="file-label">📁 Añadir nuevo Audiolibro</b>
-                </label>
-                <input type="file" id="file-input" accept="audio/*">
+    <div id="settings-modal" style="display:flex; opacity:0; visibility:hidden; pointer-events:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:2000; align-items:center; justify-content:center; backdrop-filter: blur(15px); transition: opacity 0.4s ease, visibility 0.4s ease;">
+        <div id="settings-content" style="background:#161616; border: 1px solid #2a2a2a; width: 90%; max-width: 360px; border-radius: 32px; padding: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); transform: scale(0.9) translateY(30px);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 24px;">
+                <h3 style="color:white; margin:0; font-size: 1.2rem; font-weight: 600;">Ajustes</h3>
+                <i class="material-icons" onclick="toggleSettings()" style="color:#666; cursor:pointer; font-size: 24px;">close</i>
             </div>
 
-            <div style="background: #252525; padding: 20px; border-radius: 12px; border: 1px solid #333; margin-bottom: 20px; display: flex; flex-direction: column; gap: 15px;">
-                <div style="display: flex; align-items: center; justify-content: flex-start;">
-                    <input type="checkbox" id="normalize-vol" onchange="toggleNormalization()" style="width: 20px; height: 20px; cursor: pointer; margin-right: 12px;">
-                    <label for="normalize-vol" style="cursor: pointer; color: #4a90e2; font-weight: bold; font-size: 0.95rem;">🔊 Modo Noche (Audio Plano)</label>
-                </div>
+            
+            <div style="background: #1f1f1f; padding: 20px; border-radius: 20px; border: 1px dashed #333; margin-bottom: 20px; text-align: center;">
+                <label for="file-input" style="cursor:pointer; display:block;">
+                    <i class="material-icons" style="color:var(--color-principal); font-size: 32px; margin-bottom: 8px;">cloud_upload</i>
+                    <span id="file-label" style="display:block; color:#eee; font-size: 0.9rem; font-weight: 500;">Importar Audiolibro</span>
+                </label>
+                <input type="file" id="file-input" accept="audio/*" style="display:none;">
+            </div>
+
+            
+            <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px;">
                 
-                <div style="display: flex; flex-direction: column; align-items: flex-start; border-top: 1px solid #333; padding-top: 15px; gap: 10px;">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <input type="checkbox" id="silence-beep" onchange="toggleSilenceDetection()" style="width: 18px; height: 18px; cursor: pointer;">
-                        <label for="silence-beep" style="cursor: pointer; color: #06d6a0; font-size: 0.9rem; font-weight: 500;">🔔 Bip en Silencio cada:</label>
+                <div style="background:#1c1c1c; padding:14px 18px; border-radius:16px;">
+                    <div style="display:flex; align-items:center; gap:12px; margin-bottom:15px;">
+                        <i class="material-icons" style="color:#888; font-size:20px;">palette</i>
+                        <span style="color:#ccc; font-size:0.9rem;">Color de Acento</span>
                     </div>
-                    <select id="beep-interval" style="width: 100%; padding: 8px; font-size: 0.85rem; background: #333; color: white; border: none; border-radius: 8px;">
-                        <option value="300" selected>5 minutos</option>
-                        <option value="600">10 minutos</option>
-                        <option value="900">15 minutos</option>
-                        <option value="1200">20 minutos</option>
-                        <option value="1800">30 minutos</option>
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; background: #141414; padding: 10px; border-radius: 12px;">
+                        <div onclick="setThemeColor('#4a90e2')" style="width:28px; height:28px; border-radius:50%; background:#4a90e2; cursor:pointer; border:2px solid #333; transition: transform 0.2s;" class="color-dot"></div>
+                        <div onclick="setThemeColor('#a29bfe')" style="width:28px; height:28px; border-radius:50%; background:#a29bfe; cursor:pointer; border:2px solid #333; transition: transform 0.2s;" class="color-dot"></div>
+                        <div onclick="setThemeColor('#00b894')" style="width:28px; height:28px; border-radius:50%; background:#00b894; cursor:pointer; border:2px solid #333; transition: transform 0.2s;" class="color-dot"></div>
+                        <div onclick="setThemeColor('#fab1a0')" style="width:28px; height:28px; border-radius:50%; background:#fab1a0; cursor:pointer; border:2px solid #333; transition: transform 0.2s;" class="color-dot"></div>
+                        <div onclick="setThemeColor('#fdcb6e')" style="width:28px; height:28px; border-radius:50%; background:#fdcb6e; cursor:pointer; border:2px solid #333; transition: transform 0.2s;" class="color-dot"></div>
+                        <div style="position:relative; width:28px; height:28px; border-radius:50%; overflow:hidden; border:2px solid #333; background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%);">
+                            <input type="color" id="custom-color" onchange="setThemeColor(this.value)" style="position:absolute; top:-5px; left:-5px; width:40px; height:40px; cursor:pointer; opacity:0;">
+                            <i class="material-icons" style="font-size:16px; color:white; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); pointer-events:none;">colorize</i>
+                        </div>
+                    </div>
+                </div>                <div style="background:#1c1c1c; padding:14px 18px; border-radius:16px; display:flex; justify-content:space-between; align-items:center;">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <i class="material-icons" style="color:#888; font-size:20px;">brightness_4</i>
+                        <span style="color:#ccc; font-size:0.9rem;">Modo Noche</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="normalize-vol" onchange="toggleNormalization()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div style="background:#1c1c1c; padding:14px 18px; border-radius:16px; display:flex; justify-content:space-between; align-items:center;">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <i class="material-icons" style="color:#888; font-size:20px;">lock</i>
+                        <span style="color:#ccc; font-size:0.9rem;">Bloquear Seek</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="lock-seek">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div style="background:#1c1c1c; padding:14px 18px; border-radius:16px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <i class="material-icons" style="color:var(--color-principal); font-size:20px;">notifications_active</i>
+                            <span style="color:#ccc; font-size:0.9rem;">Bip de Seguridad</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="silence-beep" onchange="toggleSilenceDetection()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <select id="beep-interval" style="width:100%; background:#252525; color:#aaa; border:none; padding:10px; border-radius:10px; font-size:0.8rem; outline:none;">
+                        <option value="300" selected>Cada 5 minutos</option>
+                        <option value="600">Cada 10 minutos</option>
+                        <option value="900">Cada 15 minutos</option>
+                        <option value="1800">Cada 30 minutos</option>
                     </select>
                 </div>
             </div>
 
-            <button onclick="toggleSettings()" style="width:100%; background:#4a90e2; color:white; border:none; padding: 12px; font-size: 1rem;">Listo</button>
+            <button onclick="toggleSettings()" style="width:100%; background:var(--color-principal); color:white; border:none; padding: 16px; border-radius: 18px; font-size: 1rem; font-weight:600; box-shadow: 0 10px 20px rgba(var(--color-principal-rgb),0.2);">Guardar Cambios</button>
         </div>
-    </div>
-
-    
-    <div id="library-container" style="background: #252525; border-radius: 15px; padding: 15px; margin-bottom: 25px; border: 1px solid #333; text-align: left;">
-        <h3 style="font-size: 0.9rem; margin: 0 0 12px 0; color: #4a90e2; display: flex; justify-content: space-between; align-items: center;">
-            📚 Biblioteca Local
-            <span id="db-status" style="font-size: 0.6rem; color: #666;">Conectando...</span>
-        </h3>
-        <div id="library-list">
-            <small style="color:#666; text-align:center; display:block; padding: 10px;">Cargando archivos guardados...</small>
+    </div>    <div id="library-container" style="margin-bottom: 30px; text-align: center;">
+        <h3 style="font-size: 0.65rem; margin: 0 0 25px 0; color: var(--color-principal); display: flex; justify-content: center; align-items: center; letter-spacing: 4px; opacity: 0.6; font-weight: 900; text-indent: 4px;">
+            BIBLIOTECA
+        </h3>        <div id="library-list">
+            <div style="grid-column: 1 / -1; padding: 60px 20px; color: #444; display: flex; flex-direction: column; align-items: center; gap: 20px; width: 100%;">
+                <i class="material-icons" style="font-size: 48px; opacity: 0.1; animation: pulse 2s infinite;">auto_stories</i>
+                <small style="font-weight: 700; letter-spacing: 3px; font-size: 0.6rem; opacity: 0.3; text-transform: uppercase;">Organizando Colección</small>
+            </div>
         </div>
     </div>
 
@@ -313,7 +493,7 @@
     <div id="player-ui-container" style="display: none;">
         <div class="book-info">
             <div id="cover-container" style="margin-bottom: 20px; display: none;">
-                <img id="cover-art" src="" alt="Portada" style="width: 200px; height: 200px; object-fit: cover; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 2px solid #333;">
+                <img id="cover-art" src="" alt="Portada" style="width: 300px; height: 300px; object-fit: cover; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.8);">
             </div>
             <h2 id="title">Sin archivo</h2>
             <p id="author">Reproductor Local</p>
@@ -326,22 +506,43 @@
                 <span id="current-time">0:00</span>
                 <span id="duration">0:00</span>
             </div>
-        </div>
-
-        <div class="controls" style="justify-content: space-between; align-items: center; margin-top: 10px;">
-            <button id="speed-display" onclick="cycleSpeed()" style="border:none; color: #888; font-size: 1rem; min-width: 45px; padding: 5px;">1x</button>
-            <button onclick="skip(-15)" style="border:none; font-size: 1.6rem;">↺</button>
-            <button id="play-pause" class="play-btn" onclick="togglePlay()">▶</button>
-            <button onclick="skip(15)" style="border:none; font-size: 1.6rem;">↻</button>
-            <button id="timer-icon" onclick="openTimerModal()" style="border:none; color: #888; font-size: 1.4rem; padding: 5px;">⏲</button>
+        </div>        <div class="controls" style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding: 0 10px;">
+            <button id="speed-display" onclick="openSpeedModal()" style="color: #666; font-size: 1rem; width: 40px;">1x</button>
+            <button onclick="skip(-10)"><i class="material-icons" style="font-size: 35px; color: var(--color-principal);">replay_10</i></button>
+            <button id="play-pause" class="play-btn" onclick="togglePlay()" style="width: 85px; height: 85px; border: 2px solid var(--color-principal); border-radius: 50%;">
+                <i class="material-icons" style="font-size: 50px; color: var(--color-principal);">play_arrow</i>
+            </button>
+            <button onclick="skip(10)"><i class="material-icons" style="font-size: 35px; color: var(--color-principal);">forward_10</i></button>
+            <button id="timer-icon" onclick="openTimerModal()">
+                <i class="material-icons" style="font-size: 30px; color: #666;">timer</i>
+            </button>
         </div>
     </div>
-    <div id="timer-msg" style="font-size: 0.75rem; color: #4a90e2; margin-top: 5px; height: 12px;"></div>
+    <div id="timer-msg" style="font-size: 0.75rem; color: var(--color-principal); margin-top: 5px; height: 12px;"></div>    
+    <div id="speed-bottom-modal" style="display:none; position:fixed; bottom:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; align-items:flex-end; backdrop-filter: blur(10px);">
+        <div id="speed-content" style="width:100%; background:#161616; border-radius: 30px 30px 0 0; padding: 24px; box-sizing: border-box; animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1); border-top: 1px solid #333; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);">
+            <div id="speed-handle" style="width: 100%; height: 40px; display: flex; align-items: center; justify-content: center; margin-top: -15px; cursor: grab; touch-action: none;">
+                <div style="width: 40px; height: 4px; background: #444; border-radius: 2px;"></div>
+            </div>
+            <h3 style="text-align:center; margin-bottom: 20px; font-size: 1.1rem;">Velocidad de Reproducción</h3>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <button onclick="setSpeed(0.8)" style="border:none; padding:15px; color:white; background:#1c1c1c; border-radius:12px;">0.8x</button>
+                <button onclick="setSpeed(1.0)" style="border:none; padding:15px; color:white; background:#1c1c1c; border-radius:12px;">Normal (1x)</button>
+                <button onclick="setSpeed(1.1)" style="border:none; padding:15px; color:white; background:#1c1c1c; border-radius:12px;">1.1x</button>
+                <button onclick="setSpeed(1.25)" style="border:none; padding:15px; color:white; background:#1c1c1c; border-radius:12px;">1.25x</button>
+                <button onclick="setSpeed(1.50)" style="border:none; padding:15px; color:white; background:#1c1c1c; border-radius:12px;">1.50x</button>
+                <button onclick="setSpeed(1.75)" style="border:none; padding:15px; color:white; background:#1c1c1c; border-radius:12px;">1.75x</button>
+            </div>
+            <button onclick="closeSpeedModal()" style="width:100%; text-align:center; border:none; padding:15px; color:var(--color-principal); font-weight:bold; margin-top:10px;">Cerrar</button>
+        </div>
+    </div>
 
     
-    <div id="timer-bottom-modal" style="display:none; position:fixed; bottom:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:2000; align-items:flex-end;">
-        <div style="width:100%; background:#1e1e1e; border-radius: 20px 20px 0 0; padding: 20px; box-sizing: border-box; animation: slideUp 0.3s ease-out;">
-            <div style="width: 40px; height: 4px; background: #444; border-radius: 2px; margin: 0 auto 20px;"></div>
+    <div id="timer-bottom-modal" style="display:none; position:fixed; bottom:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; align-items:flex-end; backdrop-filter: blur(10px);">
+        <div id="timer-content" style="width:100%; background:#161616; border-radius: 30px 30px 0 0; padding: 24px; box-sizing: border-box; animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1); border-top: 1px solid #333; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);">
+            <div id="timer-handle" style="width: 100%; height: 40px; display: flex; align-items: center; justify-content: center; margin-top: -15px; cursor: grab; touch-action: none;">
+                <div style="width: 40px; height: 4px; background: #444; border-radius: 2px;"></div>
+            </div>
             <h3 style="text-align:center; margin-bottom: 20px; font-size: 1.1rem;">Temporizador</h3>
             <div style="display:flex; flex-direction:column; gap: 5px;">
                 <button onclick="setTimer(0)" style="width:100%; text-align:left; border:none; padding:15px; color:white;">Desactivado</button>
@@ -350,17 +551,47 @@
                 <button onclick="setTimer(30)" style="width:100%; text-align:left; border:none; padding:15px; color:white;">30 minutos</button>
                 <button onclick="setTimer(45)" style="width:100%; text-align:left; border:none; padding:15px; color:white;">45 minutos</button>
                 <button onclick="setTimer(60)" style="width:100%; text-align:left; border:none; padding:15px; color:white;">1 hora</button>
-                <button onclick="closeTimerModal()" style="width:100%; text-align:center; border:none; padding:15px; color:#4a90e2; font-weight:bold; margin-top:10px;">Cerrar</button>
+                <button onclick="closeTimerModal()" style="width:100%; text-align:center; border:none; padding:15px; color:var(--color-principal); font-weight:bold; margin-top:10px;">Cerrar</button>
             </div>
         </div>
     </div>
 
     <style>
+        :root {
+            --color-principal: #4a90e2;
+            --color-principal-rgb: 74, 144, 226;
+        }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
     </style>
 </div>
 
 <script>
+    function hexToRgb(hex) {
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : "74, 144, 226";
+    }
+
+    function setThemeColor(hex) {
+        document.documentElement.style.setProperty('--color-principal', hex);
+        document.documentElement.style.setProperty('--color-principal-rgb', hexToRgb(hex));
+        localStorage.setItem('audiobook_theme_color', hex);
+        
+        // Feedback visual en los dots
+        document.querySelectorAll('.color-dot').forEach(dot => {
+            dot.style.transform = 'scale(1)';
+            dot.style.borderColor = '#333';
+        });
+        event.target.style.transform = 'scale(1.2)';
+        event.target.style.borderColor = 'white';
+    }
+
+    // Cargar tema al inicio
+    const savedTheme = localStorage.getItem('audiobook_theme_color');
+    if(savedTheme) {
+        document.documentElement.style.setProperty('--color-principal', savedTheme);
+        document.documentElement.style.setProperty('--color-principal-rgb', hexToRgb(savedTheme));
+    }
+
     const audio = document.getElementById('audio-player');
     const playPauseBtn = document.getElementById('play-pause');
     const progressBar = document.getElementById('progress-bar');
@@ -371,18 +602,29 @@
     const fileLabel = document.getElementById('file-label');
     const titleEl = document.getElementById('title');
     const timerSelect = document.getElementById('sleep-timer');
-    const timerMsg = document.getElementById('timer-msg');
-
-    let sleepTimerTimeout;
+    const timerMsg = document.getElementById('timer-msg');    let sleepTimerTimeout;
+    let sleepTimerInterval;
     let currentFileName = "";
     let db;
+    let reorderMode = false;
+    let pressTimer;
+    let draggedItem = null;
 
     function toggleSettings() {
         const modal = document.getElementById('settings-modal');
-        if (modal.style.display === 'flex') {
-            modal.style.display = 'none';
+        const content = document.getElementById('settings-content');
+        const isVisible = modal.style.opacity === '1';
+
+        if (isVisible) {
+            modal.style.opacity = '0';
+            modal.style.pointerEvents = 'none';
+            content.style.transform = 'scale(0.9) translateY(30px)';
+            setTimeout(() => { if(modal.style.opacity === '0') modal.style.visibility = 'hidden'; }, 400);
         } else {
-            modal.style.display = 'flex';
+            modal.style.visibility = 'visible';
+            modal.style.opacity = '1';
+            modal.style.pointerEvents = 'auto';
+            content.style.transform = 'scale(1) translateY(0)';
         }
     }
 
@@ -398,12 +640,11 @@
 
     dbRequest.onsuccess = (e) => {
         db = e.target.result;
-        document.getElementById('db-status').textContent = "En línea ✓";
         displayLibrary();
     };
 
     dbRequest.onerror = () => {
-        document.getElementById('db-status').textContent = "Error DB ✗";
+        console.error("Error al conectar con la base de datos");
     };
 
     function saveToLibrary(file) {
@@ -430,51 +671,117 @@
 
         const transaction = db.transaction(["books"], "readonly");
         const store = transaction.objectStore("books");
+        const books = [];
         
         store.openCursor().onsuccess = (e) => {
             const cursor = e.target.result;
             if (cursor) {
-                const bookData = cursor.value;
-                const bookName = bookData.name;
-                const escapedName = bookName.replace(/'/g, "\\'");
-                
-                const card = document.createElement('div');
-                card.className = 'book-card';
-                
-                // Formatear nombre para que siempre se vea limpio
-                const labelName = bookName.replace(/\.[^/.]+$/, "").substring(0, 20).toUpperCase();
-
-                card.innerHTML = `
-                    <div class="book-thumb" onclick="loadFromLibrary('${escapedName}')">
-                        <div class="status-dot"></div>
-                        <span style="font-size: 2.5rem; opacity: 0.15;">🎧</span>
-                        <button class="delete-btn-mini" onclick="event.stopPropagation(); deleteFromLibrary('${escapedName}')">✕</button>
-                    </div>
-                    <div class="book-label">${labelName}</div>
-                `;
-                
-                const currentThumb = card.querySelector('.book-thumb');
-                list.appendChild(card);
-
-                // Procesar tags usando la referencia directa al elemento actual (evita mezclas)
-                try {
-                    window.jsmediatags.read(bookData.data, {
-                        onSuccess: function(tag) {
-                            const { picture } = tag.tags;
-                            if (picture && currentThumb) {
-                                const { data, format } = picture;
-                                let base64String = "";
-                                for (let i = 0; i < data.length; i++) base64String += String.fromCharCode(data[i]);
-                                currentThumb.style.backgroundImage = `url(data:${format};base64,${window.btoa(base64String)})`;
-                                currentThumb.querySelector('span').style.display = 'none';
-                            }
-                        }
-                    });
-                } catch (err) {}
-
+                books.push(cursor.value);
                 cursor.continue();
-            } else if (list.innerHTML === "") {
-                list.innerHTML = "<small style='color:#666; text-align:center; grid-column: 1 / span 2; padding: 20px;'>Biblioteca vacía.</small>";
+            } else {
+                const savedOrder = JSON.parse(localStorage.getItem('library_order') || "[]");
+                if (savedOrder.length > 0) {
+                    books.sort((a, b) => (savedOrder.indexOf(a.name) === -1 ? 999 : savedOrder.indexOf(a.name)) - (savedOrder.indexOf(b.name) === -1 ? 999 : savedOrder.indexOf(b.name)));
+                }
+                
+                books.forEach(bookData => {
+                    const bookName = bookData.name;
+                    const card = document.createElement('div');
+                    card.className = 'book-card';
+                    card.draggable = true;
+                    card.dataset.id = bookName;
+                    
+                    const progress = localStorage.getItem('audiobook_progress_' + bookName);                    const cleanName = bookName.replace(/\.[^/.]+$/, "").toUpperCase();
+                    let formattedLabel = cleanName;
+                    if (cleanName.includes("-")) {
+                        const parts = cleanName.split("-").map(p => p.trim());
+                        // Primera parte normal, segunda parte en azul y ligeramente más pequeña
+                        formattedLabel = `${parts[0]}<br><span style="color: var(--color-principal); font-size: 0.9em;">${parts[1]}</span>`;
+                    }                    card.innerHTML = `
+                        <div class="book-thumb" style="position:relative">
+                            ${(progress && parseFloat(progress) > 0) ? '<div class="status-dot"></div>' : ''}
+                            <i class="material-icons" style="font-size: 2.5rem; opacity: 0.15;">headset</i>
+                            <button class="delete-btn-mini" onclick="event.stopPropagation(); deleteFromLibrary('${bookName.replace(/'/g, "\\'")}')"><i class="material-icons" style="font-size: 16px;">close</i></button>
+                        </div>
+                        <div class="book-label">${formattedLabel}</div>
+                    `;
+
+                    const thumb = card.querySelector('.book-thumb');
+                    
+                    const startPress = () => {
+                        pressTimer = setTimeout(() => {
+                            reorderMode = true;
+                            list.classList.add('reorder-mode');
+                            if (navigator.vibrate) navigator.vibrate(60);
+                        }, 800);
+                    };
+                    
+                    const endPress = () => clearTimeout(pressTimer);
+
+                    thumb.addEventListener('touchstart', startPress);
+                    thumb.addEventListener('mousedown', startPress);
+                    thumb.addEventListener('touchend', endPress);
+                    thumb.addEventListener('mouseup', endPress);
+
+                    thumb.addEventListener('click', () => {
+                        if (reorderMode) {
+                            reorderMode = false;
+                            list.classList.remove('reorder-mode');
+                            const newOrder = Array.from(list.querySelectorAll('.book-card')).map(c => c.dataset.id);
+                            localStorage.setItem('library_order', JSON.stringify(newOrder));
+                            return;
+                        }
+                        loadFromLibrary(bookName);
+                    });
+
+                    card.addEventListener('dragstart', (e) => {
+                        if(!reorderMode) return e.preventDefault();
+                        draggedItem = card;
+                        setTimeout(() => card.classList.add('dragging'), 0);
+                    });
+                    card.addEventListener('dragend', () => card.classList.remove('dragging'));
+                    card.addEventListener('dragover', e => {
+                        e.preventDefault();
+                        if (!reorderMode || draggedItem === card) return;
+                        const children = Array.from(list.children);
+                        const curr = children.indexOf(draggedItem), target = children.indexOf(card);
+                        if (curr < target) list.insertBefore(draggedItem, card.nextSibling);
+                        else list.insertBefore(draggedItem, card);
+                    });                    list.appendChild(card);
+                    // Priorizar metadatos para corregir nombres invertidos y aplicar colores
+                    try { 
+                        window.jsmediatags.read(bookData.data, { 
+                            onSuccess: (tag) => { 
+                                const { title, artist, picture } = tag.tags;
+                                const labelEl = card.querySelector('.book-label');
+                                
+                                // Si hay metadatos, reconstruimos el label con el autor en azul
+                                if (title) {
+                                    let cleanTitle = title.replace(/\.[^/.]+$/, "").toUpperCase();
+                                    let cleanArtist = artist || "Autor Desconocido";
+                                    
+                                    // Corregir si el tag de título ya trae el autor pegado con un guion
+                                    if (cleanTitle.includes(" - ")) {
+                                        const parts = cleanTitle.split(" - ");
+                                        cleanTitle = parts[0].trim();
+                                        if (!artist) cleanArtist = parts[1].trim();
+                                    }
+                                    
+                                    labelEl.innerHTML = `${cleanTitle}<br><span style="color: var(--color-principal); font-size: 0.95em; font-weight: 600;">${cleanArtist}</span>`;
+                                }
+
+                                if(picture) { 
+                                    const p = picture;
+                                    let b = ""; for(let i=0; i<p.data.length; i++) b += String.fromCharCode(p.data[i]);
+                                    thumb.style.backgroundImage = `url(data:${p.format};base64,${window.btoa(b)})`;
+                                    const icon = thumb.querySelector('.material-icons');
+                                    if(icon) icon.style.display = 'none';
+                                }
+                            }
+                        }); 
+                    } catch(err) { console.error("Error en tags:", err); }
+                });
+                if (books.length === 0) list.innerHTML = "<small style='color:#666; text-align:center; grid-column: 1 / span 2; padding: 20px;'>Biblioteca vacía.</small>";
             }
         };
     }
@@ -499,43 +806,87 @@
                 setTimeout(() => timerMsg.textContent = "", 2000);
             }
         };
-    }
-
-    function processAudioFile(file) {
-        document.getElementById('player-ui-container').style.display = 'block';
-        currentFileName = file.name;
-        fileLabel.textContent = "Libro: " + (currentFileName.length > 15 ? currentFileName.substring(0,12) + "..." : currentFileName);
+    }    function processAudioFile(file) {
+        const ui = document.getElementById('player-ui-container');
         
+        // 1. Reset visual inmediato fuera del timeout para eliminar el rastro del libro anterior
+        ui.style.opacity = '0';
+        document.getElementById('cover-art').src = '';
         document.getElementById('cover-container').style.display = 'none';
-        titleEl.textContent = currentFileName.replace(/\.[^/.]+$/, "");
-        document.getElementById('author').textContent = "Leyendo etiquetas...";
+        titleEl.textContent = "Cargando...";
+        document.getElementById('author').textContent = "...";        playPauseBtn.innerHTML = '<i class="material-icons" style="font-size: 2.5rem;">play_arrow</i>';
+        playPauseBtn.classList.remove('playing');
 
-        try {
-            window.jsmediatags.read(file, {
-                onSuccess: function(tag) {
-                    const { title, artist, picture } = tag.tags;
-                    if (title) titleEl.textContent = title;
-                    if (artist) document.getElementById('author').textContent = artist;
-                    else document.getElementById('author').textContent = "Autor Desconocido";
-                    if (picture) {
-                        const { data, format } = picture;
-                        let base64String = "";
-                        for (let i = 0; i < data.length; i++) base64String += String.fromCharCode(data[i]);
-                        document.getElementById('cover-art').src = "data:" + format + ";base64," + window.btoa(base64String);
-                        document.getElementById('cover-container').style.display = 'block';
-                    }
-                },
-                onError: () => { document.getElementById('author').textContent = "Reproductor Local"; }
-            });
-        } catch (e) {}
+        setTimeout(() => {
+            ui.style.display = 'block';
+            document.getElementById('library-list').classList.add('player-active');
+            currentFileName = file.name;
+            fileLabel.textContent = "Libro: " + (currentFileName.length > 15 ? currentFileName.substring(0,12) + "..." : currentFileName);            // 1. Limpiar nombre del archivo (quitar extensión)
+            const fileNameNoExt = currentFileName.replace(/\.[^/.]+$/, "");
+            
+            // 2. Lógica de separación: Título - Artista
+            let displayTitle = fileNameNoExt;
+            let displayArtist = "Autor Desconocido";
 
-        const objectURL = URL.createObjectURL(file);
-        audio.src = objectURL;
-        audio.load();
-        playPauseBtn.textContent = '▶';
+            if (fileNameNoExt.includes("-")) {
+                const parts = fileNameNoExt.split("-");
+                displayTitle = parts[0].trim();
+                displayArtist = parts[1].trim();
+            }
 
-        const savedTime = localStorage.getItem('audiobook_progress_' + currentFileName);
-        if(savedTime) audio.currentTime = parseFloat(savedTime);
+            // Aplicar al UI (asegurando limpieza de la extensión .mp3)
+            titleEl.textContent = displayTitle.toUpperCase();
+            document.getElementById('author').textContent = displayArtist;            try {
+                window.jsmediatags.read(file, {
+                    onSuccess: function(tag) {
+                        let { title, artist, picture } = tag.tags;
+                        let artworkUrl = '';
+                        
+                        if (title) {
+                            title = title.replace(/\.[^/.]+$/, "");
+                            if (title.includes("-") && (!artist || artist === "Autor Desconocido")) {
+                                const tParts = title.split("-");
+                                title = tParts[0].trim();
+                                artist = tParts[1].trim();
+                            }
+                            titleEl.textContent = title.toUpperCase();
+                        }
+                        
+                        if (artist) document.getElementById('author').textContent = artist;
+                        if (picture) {
+                            const { data, format } = picture;
+                            let base64String = "";
+                            for (let i = 0; i < data.length; i++) base64String += String.fromCharCode(data[i]);
+                            artworkUrl = "data:" + format + ";base64," + window.btoa(base64String);
+                            document.getElementById('cover-art').src = artworkUrl;
+                            document.getElementById('cover-container').style.display = 'block';
+                        }
+
+                        // Integración con Media Session API (Controles de sistema)
+                        if ('mediaSession' in navigator) {
+                            navigator.mediaSession.metadata = new MediaMetadata({
+                                title: titleEl.textContent,
+                                artist: document.getElementById('author').textContent,
+                                album: 'Audiolibro',
+                                artwork: artworkUrl ? [{ src: artworkUrl, sizes: '512x512', type: 'image/png' }] : []
+                            });
+                        }
+                    },
+                    onError: () => { document.getElementById('author').textContent = "Reproductor Local"; }
+                });
+            } catch (e) {}
+
+            const objectURL = URL.createObjectURL(file);
+            audio.src = objectURL;
+            audio.load();        playPauseBtn.innerHTML = '<i class="material-icons" style="font-size: 2.5rem;">play_arrow</i>';
+        playPauseBtn.classList.remove('playing');
+
+            const savedTime = localStorage.getItem('audiobook_progress_' + currentFileName);
+            if(savedTime) audio.currentTime = parseFloat(savedTime);
+
+            // Volver a mostrar suavemente
+            ui.style.opacity = '1';
+        }, 300);
     }
 
     fileInput.addEventListener('change', function(e) {
@@ -544,83 +895,203 @@
             saveToLibrary(file);
             processAudioFile(file);
         }
-    });
-
-    audio.onloadedmetadata = () => {
+    });    audio.onloadedmetadata = () => {
         progressBar.max = Math.floor(audio.duration);
         durationEl.textContent = formatTime(audio.duration);
-    };
+        updateProgressFill();
+        if ('mediaSession' in navigator) {
+            navigator.mediaSession.setPositionState({
+                duration: audio.duration,
+                playbackRate: audio.playbackRate,
+                position: audio.currentTime
+            });
+        }
+    };    // Configuración de controles remotos optimizada para móviles
+    if ('mediaSession' in navigator) {
+        navigator.mediaSession.setActionHandler('play', () => audio.play());
+        navigator.mediaSession.setActionHandler('pause', () => audio.pause());
+        // Mapeamos avanzar/retroceder a botones de pista para asegurar visibilidad en la notificación
+        navigator.mediaSession.setActionHandler('previoustrack', () => skip(-10));
+        navigator.mediaSession.setActionHandler('nexttrack', () => skip(10));
+        navigator.mediaSession.setActionHandler('seekbackward', (details) => skip(details.seekOffset || -10));
+        navigator.mediaSession.setActionHandler('seekforward', (details) => skip(details.seekOffset || 10));
+        navigator.mediaSession.setActionHandler('stop', () => { audio.pause(); audio.currentTime = 0; });
+    }
 
     function togglePlay() {
         if (!audio.src) {
             alert("Por favor, selecciona primero un archivo de audio.");
             return;
         }
-        if (audio.paused) {
-            audio.play();
-            playPauseBtn.textContent = '⏸';
-        } else {
-            audio.pause();
-            playPauseBtn.textContent = '▶';
-            // Guardar progreso al pausar manualmente
-            saveProgress();
-        }
+        audio.paused ? audio.play() : audio.pause();
     }
 
-    // 2. Guardado automático de progreso mientras avanza
+    // Sincronización de estado de reproducción con el Sistema Operativo
+    audio.onplay = () => {
+        playPauseBtn.innerHTML = '<i class="material-icons" style="font-size: 2.5rem;">pause</i>';
+        playPauseBtn.classList.add('playing');
+        if ('mediaSession' in navigator) navigator.mediaSession.playbackState = "playing";
+    };
+
+    audio.onpause = () => {
+        playPauseBtn.innerHTML = '<i class="material-icons" style="font-size: 2.5rem;">play_arrow</i>';
+        playPauseBtn.classList.remove('playing');
+        if ('mediaSession' in navigator) navigator.mediaSession.playbackState = "paused";
+        saveProgress();
+    };    // Función para "pintar" la línea de progreso
+    function updateProgressFill() {
+        if (!audio.duration) return;
+        const percentage = (audio.currentTime / audio.duration) * 100;
+        progressBar.style.background = `linear-gradient(to right, var(--color-principal) ${percentage}%, #333 ${percentage}%)`;
+    }
+
+    // 2. Guardado automático de progreso y actualización visual
     audio.ontimeupdate = () => {
         progressBar.value = Math.floor(audio.currentTime);
         currentTimeEl.textContent = formatTime(audio.currentTime);
+        updateProgressFill();
         
-        // Guardamos el progreso cada vez que el tiempo se actualiza
         if(currentFileName && !audio.paused) {
             saveProgress();
         }
     };
 
-    // Función para guardar en el navegador (localStorage)
     function saveProgress() {
         localStorage.setItem('audiobook_progress_' + currentFileName, audio.currentTime);
     }
 
     progressBar.oninput = () => {
+        if (document.getElementById('lock-seek').checked) {
+            progressBar.value = Math.floor(audio.currentTime);
+            return;
+        }
         audio.currentTime = progressBar.value;
+        updateProgressFill();
     };
 
     function skip(seconds) {
         audio.currentTime += seconds;
-    }    const speeds = [1, 1.2, 1.5, 1.7, 2, 0.8];
-    let currentSpeedIndex = 0;
-
-    function cycleSpeed() {
-        currentSpeedIndex = (currentSpeedIndex + 1) % speeds.length;
-        const newSpeed = speeds[currentSpeedIndex];
-        audio.playbackRate = newSpeed;
-        document.getElementById('speed-display').textContent = newSpeed + 'x';
-        document.getElementById('speed-display').style.color = newSpeed === 1 ? '#888' : '#4a90e2';
+    }    function openSpeedModal() { 
+        const modal = document.getElementById('speed-bottom-modal');
+        const content = document.getElementById('speed-content');
+        modal.style.display = 'flex'; 
+        content.style.transform = 'translateY(0)';
+    }
+    
+    function closeSpeedModal() { 
+        const modal = document.getElementById('speed-bottom-modal');
+        const content = document.getElementById('speed-content');
+        content.style.transform = 'translateY(100%)';
+        setTimeout(() => { modal.style.display = 'none'; }, 300);
     }
 
-    function openTimerModal() { document.getElementById('timer-bottom-modal').style.display = 'flex'; }
-    function closeTimerModal() { document.getElementById('timer-bottom-modal').style.display = 'none'; }
+    function setSpeed(value) {
+        audio.playbackRate = value;
+        document.getElementById('speed-display').textContent = value + 'x';
+        document.getElementById('speed-display').style.color = value === 1 ? '#888' : 'var(--color-principal)';
+        closeSpeedModal();
+    }
+
+    function openTimerModal() { 
+        const modal = document.getElementById('timer-bottom-modal');
+        const content = document.getElementById('timer-content');
+        modal.style.display = 'flex'; 
+        content.style.transform = 'translateY(0)';
+    }
+    
+    function closeTimerModal() { 
+        const modal = document.getElementById('timer-bottom-modal');
+        const content = document.getElementById('timer-content');
+        content.style.transform = 'translateY(100%)';
+        setTimeout(() => { modal.style.display = 'none'; }, 300);
+    }    // Lógica de deslizamiento para cerrar (Temporizador y Velocidad)
+    document.addEventListener('DOMContentLoaded', () => {
+        const setupSwipeClose = (handleId, contentId, closeFn) => {
+            const handle = document.getElementById(handleId);
+            const content = document.getElementById(contentId);
+            let startY = 0;
+            let currentY = 0;
+
+            if(handle) {
+                handle.addEventListener('touchstart', (e) => {
+                    startY = e.touches[0].clientY;
+                    content.style.transition = 'none';
+                }, {passive: true});
+
+                handle.addEventListener('touchmove', (e) => {
+                    currentY = e.touches[0].clientY;
+                    const deltaY = currentY - startY;
+                    if (deltaY > 0) {
+                        content.style.transform = `translateY(${deltaY}px)`;
+                    }
+                }, {passive: true});
+
+                handle.addEventListener('touchend', () => {
+                    content.style.transition = 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+                    const deltaY = currentY - startY;
+                    if (deltaY > 100) {
+                        closeFn();
+                    } else {
+                        content.style.transform = 'translateY(0)';
+                    }
+                    startY = 0; currentY = 0;
+                });
+            }
+        };
+
+        setupSwipeClose('timer-handle', 'timer-content', closeTimerModal);
+        setupSwipeClose('speed-handle', 'speed-content', closeSpeedModal);
+    });
 
     function setTimer(minutes) {
         clearTimeout(sleepTimerTimeout);
+        clearInterval(sleepTimerInterval);
         closeTimerModal();
         
         const timerIcon = document.getElementById('timer-icon');
 
         if (minutes > 0) {
-            const milliseconds = minutes * 60 * 1000;
-            timerMsg.textContent = `Pausa en ${minutes} min`;
-            timerIcon.style.color = '#4a90e2';
-            
-            sleepTimerTimeout = setTimeout(() => {
-                audio.pause();
-                playPauseBtn.textContent = '▶';
-                timerMsg.textContent = "Zzz...";
-                timerIcon.style.color = '#888';
-                saveProgress();
-            }, milliseconds);
+            let totalSeconds = minutes * 60;
+            timerIcon.style.color = 'var(--color-principal)';            const updateUI = () => {
+                const m = Math.floor(totalSeconds / 60);
+                const s = totalSeconds % 60;
+                const timeStr = `${m}:${s < 10 ? '0' : ''}${s}`;
+                timerMsg.textContent = `Pausa en ${timeStr}`;
+                
+                // Actualizar la notificación con el tiempo restante de la cuenta atrás
+                if ('mediaSession' in navigator && navigator.mediaSession.metadata) {
+                    const currentMeta = navigator.mediaSession.metadata;
+                    navigator.mediaSession.metadata = new MediaMetadata({
+                        title: titleEl.textContent + ' (⌛ ' + timeStr + ')',
+                        artist: currentMeta.artist,
+                        album: currentMeta.album,
+                        artwork: currentMeta.artwork
+                    });
+                }
+            };
+
+            updateUI();
+
+            sleepTimerInterval = setInterval(() => {
+                totalSeconds--;
+                if (totalSeconds <= 0) {
+                    clearInterval(sleepTimerInterval);
+                    audio.pause();
+                    playPauseBtn.innerHTML = '<i class="material-icons" style="font-size: 2.5rem;">play_arrow</i>';
+                    timerMsg.textContent = "Zzz...";
+                    timerIcon.style.color = '#888';
+                    // Restaurar título original al terminar el timer
+                    if ('mediaSession' in navigator) {
+                        navigator.mediaSession.metadata = new MediaMetadata({
+                            title: titleEl.textContent,
+                            artist: document.getElementById('author').textContent
+                        });
+                    }
+                    saveProgress();
+                } else {
+                    updateUI();
+                }
+            }, 1000);
         } else {
             timerMsg.textContent = "";
             timerIcon.style.color = '#888';
