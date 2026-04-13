@@ -490,6 +490,7 @@
                 </div>
             </div>
 
+            <button onclick="resetApp()" style="width:100%; background:#2a1010; color:#ff4d4d; border: 1px solid #442222; padding: 12px; border-radius: 18px; font-size: 0.8rem; font-weight:700; margin-bottom: 12px; letter-spacing: 1px;">RESTABLECER TODA LA APP</button>
             <button onclick="toggleSettings()" style="width:100%; background:var(--color-principal); color:white; border:none; padding: 16px; border-radius: 18px; font-size: 1rem; font-weight:600; box-shadow: 0 10px 20px rgba(var(--color-principal-rgb),0.2);">Guardar Cambios</button>
         </div>
     </div>    <div id="library-container" style="margin-bottom: 30px; text-align: center;">
@@ -1558,6 +1559,26 @@
 
         osc.start();
         osc.stop(audioCtx.currentTime + 0.7);
+    }
+
+    function resetApp() {
+        if (confirm("⚠️ ¿ESTÁS SEGURO? Se borrarán todos los audiolibros, carpetas, progreso y personalización. Esta acción es irreversible.")) {
+            localStorage.clear();
+            const deleteRequest = indexedDB.deleteDatabase("AudiobookProDB");
+            
+            deleteRequest.onsuccess = () => {
+                alert("Aplicación restablecida de fábrica.");
+                location.reload();
+            };
+            
+            deleteRequest.onerror = () => {
+                alert("Error al borrar base de datos. Se han limpiado los ajustes locales.");
+                location.reload();
+            };
+            
+            // Fallback por si la base de datos no responde
+            setTimeout(() => location.reload(), 1000);
+        }
     }
 
     function addMarker(time) {
