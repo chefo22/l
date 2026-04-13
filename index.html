@@ -747,31 +747,51 @@
     };
 
     function saveToLibrary(file) {
-        if (!db) return;
+        if (!db) {
+            console.error("Base de datos no lista");
+            return;
+        }
+
+        timerMsg.textContent = "Guardando archivo...";
+        
+        // Usamos una transacción con manejo de eventos completo para evitar cierres prematuros
         const transaction = db.transaction(["books"], "readwrite");
         const store = transaction.objectStore("books");
         
         const bookData = { 
             name: file.name, 
             data: file, 
-            added: new Date().getTime()
+            added: Date.now()
         };
 
-        const request = store.put(bookData);
-        request.onsuccess = () => {
-            timerMsg.textContent = "Guardado en biblioteca ✓";
-            displayLibrary();
-            setTimeout(() => timerMsg.textContent = "", 3000);
-        };
+        try {
+            store.put(bookData);
+            
+            transaction.oncomplete = () => {
+                timerMsg.textContent = "Guardado en biblioteca ✓";
+                displayLibrary();
+                setTimeout(() => timerMsg.textContent = "", 2000);
+            };
+
+            transaction.onerror = (e) => {
+                console.error("Error en transacción:", e.target.error);
+                timerMsg.textContent = "Error: Espacio insuficiente o archivo inválido";
+            };
+        } catch (err) {
+            console.error("Error crítico al guardar:", err);
+            timerMsg.textContent = "Error al procesar el archivo";
+        }
     }    function displayLibrary() {
         const list = document.getElementById('library-list');
-        if (!list) return;
-        list.innerHTML = "";
-
+        if (!list || !db) return;
+        
+        // Limpiamos solo si la base de datos está lista para evitar parpadeos blancos
         const transaction = db.transaction(["books"], "readonly");
         const store = transaction.objectStore("books");
         const books = [];
-        const folderMap = JSON.parse(localStorage.getItem('audiobook_folders') || "{}");        store.openCursor().onsuccess = (e) => {
+        const folderMap = JSON.parse(localStorage.getItem('audiobook_folders') || "{}");
+
+        store.openCursor().onsuccess = (e) => {
             const cursor = e.target.result;
             if (cursor) {
                 books.push(cursor.value);
@@ -785,14 +805,15 @@
                 folders.forEach(f => topLevelEntities.push({ type: 'folder', id: f, name: f }));
                 books.forEach(b => {
                     if (!folderMap[b.name]) topLevelEntities.push({ type: 'book', id: b.name, data: b });
-                });
-
-                // 2. Ordenar según la preferencia guardada (ahora incluye nombres de carpetas)
+                });                // 2. Ordenar según la preferencia guardada (ahora incluye nombres de carpetas)
                 topLevelEntities.sort((a, b) => {
                     let idxA = savedOrder.indexOf(a.id);
                     let idxB = savedOrder.indexOf(b.id);
                     return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
                 });
+
+                // Limpiar el marcador de "Organizando Colección" antes de renderizar
+                list.innerHTML = '';
 
                 // 3. Renderizado unificado
                 topLevelEntities.forEach(entity => {
@@ -890,29 +911,16 @@
                         if (reorderMode) {
                             let currentData = folderMap[bookName] || "";
                             let [oldTitle, oldAuthor] = currentData.split('|');
-                            
-                            // Obtener nombres de carpetas existentes para ayudar al usuario
-                            const existingFolders = [...new Set(Object.values(folderMap))].map(f => f.split('|')[0]);
-                            const folderHint = existingFolders.length > 0 ? "\n\nExistentes: " + existingFolders.join(", ") : "";
 
-                            const targetTitle = prompt("Nombre de la Carpeta o Saga (vacío para extraer del grupo):" + folderHint, oldTitle || "");
+                            const targetTitle = prompt("Nombre del Libro o Saga (vacío para sacar):", oldTitle || "");
                             
                             if (targetTitle !== null) {
-                                const trimmedTitle = targetTitle.trim();
-                                if (trimmedTitle === "") {
+                                if (targetTitle.trim() === "") {
                                     delete folderMap[bookName];
                                 } else {
-                                    // Buscar si la carpeta ya existe para heredar el autor automáticamente
-                                    const existingEntry = Object.values(folderMap).find(v => v.split('|')[0].toLowerCase() === trimmedTitle.toLowerCase());
-                                    let targetAuthor = oldAuthor || "";
-                                    
-                                    if (existingEntry && existingEntry.includes('|')) {
-                                        targetAuthor = existingEntry.split('|')[1];
-                                    } else {
-                                        targetAuthor = prompt("Autor o Narrador para '" + trimmedTitle + "':", targetAuthor);
-                                    }
-                                    
-                                    folderMap[bookName] = targetAuthor ? `${trimmedTitle}|${targetAuthor.trim()}` : trimmedTitle;
+                                    const targetAuthor = prompt("Nombre del Autor o Narrador:", oldAuthor || "");
+                                    // Guardamos combinando con un separador
+                                    folderMap[bookName] = targetAuthor ? `${targetTitle.trim()}|${targetAuthor.trim()}` : targetTitle.trim();
                                 }
                                 localStorage.setItem('audiobook_folders', JSON.stringify(folderMap));
                             }
@@ -1032,17 +1040,27 @@
             if (currentFileName === name) location.reload();
             else displayLibrary();
         };
-    }
-
-    function loadFromLibrary(name) {
+    }    function loadFromLibrary(name) {
+        if (!db) return;
+        
         const transaction = db.transaction(["books"], "readonly");
         const store = transaction.objectStore("books");
-        store.get(name).onsuccess = (e) => {
-            if (e.target.result) {
+        const request = store.get(name);
+
+        timerMsg.textContent = "Leyendo memoria...";
+
+        request.onsuccess = (e) => {
+            if (e.target.result && e.target.result.data) {
                 processAudioFile(e.target.result.data);
-                timerMsg.textContent = "Cargando de memoria...";
-                setTimeout(() => timerMsg.textContent = "", 2000);
+                setTimeout(() => timerMsg.textContent = "", 1000);
+            } else {
+                timerMsg.textContent = "Error: Archivo no encontrado";
+                console.error("El archivo no existe en IndexedDB");
             }
+        };
+
+        request.onerror = () => {
+            timerMsg.textContent = "Error al acceder a la base de datos";
         };
     }    function processAudioFile(file) {
         const ui = document.getElementById('player-ui-container');
@@ -1183,14 +1201,31 @@
         }, 300);
     }    fileInput.addEventListener('change', function(e) {
         const files = Array.from(e.target.files);
-        if (files.length > 0) {
-            files.forEach((file, index) => {
+        if (files.length === 0) return;
+
+        if (files.length > 1) {
+            const folderName = prompt("¿Quieres agrupar estos " + files.length + " archivos en una carpeta?\n(Deja vacío para importar sueltos):");
+            const folderMap = JSON.parse(localStorage.getItem('audiobook_folders') || "{}");
+            
+            files.forEach(file => {
                 saveToLibrary(file);
-                // Solo reproducimos automáticamente el primero de la lista
-                if (index === 0) processAudioFile(file);
+                if (folderName && folderName.trim() !== "") {
+                    folderMap[file.name] = folderName.trim();
+                }
             });
-            timerMsg.textContent = `${files.length} archivos añadidos`;
-            setTimeout(() => timerMsg.textContent = "", 3000);
+            
+            if (folderName && folderName.trim() !== "") {
+                localStorage.setItem('audiobook_folders', JSON.stringify(folderMap));
+            }
+            
+            timerMsg.textContent = files.length + " audiolibros importados ✓";
+            setTimeout(() => { 
+                timerMsg.textContent = ""; 
+                displayLibrary(); 
+            }, 3000);
+        } else {
+            saveToLibrary(files[0]);
+            processAudioFile(files[0]);
         }
     });    audio.onloadedmetadata = () => {
         progressBar.max = Math.floor(audio.duration);
