@@ -5,12 +5,7 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Audiolibro Pro</title>
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#050505">
-    <link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAYAAAAnZST0AAAACXBIWXMAAAsTAAALEwEAmpwYAAADf0lEQVR4nO2cS0hUURzGf99MG8vSInuYpZksS6M0S8pI06BRRAtX0SBoE9SiaBe0CNoE0SJoE0SLoE0QLYI2EUE9SIsS06IsS0un0syZ6XTuuS3mOsbh3vHOnXvOOf8Pps6958xvzv/7z7mX67o6S8IitvYCOAnMAvPAXDAOZIG9QA7IBN6p8xYwD0wD74A36vwpMC9p95U6B6jzA8AAYAnYAsyps4M6m6kzAsQC9R+B36rzGvAeeAzMAt9VAn3U+REwGpjXUOf7wGfA6f0U7NnBInAIGAQOAnvV74+Az8BnVv8O9V78v0f9Lqh6LwEPVJ1X9mD8D98zEAsv9X4beA+8VnVe2Yf5XvX7YvVe7P/X756eGSkAt80Vv1f9vlD93u/f81MAbpv1Yf886fdbv3eW9K6RAnDb/M/vK34/9HttSW8fKQC3zZ+8HwYm1O/pXp49UgBum6/5vAn8UL/fenvOSAG4bf7idwmYVv9vXTwPpwDcNn/weRb4on6fW1u+TwG4bR6Y08A74L36fWfN+XkF4LZ5Yh4B74F36vdVNc8fKQC3zRPzCHgPfFC/r7p59kgBuG0em4fV6fK75onpAn7reA386rS3j6H9t8A34CHwAnis6vxv74A/5mXv6f8D/6fO88AiMB28mX7glzoPAfPq7AEm1dlBnc3UuR1IBf6nSCD6Z+D3m90X3M9AILpnoL/Fm+XfM9Df0s3yX5iXvafvT9Mv9X6vOq98N6P2XgCv1Xm7eq/O+yR9A7X3AnitztvVe3X+S9JzU3v7SPrO6v9O9btk7pD0D9X/H6p+S+YhSf9Z/f9Z1XvJPCTpP6v/P696L5mHJP1n9f/nVe8l85Ck76zeP696L5mHJP1n9f/nVe8l85Ck76zeP696L5mHJP1v9f5F1XvJPCTpf6v3L6reS+YhSf9bvX9R9V4yD0n6z+r9i6r3knlI0v9W719UvZeMc9S9AnzG7N8GZ6LzInAFU38DOKV+f5R7V/mH0v/MvX/9U6v/OfU/F7ynf7f5F8D7P21V6n9G/S+o/8XgX6Xp8B92K6vO99Xf99f/vPofV/8L6n/B6Xf8763+59X/fPDe/t3m9wO/dfz6/NbxG/Bbx8u9f9it+A24rePjXp8fdiuuX58fdiuuX58fdiuuX58fdivuT9D7XvX7uD8X7/f+m6of8Ntc888Bv83vve/4vX8N/E9X/B73Bf/Z8v34ZzE76T/q769qK/6j/f6qtuI/2u+vain+Y/p/vN9f1Vb8W/3v6f+HOfp/+P97/Xf8P52uA/8ALXw8Pz0RcgIAAAAASUVORK5CYII=">
-    
+    <title>Reproductor de Audiolibros Pro - Dark Mode</title>
     <style>
         :root {
             --color-principal: #4a90e2;
@@ -24,7 +19,8 @@
             justify-content: flex-start;
             align-items: center;
             min-height: 100vh;
-            margin: 0;            padding: 8px 0 0 0;
+            margin: 0;
+            padding: 20px 0;
             color: #eeeeee;
             -webkit-tap-highlight-color: transparent;
         }
@@ -36,10 +32,10 @@
 
         /* Contenedor principal - Más limpio y sin bordes pesados */        .player-container {
             background: #090909;
-            padding: 1.35rem 0.9rem 0.2rem;
-            border-radius: 36px;
+            padding: 1.5rem 1rem;
+            border-radius: 40px;
             width: 96%;
-            max-width: 360px;
+            max-width: 400px;
             text-align: center;
             margin: 0 auto;
             display: flex;
@@ -47,19 +43,19 @@
         }
 
         .book-info h2 {
-            margin: 22px 0 7px;
+            margin: 25px 0 8px;
             color: #ffffff;
             font-weight: 700;
-            font-size: 1.35rem;
+            font-size: 1.5rem;
             letter-spacing: -0.5px;
             text-transform: uppercase;
         }
 
         .book-info p {
             color: var(--color-principal);
-            margin-bottom: 31px;
+            margin-bottom: 35px;
             font-weight: 500;
-            font-size: 0.9rem;
+            font-size: 1rem;
             opacity: 0.8;
         }
 
@@ -122,7 +118,7 @@
             justify-content: center;
             gap: 20px;
             align-items: center;
-            margin-bottom: 0px;
+            margin-bottom: 20px;
         }
 
         button {
@@ -138,10 +134,10 @@
         button:hover { background-color: rgba(var(--color-principal-rgb), 0.1); }
 
         .play-btn { 
-            width: 63px; 
-            height: 63px; 
+            width: 70px; 
+            height: 70px; 
             border-radius: 50%; 
-            font-size: 1.35rem;
+            font-size: 1.5rem;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -391,7 +387,7 @@
 </head>
 <body>
 
-<div style="width: 92%; max-width: 360px; margin-bottom: 9px; display: flex; justify-content: flex-start;">
+<div style="width: 92%; max-width: 400px; margin-bottom: 10px; display: flex; justify-content: flex-start;">
     <button onclick="toggleSettings()" style="width: 42px; height: 42px; border-radius: 12px; border: 1px solid #222; background: #111; color: #666; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.4);">
         <i class="material-icons" style="font-size: 24px;">settings</i>
     </button>
@@ -415,7 +411,7 @@
                     <i class="material-icons" style="color:var(--color-principal); font-size: 32px; margin-bottom: 8px;">cloud_upload</i>
                     <span id="file-label" style="display:block; color:#eee; font-size: 0.9rem; font-weight: 500;">Importar Audiolibro</span>
                 </label>
-                <input type="file" id="file-input" accept="audio/*" multiple style="display:none;">
+                <input type="file" id="file-input" accept="audio/*" style="display:none;">
             </div>
 
             
@@ -490,7 +486,6 @@
                 </div>
             </div>
 
-            <button onclick="resetApp()" style="width:100%; background:#2a1010; color:#ff4d4d; border: 1px solid #442222; padding: 12px; border-radius: 18px; font-size: 0.8rem; font-weight:700; margin-bottom: 12px; letter-spacing: 1px;">RESTABLECER TODA LA APP</button>
             <button onclick="toggleSettings()" style="width:100%; background:var(--color-principal); color:white; border:none; padding: 16px; border-radius: 18px; font-size: 1rem; font-weight:600; box-shadow: 0 10px 20px rgba(var(--color-principal-rgb),0.2);">Guardar Cambios</button>
         </div>
     </div>    <div id="library-container" style="margin-bottom: 30px; text-align: center;">
@@ -509,7 +504,7 @@
     <div id="player-ui-container" style="display: none;">
         <div class="book-info">
             <div id="cover-container" style="margin-bottom: 20px; display: none;">
-                <img id="cover-art" src="" alt="Portada" style="width: 270px; height: 270px; object-fit: cover; border-radius: 18px; box-shadow: 0 20px 50px rgba(0,0,0,0.8);">
+                <img id="cover-art" src="" alt="Portada" style="width: 300px; height: 300px; object-fit: cover; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.8);">
             </div>
             <h2 id="title">Sin archivo</h2>
             <p id="author">Reproductor Local</p>
@@ -519,10 +514,10 @@
             <div id="marker-layer" style="position: absolute; width: 100%; height: 6px; pointer-events: none;"></div>
             <input type="range" id="progress-bar" value="0" step="1" style="position: relative; z-index: 2;">
             <div class="time-display">
-                <span id="current-time">0:00:00</span>
-                <span id="duration">0:00:00</span>
+                <span id="current-time">0:00</span>
+                <span id="duration">0:00</span>
             </div>
-        </div>        <div class="controls" style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px; padding: 0 10px;">
+        </div>        <div class="controls" style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding: 0 10px;">
             <button id="speed-display" onclick="openSpeedModal()" style="color: #666; font-size: 1rem; width: 40px;">1x</button>
             <button onclick="skip(-10)"><i class="material-icons" style="font-size: 35px; color: var(--color-principal);">replay_10</i></button>
             <button id="play-pause" class="play-btn" onclick="togglePlay()" style="width: 85px; height: 85px; border: 2px solid var(--color-principal); border-radius: 50%;">
@@ -533,7 +528,8 @@
                 <i class="material-icons" style="font-size: 30px; color: #666;">timer</i>
             </button>
         </div>
-    </div>    <div id="timer-msg" style="font-size: 0.75rem; color: var(--color-principal); margin-top: 2px; height: 10px;"></div>    
+    </div>
+    <div id="timer-msg" style="font-size: 0.75rem; color: var(--color-principal); margin-top: 5px; height: 12px;"></div>    
     <div id="speed-bottom-modal" style="display:none; position:fixed; bottom:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; align-items:flex-end; backdrop-filter: blur(10px);">
         <div id="speed-content" style="width:100%; background:#161616; border-radius: 30px 30px 0 0; padding: 24px; box-sizing: border-box; animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1); border-top: 1px solid #333; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);">
             <div id="speed-handle" style="width: 100%; height: 40px; display: flex; align-items: center; justify-content: center; margin-top: -15px; cursor: grab; touch-action: none;">
@@ -606,58 +602,7 @@
             window.event.target.style.transform = 'scale(1.2)';
             window.event.target.style.borderColor = 'white';
         }
-    }    // Registro de PWA y Generación Dinámica de Manifest para permitir instalación real
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            // 1. Generar Manifest como Blob (Soluciona el rechazo de instalación en Chrome/Android)
-            const manifestData = {
-                "name": "Audiolibro Pro",
-                "short_name": "Audiobook",
-                "description": "Reproductor Pro de Audiolibros",
-                "id": "./",
-                "start_url": window.location.href,
-                "scope": "./",
-                "display": "standalone",
-                "background_color": "#050505",
-                "theme_color": "#4a90e2",
-                "icons": [
-                    {
-                        "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAYAAAAnZST0AAAACXBIWXMAAAsTAAALEwEAmpwYAAADf0lEQVR4nO2cS0hUURzGf99MG8vSInuYpZksS6M0S8pI06BRRAtX0SBoE9SiaBe0CNoE0SJoE0SLoE0QLYI2EUE9SIsS06IsS0un0syZ6XTuuS3mOsbh3vHOnXvOOf8Pps6958xvzv/7z7mX67o6S8IitvYCOAnMAvPAXDAOZIG9QA7IBN6p8xYwD0wD74A36vwpMC9p95U6B6jzA8AAYAnYAsyps4M6m6kzAsQC9R+B36rzGvAeeAzMAt9VAn3U+REwGpjXUOf7wGfA6f0U7NnBInAIGAQOAnvV74+Az8BnVv8O9V78v0f9Lqh6LwEPVJ1X9mD8D98zEAsv9X4beA+8VnVe2Yf5XvX7YvVe7P/X756eGSkAt80Vv1f9vlD93u/f81MAbpv1Yf886fdbv3eW9K6RAnDb/M/vK34/9HttSW8fKQC3zZ+8HwYm1O/pXp49UgBum6/5vAn8UL/fenvOSAG4bf7idwmYVv9vXTwPpwDcNn/weRb4on6fW1u+TwG4bR6Y08A74L36fWfN+XkF4LZ5Yh4B74F36vdVNc8fKQC3zRPzCHgPfFC/r7p59kgBuG0em4fV6fK75onpAn7reA386rS3j6H9t8A34CHwAnis6vxv74A/5mXv6f8D/6fO88AiMB28mX7glzoPAfPq7AEm1dlBnc3UuR1IBf6nSCD6Z+D3m90X3M9AILpnoL/Fm+XfM9Df0s3yX5iXvaf+T9Mv9X6vOq98N6P2XgCv1Xm7eq/O+yR9A7X3AnitztvVe3X+S9JzU3v7SPrO6v9O9btk7pD0D9X/H6p+S+YhSf9Z/f9Z1XvJPCTpP6v/P696L5mHJP1n9f/nVe8l85Ck76zeP696L5mHJP1n9f/nVe8l85Ck76zeP696L5mHJP1v9f5F1XvJPCTpf6v3L6reS+YhSf9bvX9R9V4yD0n6z+r9i6r3knlI0v9W719UvZeMc9S9AnzG7N8GZ6LzInAFU38DOKV+f5R7V/mH0v/MvX/9U6v/OfU/F7ynf7f5F8D7P21V6n9G/S+o/8XgX6Xp8B92K6vO99Xf99f/vPofV/8L6n/B6Xf8763+59X/fPDe/t3m9wO/dfz6/NbxG/Bbx8u9f9it+A24rePjXp8fdiuuX58fdiuuX58fdiuuX58fdivuT9D7XvX7uD8X7/f+m6of8Ntc888Bv83vve/4vX8N/E9X/B73Bf/Z8v34ZzE76T/q769...",
-                        "sizes": "192x192",
-                        "type": "image/png",
-                        "purpose": "any maskable"
-                    }
-                ]
-            };
-            const manifestBlob = new Blob([JSON.stringify(manifestData)], {type: 'application/json'});
-            const manifestURL = URL.createObjectURL(manifestBlob);
-            const link = document.createElement('link');
-            link.rel = 'manifest';
-            link.href = manifestURL;
-            document.head.appendChild(link);
-
-            // 2. Registro de Service Worker mejorado
-            const swCode = `
-                const CACHE_NAME = 'audiobook-pro-v1';
-                self.addEventListener('install', e => {
-                    e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.add(location.href)));
-                });
-                self.addEventListener('fetch', e => {
-                    e.respondWith(caches.match(e.request).then(res => res || fetch(e.request)));
-                });
-            `;
-            const blob = new Blob([swCode], { type: 'application/javascript' });
-            const swUrl = URL.createObjectURL(blob);
-            navigator.serviceWorker.register(swUrl, { scope: './' }).catch(err => console.log('SW error', err));
-        });
-
-        // 3. Verificación de seguridad
-        if (window.location.protocol === 'file:') {
-            console.warn("Las PWA no son instalables desde archivos locales (file://). Usa un servidor local o HTTPS.");
-        }
-    }
-
-    // Cargar tema al inicio
+    }    // Cargar tema al inicio
     const savedTheme = localStorage.getItem('audiobook_theme_color');
     if(savedTheme) {
         setThemeColor(savedTheme);
@@ -674,20 +619,6 @@
     const progressBar = document.getElementById('progress-bar');
     const currentTimeEl = document.getElementById('current-time');
     const durationEl = document.getElementById('duration');
-    let showRemainingTime = false;
-    durationEl.style.cursor = 'pointer';
-    durationEl.onclick = () => { showRemainingTime = !showRemainingTime; updateDurationDisplay(); };
-
-    function updateDurationDisplay() {
-        if (!audio.duration) return;
-        if (showRemainingTime) {
-            const remaining = audio.duration - audio.currentTime;
-            durationEl.textContent = "-" + formatTime(remaining >= 0 ? remaining : 0);
-        } else {
-            durationEl.textContent = formatTime(audio.duration);
-        }
-    }
-
     const speedSelect = document.getElementById('speed');
     const fileInput = document.getElementById('file-input');
     const fileLabel = document.getElementById('file-label');
@@ -696,19 +627,10 @@
     const timerMsg = document.getElementById('timer-msg');    let sleepTimerTimeout;
     let sleepTimerInterval;
     let currentFileName = "";
-    let db;    let reorderMode = false;
+    let db;
+    let reorderMode = false;
     let pressTimer;
     let draggedItem = null;
-    let expandedFolder = null;
-
-    // Salir del modo reordenar al pulsar en cualquier parte de la pantalla
-    document.addEventListener('click', (e) => {
-        if (reorderMode && !e.target.closest('.book-card')) {
-            reorderMode = false;
-            const list = document.getElementById('library-list');
-            if (list) list.classList.remove('reorder-mode');
-        }
-    }, true);
 
     function toggleSettings() {
         const modal = document.getElementById('settings-modal');
@@ -748,50 +670,31 @@
     };
 
     function saveToLibrary(file) {
-        if (!db) {
-            console.error("Base de datos no lista");
-            return;
-        }
-
-        timerMsg.textContent = "Guardando archivo...";
-        
-        // Usamos una transacción con manejo de eventos completo para evitar cierres prematuros
+        if (!db) return;
         const transaction = db.transaction(["books"], "readwrite");
         const store = transaction.objectStore("books");
         
         const bookData = { 
             name: file.name, 
             data: file, 
-            added: Date.now()
+            added: new Date().getTime()
         };
 
-        try {
-            store.put(bookData);
-            
-            transaction.oncomplete = () => {
-                timerMsg.textContent = "Guardado en biblioteca ✓";
-                displayLibrary();
-                setTimeout(() => timerMsg.textContent = "", 2000);
-            };
-
-            transaction.onerror = (e) => {
-                console.error("Error en transacción:", e.target.error);
-                timerMsg.textContent = "Error: Espacio insuficiente o archivo inválido";
-            };
-        } catch (err) {
-            console.error("Error crítico al guardar:", err);
-            timerMsg.textContent = "Error al procesar el archivo";
-        }
+        const request = store.put(bookData);
+        request.onsuccess = () => {
+            timerMsg.textContent = "Guardado en biblioteca ✓";
+            displayLibrary();
+            setTimeout(() => timerMsg.textContent = "", 3000);
+        };
     }    function displayLibrary() {
         const list = document.getElementById('library-list');
-        if (!list || !db) return;
-        
-        // Limpiamos solo si la base de datos está lista para evitar parpadeos blancos
+        if (!list) return;
+        list.innerHTML = "";
+
         const transaction = db.transaction(["books"], "readonly");
         const store = transaction.objectStore("books");
         const books = [];
-        const folderMap = JSON.parse(localStorage.getItem('audiobook_folders') || "{}");
-
+        
         store.openCursor().onsuccess = (e) => {
             const cursor = e.target.result;
             if (cursor) {
@@ -799,107 +702,34 @@
                 cursor.continue();
             } else {
                 const savedOrder = JSON.parse(localStorage.getItem('library_order') || "[]");
-                const folders = [...new Set(Object.values(folderMap))];
-                
-                // 1. Crear lista unificada de Entidades de Nivel Superior (Carpetas y Libros sueltos)
-                let topLevelEntities = [];
-                folders.forEach(f => topLevelEntities.push({ type: 'folder', id: f, name: f }));
-                books.forEach(b => {
-                    if (!folderMap[b.name]) topLevelEntities.push({ type: 'book', id: b.name, data: b });
-                });                // 2. Ordenar según la preferencia guardada (ahora incluye nombres de carpetas)
-                topLevelEntities.sort((a, b) => {
-                    let idxA = savedOrder.indexOf(a.id);
-                    let idxB = savedOrder.indexOf(b.id);
-                    return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
-                });
-
-                // Limpiar el marcador de "Organizando Colección" antes de renderizar
-                list.innerHTML = '';
-
-                // 3. Renderizado unificado
-                topLevelEntities.forEach(entity => {
-                    if (entity.type === 'folder') {
-                        renderFolderCard(entity.name);
-                    } else {
-                        renderBookCard(entity.data);
-                    }
-                });                function renderFolderCard(folderName) {
-                    const folderBooks = books.filter(b => folderMap[b.name] === folderName);
-                    if (folderBooks.length === 0) return;
-                    const isExpanded = expandedFolder === folderName;
-
-                    const folderCard = document.createElement('div');
-                    folderCard.className = 'book-card';
-                    folderCard.draggable = true;
-                    folderCard.dataset.id = folderName;
-
-                    // Separar Título y Autor (formato Título|Autor)
-                    const [fTitle, fAuthor] = folderName.split('|');                    folderCard.innerHTML = `
-                        <div class="book-thumb" style="border: 2px solid var(--color-principal); background-color: #111; position: relative;">
-                            <button class="delete-btn-mini" onclick="event.stopPropagation(); if(confirm('¿Deshacer carpeta?')) { let fm = JSON.parse(localStorage.getItem('audiobook_folders') || '{}'); const target = '${folderName.replace(/'/g, "\\'")}'; Object.keys(fm).forEach(k => { if(fm[k] === target) delete fm[k]; }); localStorage.setItem('audiobook_folders', JSON.stringify(fm)); displayLibrary(); }"><i class="material-icons" style="font-size: 16px;">close</i></button>
-                        </div>
-                        <div class="book-label">
-                            ${fTitle.toUpperCase()}
-                            ${fAuthor ? `<br><span style="color: var(--color-principal); font-size: 0.85em; font-weight: 500; display: block; margin-top: 2px;">${fAuthor.toUpperCase()}</span>` : ''}
-                        </div>
-                    `;
-                    
-                    const thumb = folderCard.querySelector('.book-thumb');
-                    let coverBook = folderBooks.find(b => localStorage.getItem('audiobook_progress_' + b.name)) || folderBooks[0];
-                    window.jsmediatags.read(coverBook.data, {
-                        onSuccess: (tag) => {
-                            if (tag.tags.picture) {
-                                const { data, format } = tag.tags.picture;
-                                let b64 = ""; for (let i = 0; i < data.length; i++) b64 += String.fromCharCode(data[i]);
-                                thumb.style.backgroundImage = `url(data:${format};base64,${window.btoa(b64)})`;
-                            }
-                        }
-                    });                    const startPressFolder = () => {
-                        pressTimer = setTimeout(() => {
-                            reorderMode = true;
-                            list.classList.add('reorder-mode');
-                            if (navigator.vibrate) navigator.vibrate(60);
-                        }, 800);
-                    };
-                    thumb.addEventListener('touchstart', startPressFolder); thumb.addEventListener('mousedown', startPressFolder);
-                    thumb.addEventListener('touchend', () => clearTimeout(pressTimer)); thumb.addEventListener('mouseup', () => clearTimeout(pressTimer));                    thumb.onclick = () => {
-                        if (reorderMode) return;
-                        expandedFolder = isExpanded ? null : folderName;
-                        displayLibrary();
-                    };
-                    
-                    attachDragListeners(folderCard);
-                    list.appendChild(folderCard);
-
-                    // Si la carpeta está expandida, renderizar sus libros inmediatamente después
-                    if (isExpanded) {
-                        folderBooks.forEach(b => renderBookCard(b, true));
-                    }
+                if (savedOrder.length > 0) {
+                    books.sort((a, b) => (savedOrder.indexOf(a.name) === -1 ? 999 : savedOrder.indexOf(a.name)) - (savedOrder.indexOf(b.name) === -1 ? 999 : savedOrder.indexOf(b.name)));
                 }
-
-                function renderBookCard(bookData, isChild = false) {
+                
+                books.forEach(bookData => {
                     const bookName = bookData.name;
                     const card = document.createElement('div');
                     card.className = 'book-card';
-                    if (isChild) {
-                        card.style.marginLeft = "15px";
-                        card.dataset.isChild = "true";
-                    }
                     card.draggable = true;
                     card.dataset.id = bookName;
                     
-                    const progress = localStorage.getItem('audiobook_progress_' + bookName);
-                    const cleanName = bookName.replace(/\.[^/.]+$/, "").toUpperCase();
-                    card.innerHTML = `
+                    const progress = localStorage.getItem('audiobook_progress_' + bookName);                    const cleanName = bookName.replace(/\.[^/.]+$/, "").toUpperCase();
+                    let formattedLabel = cleanName;
+                    if (cleanName.includes("-")) {
+                        const parts = cleanName.split("-").map(p => p.trim());
+                        // Primera parte normal, segunda parte en azul y ligeramente más pequeña
+                        formattedLabel = `${parts[0]}<br><span style="color: var(--color-principal); font-size: 0.9em;">${parts[1]}</span>`;
+                    }                    card.innerHTML = `
                         <div class="book-thumb" style="position:relative">
                             ${(progress && parseFloat(progress) > 0) ? '<div class="status-dot"></div>' : ''}
                             <i class="material-icons" style="font-size: 2.5rem; opacity: 0.15;">headset</i>
                             <button class="delete-btn-mini" onclick="event.stopPropagation(); deleteFromLibrary('${bookName.replace(/'/g, "\\'")}')"><i class="material-icons" style="font-size: 16px;">close</i></button>
                         </div>
-                        <div class="book-label">${cleanName}</div>
+                        <div class="book-label">${formattedLabel}</div>
                     `;
 
                     const thumb = card.querySelector('.book-thumb');
+                    
                     const startPress = () => {
                         pressTimer = setTimeout(() => {
                             reorderMode = true;
@@ -907,128 +737,73 @@
                             if (navigator.vibrate) navigator.vibrate(60);
                         }, 800);
                     };
-                    thumb.addEventListener('touchstart', startPress); thumb.addEventListener('mousedown', startPress);
-                    thumb.addEventListener('touchend', () => clearTimeout(pressTimer)); thumb.addEventListener('mouseup', () => clearTimeout(pressTimer));                    thumb.addEventListener('click', () => {
-                        if (reorderMode) {
-                            let currentData = folderMap[bookName] || "";
-                            let [oldTitle, oldAuthor] = currentData.split('|');
+                    
+                    const endPress = () => clearTimeout(pressTimer);
 
-                            const targetTitle = prompt("Nombre del Libro o Saga (vacío para sacar):", oldTitle || "");
-                            
-                            if (targetTitle !== null) {
-                                if (targetTitle.trim() === "") {
-                                    delete folderMap[bookName];
-                                } else {
-                                    const targetAuthor = prompt("Nombre del Autor o Narrador:", oldAuthor || "");
-                                    // Guardamos combinando con un separador
-                                    folderMap[bookName] = targetAuthor ? `${targetTitle.trim()}|${targetAuthor.trim()}` : targetTitle.trim();
-                                }
-                                localStorage.setItem('audiobook_folders', JSON.stringify(folderMap));
-                            }
-                            reorderMode = false; list.classList.remove('reorder-mode');
-                            displayLibrary(); return;
+                    thumb.addEventListener('touchstart', startPress);
+                    thumb.addEventListener('mousedown', startPress);
+                    thumb.addEventListener('touchend', endPress);
+                    thumb.addEventListener('mouseup', endPress);
+
+                    thumb.addEventListener('click', () => {
+                        if (reorderMode) {
+                            reorderMode = false;
+                            list.classList.remove('reorder-mode');
+                            const newOrder = Array.from(list.querySelectorAll('.book-card')).map(c => c.dataset.id);
+                            localStorage.setItem('library_order', JSON.stringify(newOrder));
+                            return;
                         }
                         loadFromLibrary(bookName);
                     });
 
-                    attachDragListeners(card);
-                    list.appendChild(card);                    window.jsmediatags.read(bookData.data, { 
-                        onSuccess: (tag) => { 
-                            const { title, artist, picture } = tag.tags;
-                            const labelEl = card.querySelector('.book-label');
-                            if (title) labelEl.innerHTML = `${title.toUpperCase()}<br><span style="color: var(--color-principal); font-size: 0.9em;">${artist || ''}</span>`;
-                            if (picture) {
-                                const p = picture; 
-                                let base64Str = ""; 
-                                for(let i=0; i<p.data.length; i++) base64Str += String.fromCharCode(p.data[i]);
-                                const artworkUrl = `data:${p.format};base64,${window.btoa(base64Str)}`;
-                                
-                                thumb.style.backgroundImage = `url(${artworkUrl})`;
-                                const icon = thumb.querySelector('.material-icons'); 
-                                if(icon) icon.style.display = 'none';
-
-                                // Extraer color para el punto de estado (Chameleon Dot)
-                                const img = new Image();
-                                img.src = artworkUrl;
-                                img.onload = function() {                                    const canvas = document.createElement('canvas');
-                                    const ctx = canvas.getContext('2d');
-                                    canvas.width = 8; canvas.height = 8;
-                                    ctx.drawImage(img, 0, 0, 8, 8);
-                                    const data = ctx.getImageData(0, 0, 8, 8).data;
-                                    
-                                    let bestH = 0, bestS = 0, bestL = 0.5;
-                                    for (let i = 0; i < data.length; i += 4) {
-                                        let r = data[i]/255, g = data[i+1]/255, b = data[i+2]/255;
-                                        let max = Math.max(r, g, b), min = Math.min(r, g, b);
-                                        let l = (max + min) / 2, d = max - min;
-                                        let s = d === 0 ? 0 : (l > 0.5 ? d / (2 - max - min) : d / (max + min));
-                                        if (s > bestS && l > 0.2 && l < 0.8) {
-                                            bestS = s; bestL = l;
-                                            if (d === 0) bestH = 0;
-                                            else {
-                                                if (max === r) bestH = (g - b) / d + (g < b ? 6 : 0);
-                                                else if (max === g) bestH = (b - r) / d + 2;
-                                                else bestH = (r - g) / d + 4;
-                                                bestH /= 6;
-                                            }
-                                        }
-                                    }
-                                    let h = bestH, s = Math.max(bestS, 0.9), l = 0.65;
-                                    
-                                    const hslToHex = (h, s, l) => {
-                                        const f = (p, q, t) => {
-                                            if (t < 0) t += 1; if (t > 1) t -= 1;
-                                            if (t < 1/6) return p + (q - p) * 6 * t;
-                                            if (t < 1/2) return q;
-                                            if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
-                                            return p;
-                                        };
-                                        const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-                                        const p = 2 * l - q;
-                                        const toHex = x => Math.round(x * 255).toString(16).padStart(2, '0');
-                                        return `#${toHex(f(p,q,h+1/3))}${toHex(f(p,q,h))}${toHex(f(p,q,h-1/3))}`;
-                                    };
-                                    
-                                    const dot = card.querySelector('.status-dot');
-                                    if (dot) dot.style.backgroundColor = hslToHex(h, s, l);
-                                };
-                            }
-                        }
+                    card.addEventListener('dragstart', (e) => {
+                        if(!reorderMode) return e.preventDefault();
+                        draggedItem = card;
+                        setTimeout(() => card.classList.add('dragging'), 0);
                     });
-                }
-
-                function attachDragListeners(el) {
-                    el.addEventListener('dragstart', (e) => {
-                        if(!reorderMode || el.dataset.isChild) return e.preventDefault();
-                        draggedItem = el; setTimeout(() => el.classList.add('dragging'), 0);
-                    });
-                    el.addEventListener('dragend', () => {
-                        el.classList.remove('dragging');
-                        const newOrder = Array.from(list.querySelectorAll('.book-card:not([data-is-child])')).map(c => c.dataset.id);
-                        localStorage.setItem('library_order', JSON.stringify(newOrder));
-                    });
-                    el.addEventListener('dragover', e => {
+                    card.addEventListener('dragend', () => card.classList.remove('dragging'));
+                    card.addEventListener('dragover', e => {
                         e.preventDefault();
-                        if (!reorderMode || draggedItem === el || el.dataset.isChild) return;
-                        const children = Array.from(list.children).filter(c => !c.dataset.isChild);
-                        const curr = children.indexOf(draggedItem), target = children.indexOf(el);
-                        if (curr < target) list.insertBefore(draggedItem, el.nextSibling);
-                        else list.insertBefore(draggedItem, el);
-                    });
-                }
-                if (books.length === 0) {
-                    list.innerHTML = `
-                        <div style="grid-column: 1 / -1; padding: 60px 20px; display: flex; flex-direction: column; align-items: center; gap: 15px; width: 100%; animation: fadeIn 0.8s ease-out;">
-                            <div style="background: rgba(var(--color-principal-rgb), 0.05); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 5px; border: 1px solid rgba(var(--color-principal-rgb), 0.1);">
-                                <i class="material-icons" style="font-size: 35px; color: var(--color-principal); opacity: 0.4;">library_music</i>
-                            </div>
-                            <div style="text-align: center;">
-                                <span style="display: block; font-weight: 800; letter-spacing: 3px; font-size: 0.65rem; color: #888; text-transform: uppercase;">Colección Vacía</span>
-                                <span style="display: block; font-size: 0.75rem; color: #444; margin-top: 6px; font-weight: 500;">Pulsa el engranaje para añadir audiolibros</span>
-                            </div>
-                        </div>
-                    `;
-                }
+                        if (!reorderMode || draggedItem === card) return;
+                        const children = Array.from(list.children);
+                        const curr = children.indexOf(draggedItem), target = children.indexOf(card);
+                        if (curr < target) list.insertBefore(draggedItem, card.nextSibling);
+                        else list.insertBefore(draggedItem, card);
+                    });                    list.appendChild(card);
+                    // Priorizar metadatos para corregir nombres invertidos y aplicar colores
+                    try { 
+                        window.jsmediatags.read(bookData.data, { 
+                            onSuccess: (tag) => { 
+                                const { title, artist, picture } = tag.tags;
+                                const labelEl = card.querySelector('.book-label');
+                                
+                                // Si hay metadatos, reconstruimos el label con el autor en azul
+                                if (title) {
+                                    let cleanTitle = title.replace(/\.[^/.]+$/, "").toUpperCase();
+                                    let cleanArtist = artist || "Autor Desconocido";
+                                    
+                                    // Corregir si el tag de título ya trae el autor pegado con un guion
+                                    if (cleanTitle.includes(" - ")) {
+                                        const parts = cleanTitle.split(" - ");
+                                        cleanTitle = parts[0].trim();
+                                        if (!artist) cleanArtist = parts[1].trim();
+                                    }
+                                    
+                                    labelEl.innerHTML = `${cleanTitle}<br><span style="color: var(--color-principal); font-size: 0.95em; font-weight: 600;">${cleanArtist}</span>`;
+                                }
+
+                                if(picture) { 
+                                    const p = picture;
+                                    let b = ""; for(let i=0; i<p.data.length; i++) b += String.fromCharCode(p.data[i]);
+                                    thumb.style.backgroundImage = `url(data:${p.format};base64,${window.btoa(b)})`;
+                                    const icon = thumb.querySelector('.material-icons');
+                                    if(icon) icon.style.display = 'none';
+                                }
+                            }
+                        }); 
+                    } catch(err) { console.error("Error en tags:", err); }
+                });
+                if (books.length === 0) list.innerHTML = "<small style='color:#666; text-align:center; grid-column: 1 / span 2; padding: 20px;'>Biblioteca vacía.</small>";
             }
         };
     }
@@ -1041,27 +816,17 @@
             if (currentFileName === name) location.reload();
             else displayLibrary();
         };
-    }    function loadFromLibrary(name) {
-        if (!db) return;
-        
+    }
+
+    function loadFromLibrary(name) {
         const transaction = db.transaction(["books"], "readonly");
         const store = transaction.objectStore("books");
-        const request = store.get(name);
-
-        timerMsg.textContent = "Leyendo memoria...";
-
-        request.onsuccess = (e) => {
-            if (e.target.result && e.target.result.data) {
+        store.get(name).onsuccess = (e) => {
+            if (e.target.result) {
                 processAudioFile(e.target.result.data);
-                setTimeout(() => timerMsg.textContent = "", 1000);
-            } else {
-                timerMsg.textContent = "Error: Archivo no encontrado";
-                console.error("El archivo no existe en IndexedDB");
+                timerMsg.textContent = "Cargando de memoria...";
+                setTimeout(() => timerMsg.textContent = "", 2000);
             }
-        };
-
-        request.onerror = () => {
-            timerMsg.textContent = "Error al acceder a la base de datos";
         };
     }    function processAudioFile(file) {
         const ui = document.getElementById('player-ui-container');
@@ -1120,42 +885,32 @@
 
                             // Efecto Camaleón Pro: Extracción de color vibrante
                             img.onload = function() {
-                                try {                                    const canvas = document.createElement('canvas');
+                                try {
+                                    const canvas = document.createElement('canvas');
                                     const ctx = canvas.getContext('2d');
-                                    canvas.width = 10; canvas.height = 10;
-                                    ctx.drawImage(img, 0, 0, 10, 10);
-                                    const imageData = ctx.getImageData(0, 0, 10, 10).data;
+                                    canvas.width = 1; canvas.height = 1;
+                                    ctx.drawImage(img, 0, 0, 1, 1);
+                                    const d = ctx.getImageData(0, 0, 1, 1).data;
                                     
-                                    let bestColor = { h: 0, s: 0, l: 0.5 };
-                                    let maxSaturation = -1;
+                                    // Conversión HSL para inyección de vitalidad
+                                    let r = d[0]/255, g = d[1]/255, b = d[2]/255;
+                                    let max = Math.max(r, g, b), min = Math.min(r, g, b);
+                                    let h, s, l = (max + min) / 2;
 
-                                    for (let i = 0; i < imageData.length; i += 4) {
-                                        let r = imageData[i]/255, g = imageData[i+1]/255, b = imageData[i+2]/255;
-                                        let max = Math.max(r, g, b), min = Math.min(r, g, b);
-                                        let h, s, l = (max + min) / 2;
-                                        let d = max - min;
-                                        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-                                        if (d === 0) s = 0;
-                                        
-                                        // Ignorar colores demasiado claros (blancos/cremas) o muy oscuros
-                                        if (l > 0.15 && l < 0.85) {
-                                            if (s > maxSaturation) {
-                                                maxSaturation = s;
-                                                if (d !== 0) {
-                                                    switch (max) {
-                                                        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-                                                        case g: h = (b - r) / d + 2; break;
-                                                        case b: h = (r - g) / d + 4; break;
-                                                    }
-                                                    h /= 6;
-                                                } else h = 0;
-                                                bestColor = { h, s, l };
-                                            }
+                                    if (max === min) { h = s = 0; } else {
+                                        let diff = max - min;
+                                        s = l > 0.5 ? diff / (2 - max - min) : diff / (max + min);
+                                        switch (max) {
+                                            case r: h = (g - b) / diff + (g < b ? 6 : 0); break;
+                                            case g: h = (b - r) / diff + 2; break;
+                                            case b: h = (r - g) / diff + 4; break;
                                         }
+                                        h /= 6;
                                     }
-                                    let { h, s, l } = bestColor;
-                                    s = Math.max(s, 0.8); 
-                                    l = 0.6; 
+
+                                    // REGLA DE ORO: Forzar saturación y brillo para evitar colores "sucios"
+                                    s = Math.max(s, 0.75); // 75% Saturación mínima
+                                    l = Math.max(l, 0.65); // 65% Brillo mínimo
                                     
                                     const hslToHex = (h, s, l) => {
                                         const f = (p, q, t) => {
@@ -1200,37 +955,17 @@
             // Volver a mostrar suavemente
             ui.style.opacity = '1';
         }, 300);
-    }    fileInput.addEventListener('change', function(e) {
-        const files = Array.from(e.target.files);
-        if (files.length === 0) return;
+    }
 
-        if (files.length > 1) {
-            const folderName = prompt("¿Quieres agrupar estos " + files.length + " archivos en una carpeta?\n(Deja vacío para importar sueltos):");
-            const folderMap = JSON.parse(localStorage.getItem('audiobook_folders') || "{}");
-            
-            files.forEach(file => {
-                saveToLibrary(file);
-                if (folderName && folderName.trim() !== "") {
-                    folderMap[file.name] = folderName.trim();
-                }
-            });
-            
-            if (folderName && folderName.trim() !== "") {
-                localStorage.setItem('audiobook_folders', JSON.stringify(folderMap));
-            }
-            
-            timerMsg.textContent = files.length + " audiolibros importados ✓";
-            setTimeout(() => { 
-                timerMsg.textContent = ""; 
-                displayLibrary(); 
-            }, 3000);
-        } else {
-            saveToLibrary(files[0]);
-            processAudioFile(files[0]);
+    fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            saveToLibrary(file);
+            processAudioFile(file);
         }
     });    audio.onloadedmetadata = () => {
         progressBar.max = Math.floor(audio.duration);
-        updateDurationDisplay();
+        durationEl.textContent = formatTime(audio.duration);
         updateProgressFill();
         if ('mediaSession' in navigator) {
             navigator.mediaSession.setPositionState({
@@ -1303,7 +1038,6 @@
     audio.ontimeupdate = () => {
         progressBar.value = Math.floor(audio.currentTime);
         currentTimeEl.textContent = formatTime(audio.currentTime);
-        updateDurationDisplay();
         updateProgressFill();
         
         if(currentFileName && !audio.paused) {
@@ -1454,10 +1188,9 @@
     }
 
     function formatTime(seconds) {
-        const hrs = Math.floor(seconds / 3600);
-        const min = Math.floor((seconds % 3600) / 60);
+        const min = Math.floor(seconds / 60);
         const sec = Math.floor(seconds % 60);
-        return `${hrs}:${min < 10 ? '0' + min : min}:${sec < 10 ? '0' + sec : sec}`;
+        return `${min}:${sec < 10 ? '0' + sec : sec}`;
     }    audio.onerror = () => {
         if (audio.src) {
             alert("Error: No se pudo reproducir este archivo.");
@@ -1559,26 +1292,6 @@
 
         osc.start();
         osc.stop(audioCtx.currentTime + 0.7);
-    }
-
-    function resetApp() {
-        if (confirm("⚠️ ¿ESTÁS SEGURO? Se borrarán todos los audiolibros, carpetas, progreso y personalización. Esta acción es irreversible.")) {
-            localStorage.clear();
-            const deleteRequest = indexedDB.deleteDatabase("AudiobookProDB");
-            
-            deleteRequest.onsuccess = () => {
-                alert("Aplicación restablecida de fábrica.");
-                location.reload();
-            };
-            
-            deleteRequest.onerror = () => {
-                alert("Error al borrar base de datos. Se han limpiado los ajustes locales.");
-                location.reload();
-            };
-            
-            // Fallback por si la base de datos no responde
-            setTimeout(() => location.reload(), 1000);
-        }
     }
 
     function addMarker(time) {
