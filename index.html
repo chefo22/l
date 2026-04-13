@@ -5,7 +5,12 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reproductor de Audiolibros Pro - Dark Mode</title>
+    <title>Audiolibro Pro</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#050505">
+    <link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAYAAAAnZST0AAAACXBIWXMAAAsTAAALEwEAmpwYAAADf0lEQVR4nO2cS0hUURzGf99MG8vSInuYpZksS6M0S8pI06BRRAtX0SBoE9SiaBe0CNoE0SJoE0SLoE0QLYI2EUE9SIsS06IsS0un0syZ6XTuuS3mOsbh3vHOnXvOOf8Pps6958xvzv/7z7mX67o6S8IitvYCOAnMAvPAXDAOZIG9QA7IBN6p8xYwD0wD74A36vwpMC9p95U6B6jzA8AAYAnYAsyps4M6m6kzAsQC9R+B36rzGvAeeAzMAt9VAn3U+REwGpjXUOf7wGfA6f0U7NnBInAIGAQOAnvV74+Az8BnVv8O9V78v0f9Lqh6LwEPVJ1X9mD8D98zEAsv9X4beA+8VnVe2Yf5XvX7YvVe7P/X756eGSkAt80Vv1f9vlD93u/f81MAbpv1Yf886fdbv3eW9K6RAnDb/M/vK34/9HttSW8fKQC3zZ+8HwYm1O/pXp49UgBum6/5vAn8UL/fenvOSAG4bf7idwmYVv9vXTwPpwDcNn/weRb4on6fW1u+TwG4bR6Y08A74L36fWfN+XkF4LZ5Yh4B74F36vdVNc8fKQC3zRPzCHgPfFC/r7p59kgBuG0em4fV6fK75onpAn7reA386rS3j6H9t8A34CHwAnis6vxv74A/5mXv6f8D/6fO88AiMB28mX7glzoPAfPq7AEm1dlBnc3UuR1IBf6nSCD6Z+D3m90X3M9AILpnoL/Fm+XfM9Df0s3yX5iXvafvT9Mv9X6vOq98N6P2XgCv1Xm7eq/O+yR9A7X3AnitztvVe3X+S9JzU3v7SPrO6v9O9btk7pD0D9X/H6p+S+YhSf9Z/f9Z1XvJPCTpP6v/P696L5mHJP1n9f/nVe8l85Ck76zeP696L5mHJP1n9f/nVe8l85Ck76zeP696L5mHJP1v9f5F1XvJPCTpf6v3L6reS+YhSf9bvX9R9V4yD0n6z+r9i6r3knlI0v9W719UvZeMc9S9AnzG7N8GZ6LzInAFU38DOKV+f5R7V/mH0v/MvX/9U6v/OfU/F7ynf7f5F8D7P21V6n9G/S+o/8XgX6Xp8B92K6vO99Xf99f/vPofV/8L6n/B6Xf8763+59X/fPDe/t3m9wO/dfz6/NbxG/Bbx8u9f9it+A24rePjXp8fdiuuX58fdiuuX58fdiuuX58fdivuT9D7XvX7uD8X7/f+m6of8Ntc888Bv83vve/4vX8N/E9X/B73Bf/Z8v34ZzE76T/q769qK/6j/f6qtuI/2u+vain+Y/p/vN9f1Vb8W/3v6f+HOfp/+P97/Xf8P52uA/8ALXw8Pz0RcgIAAAAASUVORK5CYII=">
+    <link rel="manifest" href='data:application/manifest+json,{"name":"Audiolibro Pro","short_name":"Audiobook","description":"Reproductor Pro de Audiolibros","id":"./","start_url":"./","scope":"./","display":"standalone","background_color":"#050505","theme_color":"#4a90e2","icons":[{"src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAYAAAAnZST0AAAACXBIWXMAAAsTAAALEwEAmpwYAAADf0lEQVR4nO2cS0hUURzGf99MG8vSInuYpZksS6M0S8pI06BRRAtX0SBoE9SiaBe0CNoE0SJoE0SLoE0QLYI2EUE9SIsS06IsS0un0syZ6XTuuS3mOsbh3vHOnXvOOf8Pps6958xvzv/7z7mX67o6S8IitvYCOAnMAvPAXDAOZIG9QA7IBN6p8xYwD0wD74A36vwpMC9p95U6B6jzA8AAYAnYAsyps4M6m6kzAsQC9R+B36rzGvAeeAzMAt9VAn3U+REwGpjXUOf7wGfA6f0U7NnBInAIGAQOAnvV74+Az8BnVv8O9V78v0f9Lqh6LwEPVJ1X9mD8D98zEAsv9X4beA+8VnVe2Yf5XvX7YvVe7P/X756eGSkAt80Vv1f9vlD93u/f81MAbpv1Yf886fdbv3eW9K6RAnDb/M/vK34/9HttSW8fKQC3zZ+8HwYm1O/pXp49UgBum6/5vAn8UL/fenvOSAG4bf7idwmYVv9vXTwPpwDcNn/weRb4on6fW1u+TwG4bR6Y08A74L36fWfN+XkF4LZ5Yh4B74F36vdVNc8fKQC3zRPzCHgPfFC/r7p59kgBuG0em4fV6fK75onpAn7reA386rS3j6H9t8A34CHwAnis6vxv74A/5mXv6f8D/6fO88AiMB28mX7glzoPAfPq7AEm1dlBnc3UuR1IBf6nSCD6Z+D3m90X3M9AILpnoL/Fm+XfM9Df0s3yX5iXvaf+T9Mv9X6vOq98N6P2XgCv1Xm7eq/O+yR9A7X3AnitztvVe3X+S9JzU3v7SPrO6v9O9btk7pD0D9X/H6p+S+YhSf9Z/f9Z1XvJPCTpP6v/P696L5mHJP1n9f/nVe8l85Ck76zeP696L5mHJP1n9f/nVe8l85Ck76zeP696L5mHJP1v9f5F1XvJPCTpf6v3L6reS+YhSf9bvX9R9V4yD0n6z+r9i6r3knlI0v9W719UvZeMc9S9AnzG7N8GZ6LzInAFU38DOKV+f5R7V/mH0v/MvX/9U6v/OfU/F7ynf7f5F8D7P21V6n9G/S+o/8XgX6Xp8B92K6vO99Xf99f/vPofV/8L6n/B6Xf8763+59X/fPDe/t3m9wO/dfz6/NbxG/Bbx8u9f9it+A24rePjXp8fdiuuX58fdiuuX58fdiuuX58fdivuT9D7XvX7uD8X7/f+m6of8Ntc888Bv83vve/4vX8N/E9X/B73Bf/Z8v34ZzE76T/q769...","sizes":"96x96","type":"image/png","purpose":"any maskable"}]}'>
     <style>
         :root {
             --color-principal: #4a90e2;
@@ -19,8 +24,7 @@
             justify-content: flex-start;
             align-items: center;
             min-height: 100vh;
-            margin: 0;
-            padding: 20px 0;
+            margin: 0;            padding: 8px 0 0 0;
             color: #eeeeee;
             -webkit-tap-highlight-color: transparent;
         }
@@ -32,10 +36,10 @@
 
         /* Contenedor principal - Más limpio y sin bordes pesados */        .player-container {
             background: #090909;
-            padding: 1.5rem 1rem;
-            border-radius: 40px;
+            padding: 1.35rem 0.9rem 0.2rem;
+            border-radius: 36px;
             width: 96%;
-            max-width: 400px;
+            max-width: 360px;
             text-align: center;
             margin: 0 auto;
             display: flex;
@@ -43,19 +47,19 @@
         }
 
         .book-info h2 {
-            margin: 25px 0 8px;
+            margin: 22px 0 7px;
             color: #ffffff;
             font-weight: 700;
-            font-size: 1.5rem;
+            font-size: 1.35rem;
             letter-spacing: -0.5px;
             text-transform: uppercase;
         }
 
         .book-info p {
             color: var(--color-principal);
-            margin-bottom: 35px;
+            margin-bottom: 31px;
             font-weight: 500;
-            font-size: 1rem;
+            font-size: 0.9rem;
             opacity: 0.8;
         }
 
@@ -118,7 +122,7 @@
             justify-content: center;
             gap: 20px;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 0px;
         }
 
         button {
@@ -134,10 +138,10 @@
         button:hover { background-color: rgba(var(--color-principal-rgb), 0.1); }
 
         .play-btn { 
-            width: 70px; 
-            height: 70px; 
+            width: 63px; 
+            height: 63px; 
             border-radius: 50%; 
-            font-size: 1.5rem;
+            font-size: 1.35rem;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -387,7 +391,7 @@
 </head>
 <body>
 
-<div style="width: 92%; max-width: 400px; margin-bottom: 10px; display: flex; justify-content: flex-start;">
+<div style="width: 92%; max-width: 360px; margin-bottom: 9px; display: flex; justify-content: flex-start;">
     <button onclick="toggleSettings()" style="width: 42px; height: 42px; border-radius: 12px; border: 1px solid #222; background: #111; color: #666; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.4);">
         <i class="material-icons" style="font-size: 24px;">settings</i>
     </button>
@@ -504,7 +508,7 @@
     <div id="player-ui-container" style="display: none;">
         <div class="book-info">
             <div id="cover-container" style="margin-bottom: 20px; display: none;">
-                <img id="cover-art" src="" alt="Portada" style="width: 300px; height: 300px; object-fit: cover; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.8);">
+                <img id="cover-art" src="" alt="Portada" style="width: 270px; height: 270px; object-fit: cover; border-radius: 18px; box-shadow: 0 20px 50px rgba(0,0,0,0.8);">
             </div>
             <h2 id="title">Sin archivo</h2>
             <p id="author">Reproductor Local</p>
@@ -514,10 +518,10 @@
             <div id="marker-layer" style="position: absolute; width: 100%; height: 6px; pointer-events: none;"></div>
             <input type="range" id="progress-bar" value="0" step="1" style="position: relative; z-index: 2;">
             <div class="time-display">
-                <span id="current-time">0:00</span>
-                <span id="duration">0:00</span>
+                <span id="current-time">0:00:00</span>
+                <span id="duration">0:00:00</span>
             </div>
-        </div>        <div class="controls" style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding: 0 10px;">
+        </div>        <div class="controls" style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px; padding: 0 10px;">
             <button id="speed-display" onclick="openSpeedModal()" style="color: #666; font-size: 1rem; width: 40px;">1x</button>
             <button onclick="skip(-10)"><i class="material-icons" style="font-size: 35px; color: var(--color-principal);">replay_10</i></button>
             <button id="play-pause" class="play-btn" onclick="togglePlay()" style="width: 85px; height: 85px; border: 2px solid var(--color-principal); border-radius: 50%;">
@@ -528,8 +532,7 @@
                 <i class="material-icons" style="font-size: 30px; color: #666;">timer</i>
             </button>
         </div>
-    </div>
-    <div id="timer-msg" style="font-size: 0.75rem; color: var(--color-principal); margin-top: 5px; height: 12px;"></div>    
+    </div>    <div id="timer-msg" style="font-size: 0.75rem; color: var(--color-principal); margin-top: 2px; height: 10px;"></div>    
     <div id="speed-bottom-modal" style="display:none; position:fixed; bottom:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; align-items:flex-end; backdrop-filter: blur(10px);">
         <div id="speed-content" style="width:100%; background:#161616; border-radius: 30px 30px 0 0; padding: 24px; box-sizing: border-box; animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1); border-top: 1px solid #333; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);">
             <div id="speed-handle" style="width: 100%; height: 40px; display: flex; align-items: center; justify-content: center; margin-top: -15px; cursor: grab; touch-action: none;">
@@ -602,7 +605,25 @@
             window.event.target.style.transform = 'scale(1.2)';
             window.event.target.style.borderColor = 'white';
         }
-    }    // Cargar tema al inicio
+    }    // Registro de PWA (Service Worker Inline)
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            const swCode = `
+                const CACHE_NAME = 'audiobook-pro-v1';
+                self.addEventListener('install', e => {
+                    e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.add('./')));
+                });
+                self.addEventListener('fetch', e => {
+                    e.respondWith(caches.match(e.request).then(res => res || fetch(e.request)));
+                });
+            `;
+            const blob = new Blob([swCode], { type: 'application/javascript' });
+            const swUrl = URL.createObjectURL(blob);
+            navigator.serviceWorker.register(swUrl, { scope: './' }).catch(err => console.log('SW error', err));
+        });
+    }
+
+    // Cargar tema al inicio
     const savedTheme = localStorage.getItem('audiobook_theme_color');
     if(savedTheme) {
         setThemeColor(savedTheme);
@@ -619,6 +640,20 @@
     const progressBar = document.getElementById('progress-bar');
     const currentTimeEl = document.getElementById('current-time');
     const durationEl = document.getElementById('duration');
+    let showRemainingTime = false;
+    durationEl.style.cursor = 'pointer';
+    durationEl.onclick = () => { showRemainingTime = !showRemainingTime; updateDurationDisplay(); };
+
+    function updateDurationDisplay() {
+        if (!audio.duration) return;
+        if (showRemainingTime) {
+            const remaining = audio.duration - audio.currentTime;
+            durationEl.textContent = "-" + formatTime(remaining >= 0 ? remaining : 0);
+        } else {
+            durationEl.textContent = formatTime(audio.duration);
+        }
+    }
+
     const speedSelect = document.getElementById('speed');
     const fileInput = document.getElementById('file-input');
     const fileLabel = document.getElementById('file-label');
@@ -803,7 +838,19 @@
                         }); 
                     } catch(err) { console.error("Error en tags:", err); }
                 });
-                if (books.length === 0) list.innerHTML = "<small style='color:#666; text-align:center; grid-column: 1 / span 2; padding: 20px;'>Biblioteca vacía.</small>";
+                if (books.length === 0) {
+                    list.innerHTML = `
+                        <div style="grid-column: 1 / -1; padding: 60px 20px; display: flex; flex-direction: column; align-items: center; gap: 15px; width: 100%; animation: fadeIn 0.8s ease-out;">
+                            <div style="background: rgba(var(--color-principal-rgb), 0.05); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 5px; border: 1px solid rgba(var(--color-principal-rgb), 0.1);">
+                                <i class="material-icons" style="font-size: 35px; color: var(--color-principal); opacity: 0.4;">library_music</i>
+                            </div>
+                            <div style="text-align: center;">
+                                <span style="display: block; font-weight: 800; letter-spacing: 3px; font-size: 0.65rem; color: #888; text-transform: uppercase;">Colección Vacía</span>
+                                <span style="display: block; font-size: 0.75rem; color: #444; margin-top: 6px; font-weight: 500;">Pulsa el engranaje para añadir audiolibros</span>
+                            </div>
+                        </div>
+                    `;
+                }
             }
         };
     }
@@ -965,7 +1012,7 @@
         }
     });    audio.onloadedmetadata = () => {
         progressBar.max = Math.floor(audio.duration);
-        durationEl.textContent = formatTime(audio.duration);
+        updateDurationDisplay();
         updateProgressFill();
         if ('mediaSession' in navigator) {
             navigator.mediaSession.setPositionState({
@@ -1038,6 +1085,7 @@
     audio.ontimeupdate = () => {
         progressBar.value = Math.floor(audio.currentTime);
         currentTimeEl.textContent = formatTime(audio.currentTime);
+        updateDurationDisplay();
         updateProgressFill();
         
         if(currentFileName && !audio.paused) {
@@ -1188,9 +1236,10 @@
     }
 
     function formatTime(seconds) {
-        const min = Math.floor(seconds / 60);
+        const hrs = Math.floor(seconds / 3600);
+        const min = Math.floor((seconds % 3600) / 60);
         const sec = Math.floor(seconds % 60);
-        return `${min}:${sec < 10 ? '0' + sec : sec}`;
+        return `${hrs}:${min < 10 ? '0' + min : min}:${sec < 10 ? '0' + sec : sec}`;
     }    audio.onerror = () => {
         if (audio.src) {
             alert("Error: No se pudo reproducir este archivo.");
