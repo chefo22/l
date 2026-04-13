@@ -825,14 +825,50 @@
                                     }
                                     
                                     labelEl.innerHTML = `${cleanTitle}<br><span style="color: var(--color-principal); font-size: 0.95em; font-weight: 600;">${cleanArtist}</span>`;
-                                }
-
-                                if(picture) { 
+                                }                                if(picture) { 
                                     const p = picture;
                                     let b = ""; for(let i=0; i<p.data.length; i++) b += String.fromCharCode(p.data[i]);
-                                    thumb.style.backgroundImage = `url(data:${p.format};base64,${window.btoa(b)})`;
+                                    const artworkUrl = `data:${p.format};base64,${window.btoa(b)}`;
+                                    thumb.style.backgroundImage = `url(${artworkUrl})`;
                                     const icon = thumb.querySelector('.material-icons');
                                     if(icon) icon.style.display = 'none';
+                                    
+                                    // Aplicar color camaleón al punto de estado (Status Dot)
+                                    const imgDot = new Image(); imgDot.src = artworkUrl;
+                                    imgDot.onload = () => {
+                                        const canvas = document.createElement('canvas');
+                                        const ctx = canvas.getContext('2d');
+                                        canvas.width = 10; canvas.height = 10;
+                                        ctx.drawImage(imgDot, 0, 0, 10, 10);
+                                        const pixels = ctx.getImageData(0,0,10,10).data;
+                                        let bestS = -1, bestColor = {h:0,s:0,l:0.6};
+                                        for(let i=0; i<pixels.length; i+=4) {
+                                            let r=pixels[i]/255, g=pixels[i+1]/255, b=pixels[i+2]/255;
+                                            let max=Math.max(r,g,b), min=Math.min(r,g,b), l=(max+min)/2, d=max-min;
+                                            let s = d===0 ? 0 : (l>0.5 ? d/(2-max-min) : d/(max+min));
+                                            if(s > bestS && l < 0.75 && l > 0.25) {
+                                                bestS = s; 
+                                                let h = 0;
+                                                if(d!==0) {
+                                                    if(max===r) h=(g-b)/d+(g<b?6:0); else if(max===g) h=(b-r)/d+2; else h=(r-g)/d+4;
+                                                    h/=6;
+                                                }
+                                                bestColor = {h,s,l};
+                                            }
+                                        }
+                                        const hslToHex = (h, s, l) => {
+                                            const f = (p, q, t) => {
+                                                if (t < 0) t += 1; if (t > 1) t -= 1;
+                                                if (t < 1/6) return p + (q - p) * 6 * t; if (t < 1/2) return q;
+                                                if (t < 2/3) return p + (q - p) * (2/3 - t) * 6; return p;
+                                            };
+                                            const q = l < 0.5 ? l * (1 + s) : l + s - l * s; const p = 2 * l - q;
+                                            const toHex = x => Math.round(x * 255).toString(16).padStart(2, '0');
+                                            return `#${toHex(f(p,q,bestColor.h+1/3))}${toHex(f(p,q,bestColor.h))}${toHex(f(p,q,bestColor.h-1/3))}`;
+                                        };
+                                        const dot = card.querySelector('.status-dot');
+                                        if(dot) dot.style.backgroundColor = hslToHex(bestColor.h, Math.max(bestColor.s, 0.8), 0.6);
+                                    };
                                 }
                             }
                         }); 
@@ -928,37 +964,41 @@
                             artworkUrl = "data:" + format + ";base64," + window.btoa(base64String);
                             const img = document.getElementById('cover-art');
                             img.src = artworkUrl;
-                            document.getElementById('cover-container').style.display = 'block';
-
-                            // Efecto Camaleón Pro: Extracción de color vibrante
+                            document.getElementById('cover-container').style.display = 'block';                            // Efecto Camaleón Pro: Muestreo 16x16 con filtro de saturación (Anti-Crema)
                             img.onload = function() {
                                 try {
                                     const canvas = document.createElement('canvas');
                                     const ctx = canvas.getContext('2d');
-                                    canvas.width = 1; canvas.height = 1;
-                                    ctx.drawImage(img, 0, 0, 1, 1);
-                                    const d = ctx.getImageData(0, 0, 1, 1).data;
+                                    canvas.width = 16; canvas.height = 16;
+                                    ctx.drawImage(img, 0, 0, 16, 16);
+                                    const pixels = ctx.getImageData(0, 0, 16, 16).data;
                                     
-                                    // Conversión HSL para inyección de vitalidad
-                                    let r = d[0]/255, g = d[1]/255, b = d[2]/255;
-                                    let max = Math.max(r, g, b), min = Math.min(r, g, b);
-                                    let h, s, l = (max + min) / 2;
-
-                                    if (max === min) { h = s = 0; } else {
-                                        let diff = max - min;
-                                        s = l > 0.5 ? diff / (2 - max - min) : diff / (max + min);
-                                        switch (max) {
-                                            case r: h = (g - b) / diff + (g < b ? 6 : 0); break;
-                                            case g: h = (b - r) / diff + 2; break;
-                                            case b: h = (r - g) / diff + 4; break;
+                                    let candidates = [];
+                                    for (let i = 0; i < pixels.length; i += 4) {
+                                        let r = pixels[i]/255, g = pixels[i+1]/255, b = pixels[i+2]/255;
+                                        let max = Math.max(r, g, b), min = Math.min(r, g, b);
+                                        let h, s, l = (max + min) / 2, d = max - min;
+                                        s = d === 0 ? 0 : (l > 0.5 ? d / (2 - max - min) : d / (max + min));
+                                        
+                                        // FILTRO CRÍTICO: Ignorar colores muy claros (crema/blanco > 0.8) o muy oscuros (< 0.2)
+                                        // Y colores con muy baja saturación (grises < 0.3)
+                                        if (l < 0.8 && l > 0.2 && s > 0.3) {
+                                            if (d !== 0) {
+                                                if (max === r) h = (g - b) / d + (g < b ? 6 : 0);
+                                                else if (max === g) h = (b - r) / d + 2;
+                                                else h = (r - g) / d + 4;
+                                                h /= 6;
+                                            } else h = 0;
+                                            candidates.push({h, s, l});
                                         }
-                                        h /= 6;
                                     }
 
-                                    // REGLA DE ORO: Forzar saturación y brillo para evitar colores "sucios"
-                                    s = Math.max(s, 0.75); // 75% Saturación mínima
-                                    l = Math.max(l, 0.65); // 65% Brillo mínimo
+                                    // Elegir el color más saturado de los candidatos para garantizar un color "vivo"
+                                    let best = candidates.sort((a, b) => b.s - a.s)[0] || {h: 0.58, s: 0.7, l: 0.6}; 
                                     
+                                    // Normalizar para que el tema siempre sea legible y vibrante
+                                    let finalH = best.h, finalS = Math.max(best.s, 0.85), finalL = 0.6;
+
                                     const hslToHex = (h, s, l) => {
                                         const f = (p, q, t) => {
                                             if (t < 0) t += 1; if (t > 1) t -= 1;
@@ -971,8 +1011,8 @@
                                         const p = 2 * l - q;
                                         const toHex = x => Math.round(x * 255).toString(16).padStart(2, '0');
                                         return `#${toHex(f(p,q,h+1/3))}${toHex(f(p,q,h))}${toHex(f(p,q,h-1/3))}`;
-                                    };                                    // Aplicamos el color de la carátula sin guardarlo permanentemente
-                                    setThemeColor(hslToHex(h, s, l), false);
+                                    };
+                                    setThemeColor(hslToHex(finalH, finalS, finalL), false);
                                 } catch (e) { console.error("Error en Chameleon Pro:", e); }
                             };
                         }
