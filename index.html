@@ -683,29 +683,40 @@
             modal.style.pointerEvents = 'auto';
             content.style.transform = 'scale(1) translateY(0)';
         }
+    }    // Inicialización robusta con Persistencia de Datos
+    async function initDB() {
+        // Solicitar al navegador que no borre los datos automáticamente
+        if (navigator.storage && navigator.storage.persist) {
+            const isPersisted = await navigator.storage.persist();
+            console.log(`Persistencia de datos: ${isPersisted ? "Garantizada" : "Temporal"}`);
+        }
+
+        const dbRequest = indexedDB.open("AudiobookProDB", 1);
+
+        dbRequest.onupgradeneeded = (e) => {
+            db = e.target.result;
+            if (!db.objectStoreNames.contains("books")) {
+                db.createObjectStore("books", { keyPath: "name" });
+            }
+        };
+
+        dbRequest.onsuccess = (e) => {
+            db = e.target.result;
+            console.log("Base de datos lista");
+            displayLibrary();
+        };
+
+        dbRequest.onerror = (e) => console.error("Error IndexedDB:", e);
     }
 
-    // Inicialización de Base de Datos (IndexedDB) para persistencia real
-    const dbRequest = indexedDB.open("AudiobookProDB", 1);
-
-    dbRequest.onupgradeneeded = (e) => {
-        db = e.target.result;
-        if (!db.objectStoreNames.contains("books")) {
-            db.createObjectStore("books", { keyPath: "name" });
-        }
-    };
-
-    dbRequest.onsuccess = (e) => {
-        db = e.target.result;
-        displayLibrary();
-    };
-
-    dbRequest.onerror = () => {
-        console.error("Error al conectar con la base de datos");
-    };
+    initDB();
 
     function saveToLibrary(file) {
-        if (!db) return;
+        if (!db) {
+            timerMsg.textContent = "Error: BD no lista";
+            return;
+        }
+        
         const transaction = db.transaction(["books"], "readwrite");
         const store = transaction.objectStore("books");
         
@@ -716,10 +727,16 @@
         };
 
         const request = store.put(bookData);
-        request.onsuccess = () => {
-            timerMsg.textContent = "Guardado en biblioteca ✓";
+        
+        transaction.oncomplete = () => {
+            timerMsg.textContent = "Guardado permanentemente ✓";
             displayLibrary();
             setTimeout(() => timerMsg.textContent = "", 3000);
+        };
+
+        transaction.onerror = (e) => {
+            console.error("Error al guardar:", e);
+            timerMsg.textContent = "Error al guardar libro";
         };
     }    function displayLibrary() {
         const list = document.getElementById('library-list');
