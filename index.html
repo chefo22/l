@@ -748,13 +748,15 @@
                     card.draggable = true;
                     card.dataset.id = bookName;
                     
-                    const progress = localStorage.getItem('audiobook_progress_' + bookName);                    const cleanName = bookName.replace(/\.[^/.]+$/, "").toUpperCase();
+                    const progress = localStorage.getItem('audiobook_progress_' + bookName);
+                    const cleanName = bookName.replace(/\.[^/.]+$/, "").toUpperCase();
                     let formattedLabel = cleanName;
                     if (cleanName.includes("-")) {
                         const parts = cleanName.split("-").map(p => p.trim());
-                        // Primera parte normal, segunda parte en azul y ligeramente más pequeña
                         formattedLabel = `${parts[0]}<br><span style="color: var(--color-principal); font-size: 0.9em;">${parts[1]}</span>`;
-                    }                    card.innerHTML = `
+                    }
+                    
+                    card.innerHTML = `
                         <div class="book-thumb" style="position:relative">
                             ${(progress && parseFloat(progress) > 0) ? '<div class="status-dot"></div>' : ''}
                             <i class="material-icons" style="font-size: 2.5rem; opacity: 0.15;">headset</i>
@@ -765,6 +767,7 @@
 
                     const thumb = card.querySelector('.book-thumb');
                     
+                    // Configuración de eventos de la tarjeta
                     const startPress = () => {
                         pressTimer = setTimeout(() => {
                             reorderMode = true;
@@ -772,9 +775,7 @@
                             if (navigator.vibrate) navigator.vibrate(60);
                         }, 800);
                     };
-                    
                     const endPress = () => clearTimeout(pressTimer);
-
                     thumb.addEventListener('touchstart', startPress);
                     thumb.addEventListener('mousedown', startPress);
                     thumb.addEventListener('touchend', endPress);
@@ -791,81 +792,61 @@
                         loadFromLibrary(bookName);
                     });
 
-                    card.addEventListener('dragstart', (e) => {
-                        if(!reorderMode) return e.preventDefault();
-                        draggedItem = card;
-                        setTimeout(() => card.classList.add('dragging'), 0);
-                    });
-                    card.addEventListener('dragend', () => card.classList.remove('dragging'));
-                    card.addEventListener('dragover', e => {
-                        e.preventDefault();
-                        if (!reorderMode || draggedItem === card) return;
-                        const children = Array.from(list.children);
-                        const curr = children.indexOf(draggedItem), target = children.indexOf(card);
-                        if (curr < target) list.insertBefore(draggedItem, card.nextSibling);
-                        else list.insertBefore(draggedItem, card);
-                    });                    list.appendChild(card);                    // Priorizar metadatos y aplicar color camaleón dinámico al círculo de estado basado en la carátula
-                    try {
-                        window.jsmediatags.read(bookData.data, {
-                            onSuccess: (tag) => {
-                                const { title, artist, picture } = tag.tags;
-                                const labelEl = card.querySelector('.book-label');
+                    list.appendChild(card);
 
-                                if (title) {
-                                    let cleanTitle = title.replace(/\.[^/.]+$/, "").toUpperCase();
-                                    let cleanArtist = artist || "Autor Desconocido";
-                                    if (cleanTitle.includes(" - ")) {
-                                        const parts = cleanTitle.split(" - ");
-                                        cleanTitle = parts[0].trim();
-                                        if (!artist) cleanArtist = parts[1].trim();
+                    // Lectura de Metadatos Segura (No bloqueante)
+                    if (bookData.data) {
+                        try {
+                            window.jsmediatags.read(bookData.data, {
+                                onSuccess: (tag) => {
+                                    const { title, artist, picture } = tag.tags;
+                                    const labelEl = card.querySelector('.book-label');
+                                    if (title) {
+                                        let cleanTitle = title.replace(/\.[^/.]+$/, "").toUpperCase();
+                                        let cleanArtist = artist || "Autor Desconocido";
+                                        labelEl.innerHTML = `${cleanTitle}<br><span style="color: var(--color-principal); font-size: 0.95em; font-weight: 600;">${cleanArtist}</span>`;
                                     }
-                                    labelEl.innerHTML = `${cleanTitle}<br><span style="color: var(--color-principal); font-size: 0.95em; font-weight: 600;">${cleanArtist}</span>`;
-                                }
-
-                                if (picture) {
-                                    const p = picture;
-                                    let b = ""; for (let i = 0; i < p.data.length; i++) b += String.fromCharCode(p.data[i]);
-                                    const artworkUrl = `data:${p.format};base64,${window.btoa(b)}`;
-                                    thumb.style.backgroundImage = `url(${artworkUrl})`;
-                                    const icon = thumb.querySelector('.material-icons');
-                                    if (icon) icon.style.display = 'none';
-
-                                    // Extracción de color camaleón para el Status Dot
-                                    const imgDot = new Image();
-                                    imgDot.src = artworkUrl;
-                                    imgDot.onload = () => {
-                                        const canvas = document.createElement('canvas');
-                                        const ctx = canvas.getContext('2d');
-                                        canvas.width = 1; canvas.height = 1;
-                                        ctx.drawImage(imgDot, 0, 0, 1, 1);
-                                        const pix = ctx.getImageData(0, 0, 1, 1).data;
+                                    if (picture) {
+                                        const p = picture;
+                                        let b = ""; for (let i = 0; i < p.data.length; i++) b += String.fromCharCode(p.data[i]);
+                                        const artworkUrl = `data:${p.format};base64,${window.btoa(b)}`;
+                                        thumb.style.backgroundImage = `url(${artworkUrl})`;
+                                        const icon = thumb.querySelector('.material-icons');
+                                        if (icon) icon.style.display = 'none';
                                         
-                                        // Convertir a HSL para garantizar un color vibrante y visible
-                                        let r = pix[0]/255, g = pix[1]/255, b = pix[2]/255;
-                                        let max = Math.max(r, g, b), min = Math.min(r, g, b);
-                                        let h, s, l = (max + min) / 2;
-                                        if (max === min) { h = s = 0; } else {
-                                            let diff = max - min;
-                                            s = l > 0.5 ? diff / (2 - max - min) : diff / (max + min);
-                                            switch (max) {
-                                                case r: h = (g - b) / diff + (g < b ? 6 : 0); break;
-                                                case g: h = (b - r) / diff + 2; break;
-                                                case b: h = (r - g) / diff + 4; break;
+                                        // Status Dot Camaleón Seguro
+                                        const imgDot = new Image();
+                                        imgDot.src = artworkUrl;
+                                        imgDot.onload = () => {
+                                            const canvas = document.createElement('canvas');
+                                            const ctx = canvas.getContext('2d');
+                                            canvas.width = 1; canvas.height = 1;
+                                            ctx.drawImage(imgDot, 0, 0, 1, 1);
+                                            const pix = ctx.getImageData(0, 0, 1, 1).data;
+                                            if (pix[3] === 0) return; // Ignorar si es transparente
+                                            let r = pix[0]/255, g = pix[1]/255, b = pix[2]/255;
+                                            let max = Math.max(r, g, b), min = Math.min(r, g, b);
+                                            let h, s, l = (max + min) / 2;
+                                            if (max === min) h = s = 0; 
+                                            else {
+                                                let diff = max - min;
+                                                s = l > 0.5 ? diff / (2 - max - min) : diff / (max + min);
+                                                if (max === r) h = (g - b) / diff + (g < b ? 6 : 0);
+                                                else if (max === g) h = (b - r) / diff + 2;
+                                                else h = (r - g) / diff + 4;
+                                                h /= 6;
                                             }
-                                            h /= 6;
-                                        }
-                                        
-                                        const dot = card.querySelector('.status-dot');
-                                        if (dot) {
-                                            // Forzamos saturación alta y luminosidad media para que el punto destaque
-                                            dot.style.backgroundColor = `hsl(${Math.round(h * 360)}, ${Math.max(Math.round(s * 100), 75)}%, 60%)`;
-                                            dot.style.borderColor = '#111';
-                                        }
-                                    };
-                                }
-                            }
-                        });
-                    } catch (err) { console.error("Error en tags:", err); }
+                                            const dot = card.querySelector('.status-dot');
+                                            if (dot) {
+                                                dot.style.backgroundColor = `hsl(${Math.round(h * 360) || 0}, ${Math.max(Math.round(s * 100), 70)}%, 60%)`;
+                                            }
+                                        };
+                                    }
+                                },
+                                onError: (error) => console.warn("Error leyendo tags de: " + bookName)
+                            });
+                        } catch (e) { console.error("Error en proceso de tags:", e); }
+                    }
                 });
                 if (books.length === 0) {
                     list.innerHTML = `
@@ -984,13 +965,14 @@
                                             } else h = 0;
                                             candidates.push({h, s, l});
                                         }
-                                    }
-
-                                    // Elegir el color más saturado de los candidatos para garantizar un color "vivo"
+                                    }                                    // Elegir el color más saturado de los candidatos para garantizar un color "vivo"
                                     let best = candidates.sort((a, b) => b.s - a.s)[0] || {h: 0.58, s: 0.7, l: 0.6}; 
                                     
                                     // Normalizar para que el tema siempre sea legible y vibrante
-                                    let finalH = best.h, finalS = Math.max(best.s, 0.85), finalL = 0.6;
+                                    // FIX: Asegurar que los valores no sean NaN
+                                    let finalH = isNaN(best.h) ? 0.58 : best.h;
+                                    let finalS = isNaN(best.s) ? 0.7 : Math.max(best.s, 0.85);
+                                    let finalL = 0.6;
 
                                     const hslToHex = (h, s, l) => {
                                         const f = (p, q, t) => {
