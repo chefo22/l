@@ -19,6 +19,8 @@
         /* Estilos generales y fondo */        body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             background-color: #050505;
+            background: radial-gradient(circle at top, rgba(var(--color-principal-rgb), 0.15) 0%, #050505 100%);
+            background-attachment: fixed;
             display: flex;
             flex-direction: column;
             justify-content: flex-start;
@@ -61,25 +63,7 @@
             font-weight: 500;
             font-size: 0.9rem;
             opacity: 0.8;
-        }
-
-        /* Sección de carga de archivo */
-        .upload-section {
-            margin-bottom: 25px;
-            padding: 15px;
-            border: 2px dashed var(--color-principal);
-            border-radius: 12px;
-            transition: border-color 0.3s;
-        }
-        
-        #file-input { display: none; }
-
-        .custom-file-upload {
-            color: var(--color-principal);
-            cursor: pointer;
-            font-size: 0.9rem;
-            display: block;
-        }
+        }        #file-input { display: none; }
 
         /* Barra de progreso personalizada */
         .progress-container { width: 100%; margin-bottom: 25px; }        input[type="range"] {
@@ -304,18 +288,37 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
             z-index: 2;
         }        .book-label {
-            font-size: 0.6rem;
+            font-size: 0.55rem;
             font-weight: 700;
             color: #ffffff;
             text-transform: uppercase;
             text-align: center;
+            width: 85px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            line-height: 1.2;
+            overflow: hidden;
+        }
+        .marquee-container {
             width: 100%;
-            /* Texto completo sin recortes */
-            display: block;
-            overflow: visible;
-            line-height: 1.3;
-            letter-spacing: 0.5px;
-            word-wrap: break-word;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }        /* Solo se mueve si tiene la clase 'active-scroll' */
+        .active-scroll {
+            display: flex !important;
+            white-space: nowrap;
+        }
+        .active-scroll .marquee-text {
+            display: inline-block;
+            padding-right: 50px; /* Espacio para el bucle continuo */
+            animation: bus-marquee 10s linear infinite;
+            flex-shrink: 0;
+        }
+        @keyframes bus-marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
         }
 
         .delete-btn-mini {
@@ -391,11 +394,7 @@
 </head>
 <body>
 
-<div style="width: 92%; max-width: 360px; margin-bottom: 9px; display: flex; justify-content: flex-start;">
-    <button onclick="toggleSettings()" style="width: 42px; height: 42px; border-radius: 12px; border: 1px solid #222; background: #111; color: #666; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.4);">
-        <i class="material-icons" style="font-size: 24px;">settings</i>
-    </button>
-</div>
+
 
 <div class="player-container" style="transform: none;">
     
@@ -492,8 +491,8 @@
 
             <button onclick="toggleSettings()" style="width:100%; background:var(--color-principal); color:white; border:none; padding: 16px; border-radius: 18px; font-size: 1rem; font-weight:600; box-shadow: 0 10px 20px rgba(var(--color-principal-rgb),0.2);">Guardar Cambios</button>
         </div>
-    </div>    <div id="library-container" style="margin-bottom: 30px; text-align: center;">
-        <h3 style="font-size: 0.65rem; margin: 0 0 25px 0; color: var(--color-principal); display: flex; justify-content: center; align-items: center; letter-spacing: 4px; opacity: 0.6; font-weight: 900; text-indent: 4px;">
+    </div>    <div id="library-container" style="margin-bottom: 30px; text-align: center; position: relative;">
+        <h3 ondblclick="setThemeColor('#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0'))" style="font-size: 0.65rem; margin: 0 0 25px 0; color: var(--color-principal); display: flex; justify-content: center; align-items: center; letter-spacing: 4px; opacity: 0.6; font-weight: 900; text-indent: 4px; cursor: pointer; user-select: none;">
             BIBLIOTECA
         </h3>        <div id="library-list">
             <div style="grid-column: 1 / -1; padding: 60px 20px; color: #444; display: flex; flex-direction: column; align-items: center; gap: 20px; width: 100%;">
@@ -532,7 +531,42 @@
                 <i class="material-icons" style="font-size: 30px; color: #666;">timer</i>
             </button>
         </div>
-    </div>    <div id="timer-msg" style="font-size: 0.75rem; color: var(--color-principal); margin-top: 2px; height: 10px;"></div>    
+    </div>
+    <div id="quick-settings-row" style="display: none; justify-content: space-evenly; align-items: center; margin: 15px 10px 5px; padding: 10px 0; border-top: 1px solid rgba(255,255,255,0.05);">
+        <button onclick="document.getElementById('normalize-vol').click(); this.classList.toggle('active-mode')" class="mode-btn" title="Modo Noche">
+            <i class="material-icons">brightness_4</i>
+        </button>
+        <button onclick="document.getElementById('lock-seek').click(); this.classList.toggle('active-mode')" class="mode-btn" title="Bloquear Seek">
+            <i class="material-icons">lock</i>
+        </button>
+        <button onclick="document.getElementById('next-as-timer').click(); this.classList.toggle('active-mode')" class="mode-btn" title="Siguiente +5min">
+            <i class="material-icons">more_time</i>
+        </button>
+        <button onclick="document.getElementById('silence-beep').click(); this.classList.toggle('active-mode')" class="mode-btn" title="Bip Seguridad">
+            <i class="material-icons">notifications_active</i>
+        </button>
+    </div>
+
+    <style>
+        .mode-btn {
+            color: #444;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .mode-btn i { font-size: 24px; }
+        .mode-btn.active-mode {
+            color: var(--color-principal);
+            background: rgba(var(--color-principal-rgb), 0.1);
+            box-shadow: 0 0 15px rgba(var(--color-principal-rgb), 0.15);
+        }
+    </style>
+
+    <div id="timer-msg" style="font-size: 0.75rem; color: var(--color-principal); margin-top: 2px; height: 10px;"></div>    
     <div id="speed-bottom-modal" style="display:none; position:fixed; bottom:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; align-items:flex-end; backdrop-filter: blur(10px);">
         <div id="speed-content" style="width:100%; background:#161616; border-radius: 30px 30px 0 0; padding: 24px; box-sizing: border-box; animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1); border-top: 1px solid #333; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);">
             <div id="speed-handle" style="width: 100%; height: 40px; display: flex; align-items: center; justify-content: center; margin-top: -15px; cursor: grab; touch-action: none;">
@@ -580,6 +614,30 @@
 </div>
 
 <script>
+    function generateRandomWaves() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 300; canvas.height = 300;
+        const ctx = canvas.getContext('2d');
+        const hue = Math.floor(Math.random() * 360);
+        const grad = ctx.createLinearGradient(0, 0, 300, 300);
+        grad.addColorStop(0, `hsl(${hue}, 80%, 60%)`);
+        grad.addColorStop(1, `hsl(${(hue + 60) % 360}, 80%, 40%)`);
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 300, 300);
+        
+        for(let j=0; j<3; j++) {
+            ctx.beginPath();
+            ctx.moveTo(0, 150 + j*30);
+            for(let i=0; i<=300; i+=20) {
+                ctx.lineTo(i, 150 + j*30 + Math.sin(i*0.05 + Math.random()*2)*30);
+            }
+            ctx.lineTo(300, 300); ctx.lineTo(0, 300);
+            ctx.fillStyle = `rgba(255,255,255,0.${2+j})`;
+            ctx.fill();
+        }
+        return canvas.toDataURL();
+    }
+
     function hexToRgb(hex) {
         const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
         return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : "74, 144, 226";
@@ -621,13 +679,9 @@
             const swUrl = URL.createObjectURL(blob);
             navigator.serviceWorker.register(swUrl, { scope: './' }).catch(err => console.log('SW error', err));
         });
-    }
-
-    // Cargar tema al inicio
-    const savedTheme = localStorage.getItem('audiobook_theme_color');
-    if(savedTheme) {
-        setThemeColor(savedTheme);
-    }
+    }    // Cargar tema al inicio
+    const savedTheme = localStorage.getItem('audiobook_theme_color') || '#4a90e2';
+    setThemeColor(savedTheme, false);
 
     // Cargar preferencia de botón Siguiente
     const nextAsTimerPref = localStorage.getItem('audiobook_next_timer');
@@ -683,15 +737,12 @@
             modal.style.pointerEvents = 'auto';
             content.style.transform = 'scale(1) translateY(0)';
         }
-    }    // Inicialización robusta con Persistencia de Datos    async function initDB() {
-        // Forzamos la solicitud de almacenamiento persistente para evitar que el sistema operativo limpie los MP3
+    }    // Inicialización robusta con Persistencia de Datos
+    async function initDB() {
+        // Solicitar al navegador que no borre los datos automáticamente
         if (navigator.storage && navigator.storage.persist) {
-            try {
-                const isPersisted = await navigator.storage.persist();
-                console.log(`Estado de persistencia: ${isPersisted ? "PERSISTENTE (Seguro)" : "TEMPORAL (Riesgo de borrado)"}`);
-            } catch (err) {
-                console.error("No se pudo solicitar persistencia:", err);
-            }
+            const isPersisted = await navigator.storage.persist();
+            console.log(`Persistencia de datos: ${isPersisted ? "Garantizada" : "Temporal"}`);
         }
 
         const dbRequest = indexedDB.open("AudiobookProDB", 1);
@@ -699,73 +750,48 @@
         dbRequest.onupgradeneeded = (e) => {
             db = e.target.result;
             if (!db.objectStoreNames.contains("books")) {
-                const store = db.createObjectStore("books", { keyPath: "name" });
-                store.createIndex("added", "added", { unique: false });
+                db.createObjectStore("books", { keyPath: "name" });
             }
         };
 
         dbRequest.onsuccess = (e) => {
             db = e.target.result;
-            console.log("Base de datos local cargada correctamente");
-            
-            // Verificación de cuota disponible
-            if (navigator.storage && navigator.storage.estimate) {
-                navigator.storage.estimate().then(estimate => {
-                    const used = (estimate.usage / 1024 / 1024).toFixed(2);
-                    const quota = (estimate.quota / 1024 / 1024).toFixed(2);
-                    console.log(`Uso de disco: ${used}MB de ${quota}MB`);
-                });
-            }
+            console.log("Base de datos lista");
             displayLibrary();
         };
 
-        dbRequest.onerror = (e) => {
-            console.error("Error Crítico IndexedDB:", e);
-            timerMsg.textContent = "Error: No se pudo acceder al almacenamiento local.";
-        };
+        dbRequest.onerror = (e) => console.error("Error IndexedDB:", e);
     }
 
-    initDB();    function saveToLibrary(file) {
+    initDB();
+
+    function saveToLibrary(file) {
         if (!db) {
-            timerMsg.textContent = "Base de datos no inicializada";
+            timerMsg.textContent = "Error: BD no lista";
             return;
         }
-        
-        // Creamos una copia del Blob para asegurar que la referencia en IndexedDB 
-        // sea independiente del ciclo de vida del input file original.
-        const fileBlob = file.slice(0, file.size, file.type);
         
         const transaction = db.transaction(["books"], "readwrite");
         const store = transaction.objectStore("books");
         
-        const bookData = {
+        const bookData = { 
             name: file.name, 
-            data: fileBlob, 
+            data: file, 
             added: new Date().getTime()
         };
 
-        try {
-            const request = store.put(bookData);
-            
-            transaction.oncomplete = () => {
-                timerMsg.textContent = "¡Guardado en memoria permanente! ✓";
-                displayLibrary();
-                if (navigator.vibrate) navigator.vibrate(60);
-                setTimeout(() => timerMsg.textContent = "", 4000);
-            };
+        const request = store.put(bookData);
+        
+        transaction.oncomplete = () => {
+            timerMsg.textContent = "Guardado permanentemente ✓";
+            displayLibrary();
+            setTimeout(() => timerMsg.textContent = "", 3000);
+        };
 
-            transaction.onerror = (e) => {
-                if (e.target.error.name === 'QuotaExceededError') {
-                    timerMsg.textContent = "Error: Sin espacio en el dispositivo";
-                } else {
-                    timerMsg.textContent = "Error al escribir en almacenamiento local";
-                }
-                console.error("Fallo en transacción:", e.target.error);
-            };
-        } catch (err) {
-            console.error("Error durante el guardado:", err);
-            timerMsg.textContent = "El archivo es demasiado grande o incompatible";
-        }
+        transaction.onerror = (e) => {
+            console.error("Error al guardar:", e);
+            timerMsg.textContent = "Error al guardar libro";
+        };
     }    function displayLibrary() {
         const list = document.getElementById('library-list');
         if (!list) return;
@@ -788,18 +814,21 @@
                 
                 books.forEach(bookData => {
                     const bookName = bookData.name;
-                    const card = document.createElement('div');
-                    card.className = 'book-card';
+                    const card = document.createElement('div');                    card.className = 'book-card item-reorderable';
                     card.draggable = true;
                     card.dataset.id = bookName;
                     
                     const progress = localStorage.getItem('audiobook_progress_' + bookName);
                     const cleanName = bookName.replace(/\.[^/.]+$/, "").toUpperCase();
-                    let formattedLabel = cleanName;
+                    let tPart = cleanName, aPart = "";
                     if (cleanName.includes("-")) {
-                        const parts = cleanName.split("-").map(p => p.trim());
-                        formattedLabel = `${parts[0]}<br><span style="color: var(--color-principal); font-size: 0.9em;">${parts[1]}</span>`;
-                    }
+                        const p = cleanName.split("-").map(x => x.trim());
+                        tPart = p[0]; aPart = p[1];
+                    }                    const checkScroll = (txt) => txt.length > 16 ? 'active-scroll' : '';
+                    const tContent = checkScroll(tPart) ? `${tPart} &nbsp;&nbsp;&nbsp; ${tPart}` : tPart;
+                    const aContent = checkScroll(aPart) ? `${aPart} &nbsp;&nbsp;&nbsp; ${aPart}` : aPart;
+                    let formattedLabel = `<div class="marquee-container ${checkScroll(tPart)}"><span class="marquee-text">${tContent}</span></div>` + 
+                                       `<div class="marquee-container ${checkScroll(aPart)}" style="color:var(--color-principal); opacity:0.8;"><span class="marquee-text">${aContent}</span></div>`;
                     
                     card.innerHTML = `
                         <div class="book-thumb" style="position:relative">
@@ -829,8 +858,7 @@
                     thumb.addEventListener('click', () => {
                         if (reorderMode) {
                             reorderMode = false;
-                            list.classList.remove('reorder-mode');
-                            const newOrder = Array.from(list.querySelectorAll('.book-card')).map(c => c.dataset.id);
+                            list.classList.remove('reorder-mode');                            const newOrder = Array.from(list.querySelectorAll('.item-reorderable')).map(c => c.dataset.id);
                             localStorage.setItem('library_order', JSON.stringify(newOrder));
                             return;
                         }
@@ -844,12 +872,15 @@
                         try {
                             window.jsmediatags.read(bookData.data, {
                                 onSuccess: (tag) => {
-                                    const { title, artist, picture } = tag.tags;
-                                    const labelEl = card.querySelector('.book-label');
-                                    if (title) {
+                                    const { title, artist, picture } = (tag && tag.tags) || {};
+                                    const labelEl = card.querySelector('.book-label');                                    if (title) {
                                         let cleanTitle = title.replace(/\.[^/.]+$/, "").toUpperCase();
-                                        let cleanArtist = artist || "Autor Desconocido";
-                                        labelEl.innerHTML = `${cleanTitle}<br><span style="color: var(--color-principal); font-size: 0.95em; font-weight: 600;">${cleanArtist}</span>`;
+                                        let cleanArtist = (artist || "Autor Desconocido").toUpperCase();
+                                        const checkScroll = (txt) => txt.length > 16 ? 'active-scroll' : '';
+                                        const tCont = checkScroll(cleanTitle) ? `${cleanTitle} &nbsp;&nbsp;&nbsp; ${cleanTitle}` : cleanTitle;
+                                        const aCont = checkScroll(cleanArtist) ? `${cleanArtist} &nbsp;&nbsp;&nbsp; ${cleanArtist}` : cleanArtist;
+                                        labelEl.innerHTML = `<div class="marquee-container ${checkScroll(cleanTitle)}"><span class="marquee-text">${tCont}</span></div>` + 
+                                                           `<div class="marquee-container ${checkScroll(cleanArtist)}" style="color: var(--color-principal);"><span class="marquee-text">${aCont}</span></div>`;
                                     }
                                     if (picture) {
                                         const p = picture;
@@ -881,30 +912,55 @@
                                                 else h = (r - g) / diff + 4;
                                                 h /= 6;
                                             }
-                                            const dot = card.querySelector('.status-dot');
-                                            if (dot) {
+                                            const dot = card.querySelector('.status-dot');                                            if (dot) {
                                                 dot.style.backgroundColor = `hsl(${Math.round(h * 360) || 0}, ${Math.max(Math.round(s * 100), 70)}%, 60%)`;
                                             }
                                         };
+                                    } else {
+                                        const waveUrl = generateRandomWaves();
+                                        thumb.style.backgroundImage = `url(${waveUrl})`;
+                                        const icon = thumb.querySelector('.material-icons');
+                                        if (icon) icon.style.display = 'none';
                                     }
                                 },
-                                onError: (error) => console.warn("Error leyendo tags de: " + bookName)
+                                onError: (error) => {
+                                    console.warn("Error leyendo tags de: " + bookName);
+                                    const waveUrl = generateRandomWaves();
+                                    thumb.style.backgroundImage = `url(${waveUrl})`;
+                                    const icon = thumb.querySelector('.material-icons');
+                                    if (icon) icon.style.display = 'none';
+                                }
                             });
                         } catch (e) { console.error("Error en proceso de tags:", e); }
                     }
-                });
+                });                // Añadir tarjeta de carga al final de la lista
+                const addCard = document.createElement('div');
+                addCard.className = 'book-card';
+                addCard.innerHTML = `
+                    <div class="book-thumb" style="border: 2px dashed rgba(var(--color-principal-rgb), 0.3); background: rgba(var(--color-principal-rgb), 0.03); display: flex; align-items: center; justify-content: center;">
+                        <i class="material-icons" style="font-size: 2.2rem; color: var(--color-principal); opacity: 0.5;">add_circle_outline</i>
+                    </div>
+                    <div class="book-label">
+                        <div class="marquee-container"><span class="marquee-text" style="color: var(--color-principal); font-weight: 800;">AÑADIR</span></div>
+                        <div class="marquee-container" style="opacity: 0.5;"><span class="marquee-text">NUEVO LIBRO</span></div>
+                    </div>
+                `;
+                
+                addCard.onclick = () => {
+                    if (reorderMode) {
+                        reorderMode = false;
+                        list.classList.remove('reorder-mode');
+                        return;
+                    }
+                    document.getElementById('file-input').click();
+                };
+                list.appendChild(addCard);
+
                 if (books.length === 0) {
-                    list.innerHTML = `
-                        <div style="grid-column: 1 / -1; padding: 60px 20px; display: flex; flex-direction: column; align-items: center; gap: 15px; width: 100%; animation: fadeIn 0.8s ease-out;">
-                            <div style="background: rgba(var(--color-principal-rgb), 0.05); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 5px; border: 1px solid rgba(var(--color-principal-rgb), 0.1);">
-                                <i class="material-icons" style="font-size: 35px; color: var(--color-principal); opacity: 0.4;">library_music</i>
-                            </div>
-                            <div style="text-align: center;">
-                                <span style="display: block; font-weight: 800; letter-spacing: 3px; font-size: 0.65rem; color: #888; text-transform: uppercase;">Colección Vacía</span>
-                                <span style="display: block; font-size: 0.75rem; color: #444; margin-top: 6px; font-weight: 500;">Pulsa el engranaje para añadir audiolibros</span>
-                            </div>
-                        </div>
-                    `;
+                    const emptyHint = document.createElement('div');
+                    emptyHint.style.cssText = "grid-column: 1 / -1; margin-bottom: 10px; opacity: 0.2; font-size: 0.6rem; font-weight: 900; letter-spacing: 3px;";
+                    emptyHint.textContent = "BIBLIOTECA VACÍA";
+                    list.insertBefore(emptyHint, addCard);
                 }
             }
         };
@@ -963,7 +1019,7 @@
             document.getElementById('author').textContent = displayArtist;            try {
                 window.jsmediatags.read(file, {
                     onSuccess: function(tag) {
-                        let { title, artist, picture } = tag.tags;
+                        let { title, artist, picture } = (tag && tag.tags) || {};
                         let artworkUrl = '';
                         
                         if (title) {
@@ -1031,10 +1087,14 @@
                                         const p = 2 * l - q;
                                         const toHex = x => Math.round(x * 255).toString(16).padStart(2, '0');
                                         return `#${toHex(f(p,q,h+1/3))}${toHex(f(p,q,h))}${toHex(f(p,q,h-1/3))}`;
-                                    };
-                                    setThemeColor(hslToHex(finalH, finalS, finalL), false);
+                                    };                                    setThemeColor(hslToHex(finalH, finalS, finalL), false);
                                 } catch (e) { console.error("Error en Chameleon Pro:", e); }
                             };
+                        } else {
+                            artworkUrl = generateRandomWaves();
+                            const img = document.getElementById('cover-art');
+                            img.src = artworkUrl;
+                            document.getElementById('cover-container').style.display = 'block';
                         }
 
                         // Integración con Media Session API (Controles de sistema)
@@ -1046,14 +1106,22 @@
                                 artwork: artworkUrl ? [{ src: artworkUrl, sizes: '512x512', type: 'image/png' }] : []
                             });
                         }
-                    },
-                    onError: () => { document.getElementById('author').textContent = "Reproductor Local"; }
+                    },                    onError: () => { 
+                        document.getElementById('author').textContent = "Reproductor Local";
+                        const waveUrl = generateRandomWaves();
+                        const img = document.getElementById('cover-art');
+                        img.src = waveUrl;
+                        document.getElementById('cover-container').style.display = 'block';
+                    }
                 });
             } catch (e) {}
 
             const objectURL = URL.createObjectURL(file);
             audio.src = objectURL;
-            audio.load();        playPauseBtn.innerHTML = '<i class="material-icons" style="font-size: 2.5rem;">play_arrow</i>';
+            audio.load();
+            
+            // Mostrar la fila de ajustes rápidos al cargar un archivo
+            document.getElementById('quick-settings-row').style.display = 'flex';        playPauseBtn.innerHTML = '<i class="material-icons" style="font-size: 2.5rem;">play_arrow</i>';
         playPauseBtn.classList.remove('playing');
 
             const savedTime = localStorage.getItem('audiobook_progress_' + currentFileName);
