@@ -683,12 +683,15 @@
             modal.style.pointerEvents = 'auto';
             content.style.transform = 'scale(1) translateY(0)';
         }
-    }    // Inicialización robusta con Persistencia de Datos
-    async function initDB() {
-        // Solicitar al navegador que no borre los datos automáticamente
+    }    // Inicialización robusta con Persistencia de Datos    async function initDB() {
+        // Forzamos la solicitud de almacenamiento persistente para evitar que el sistema operativo limpie los MP3
         if (navigator.storage && navigator.storage.persist) {
-            const isPersisted = await navigator.storage.persist();
-            console.log(`Persistencia de datos: ${isPersisted ? "Garantizada" : "Temporal"}`);
+            try {
+                const isPersisted = await navigator.storage.persist();
+                console.log(`Estado de persistencia: ${isPersisted ? "PERSISTENTE (Seguro)" : "TEMPORAL (Riesgo de borrado)"}`);
+            } catch (err) {
+                console.error("No se pudo solicitar persistencia:", err);
+            }
         }
 
         const dbRequest = indexedDB.open("AudiobookProDB", 1);
@@ -696,48 +699,73 @@
         dbRequest.onupgradeneeded = (e) => {
             db = e.target.result;
             if (!db.objectStoreNames.contains("books")) {
-                db.createObjectStore("books", { keyPath: "name" });
+                const store = db.createObjectStore("books", { keyPath: "name" });
+                store.createIndex("added", "added", { unique: false });
             }
         };
 
         dbRequest.onsuccess = (e) => {
             db = e.target.result;
-            console.log("Base de datos lista");
+            console.log("Base de datos local cargada correctamente");
+            
+            // Verificación de cuota disponible
+            if (navigator.storage && navigator.storage.estimate) {
+                navigator.storage.estimate().then(estimate => {
+                    const used = (estimate.usage / 1024 / 1024).toFixed(2);
+                    const quota = (estimate.quota / 1024 / 1024).toFixed(2);
+                    console.log(`Uso de disco: ${used}MB de ${quota}MB`);
+                });
+            }
             displayLibrary();
         };
 
-        dbRequest.onerror = (e) => console.error("Error IndexedDB:", e);
+        dbRequest.onerror = (e) => {
+            console.error("Error Crítico IndexedDB:", e);
+            timerMsg.textContent = "Error: No se pudo acceder al almacenamiento local.";
+        };
     }
 
-    initDB();
-
-    function saveToLibrary(file) {
+    initDB();    function saveToLibrary(file) {
         if (!db) {
-            timerMsg.textContent = "Error: BD no lista";
+            timerMsg.textContent = "Base de datos no inicializada";
             return;
         }
+        
+        // Creamos una copia del Blob para asegurar que la referencia en IndexedDB 
+        // sea independiente del ciclo de vida del input file original.
+        const fileBlob = file.slice(0, file.size, file.type);
         
         const transaction = db.transaction(["books"], "readwrite");
         const store = transaction.objectStore("books");
         
-        const bookData = { 
+        const bookData = {
             name: file.name, 
-            data: file, 
+            data: fileBlob, 
             added: new Date().getTime()
         };
 
-        const request = store.put(bookData);
-        
-        transaction.oncomplete = () => {
-            timerMsg.textContent = "Guardado permanentemente ✓";
-            displayLibrary();
-            setTimeout(() => timerMsg.textContent = "", 3000);
-        };
+        try {
+            const request = store.put(bookData);
+            
+            transaction.oncomplete = () => {
+                timerMsg.textContent = "¡Guardado en memoria permanente! ✓";
+                displayLibrary();
+                if (navigator.vibrate) navigator.vibrate(60);
+                setTimeout(() => timerMsg.textContent = "", 4000);
+            };
 
-        transaction.onerror = (e) => {
-            console.error("Error al guardar:", e);
-            timerMsg.textContent = "Error al guardar libro";
-        };
+            transaction.onerror = (e) => {
+                if (e.target.error.name === 'QuotaExceededError') {
+                    timerMsg.textContent = "Error: Sin espacio en el dispositivo";
+                } else {
+                    timerMsg.textContent = "Error al escribir en almacenamiento local";
+                }
+                console.error("Fallo en transacción:", e.target.error);
+            };
+        } catch (err) {
+            console.error("Error durante el guardado:", err);
+            timerMsg.textContent = "El archivo es demasiado grande o incompatible";
+        }
     }    function displayLibrary() {
         const list = document.getElementById('library-list');
         if (!list) return;
