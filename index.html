@@ -10,100 +10,6 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#050505">
     <link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAYAAAAnZST0AAAACXBIWXMAAAsTAAALEwEAmpwYAAADf0lEQVR4nO2cS0hUURzGf99MG8vSInuYpZksS6M0S8pI06BRRAtX0SBoE9SiaBe0CNoE0SJoE0SLoE0QLYI2EUE9SIsS06IsS0un0syZ6XTuuS3mOsbh3vHOnXvOOf8Pps6958xvzv/7z7mX67o6S8IitvYCOAnMAvPAXDAOZIG9QA7IBN6p8xYwD0wD74A36vwpMC9p95U6B6jzA8AAYAnYAsyps4M6m6kzAsQC9R+B36rzGvAeeAzMAt9VAn3U+REwGpjXUOf7wGfA6f0U7NnBInAIGAQOAnvV74+Az8BnVv8O9V78v0f9Lqh6LwEPVJ1X9mD8D98zEAsv9X4beA+8VnVe2Yf5XvX7YvVe7P/X756eGSkAt80Vv1f9vlD93u/f81MAbpv1Yf886fdbv3eW9K6RAnDb/M/vK34/9HttSW8fKQC3zZ+8HwYm1O/pXp49UgBum6/5vAn8UL/fenvOSAG4bf7idwmYVv9vXTwPpwDcNn/weRb4on6fW1u+TwG4bR6Y08A74L36fWfN+XkF4LZ5Yh4B74F36vdVNc8fKQC3zRPzCHgPfFC/r7p59kgBuG0em4fV6fK75onpAn7reA386rS3j6H9t8A34CHwAnis6vxv74A/5mXv6f8D/6fO88AiMB28mX7glzoPAfPq7AEm1dlBnc3UuR1IBf6nSCD6Z+D3m90X3M9AILpnoL/Fm+XfM9Df0s3yX5iXvafvT9Mv9X6vOq98N6P2XgCv1Xm7eq/O+yR9A7X3AnitztvVe3X+S9JzU3v7SPrO6v9O9btk7pD0D9X/H6p+S+YhSf9Z/f9Z1XvJPCTpP6v/P696L5mHJP1n9f/nVe8l85Ck76zeP696L5mHJP1n9f/nVe8l85Ck76zeP696L5mHJP1v9f5F1XvJPCTpf6v3L6reS+YhSf9bvX9R9V4yD0n6z+r9i6r3knlI0v9W719UvZeMc9S9AnzG7N8GZ6LzInAFU38DOKV+f5R7V/mH0v/MvX/9U6v/OfU/F7ynf7f5F8D7P21V6n9G/S+o/8XgX6Xp8B92K6vO99Xf99f/vPofV/8L6n/B6Xf8763+59X/fPDe/t3m9wO/dfz6/NbxG/Bbx8u9f9it+A24rePjXp8fdiuuX58fdiuuX58fdiuuX58fdivuT9D7XvX7uD8X7/f+m6of8Ntc888Bv83vve/4vX8N/E9X/B73Bf/Z8v34ZzE76T/q769qK/6j/f6qtuI/2u+vain+Y/p/vN9f1Vb8W/3v6f+HOfp/+P97/Xf8P52uA/8ALXw8Pz0RcgIAAAAASUVORK5CYII=">    
-    <!-- PWA: Manifest inline via blob -->
-    <script>
-    (function() {
-        const manifest = {
-            name: "Audiolibros",
-            short_name: "Audiolibros",
-            description: "Reproductor de audiolibros local con biblioteca",
-            start_url: "/l/",
-            scope: "/l/",
-            display: "standalone",
-            background_color: "#050505",
-            theme_color: "#050505",
-            orientation: "portrait-primary",
-            icons: [
-                {
-                    src: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDPmHLAAAABmJLR0QA/wD/AP+gvaeTAAADvklEQVR4nO3dO2hUQRSA4fOIBhEVFEEsFBQRLBQsBAsRBAtBsBAsBAuDYCFYCBYGwUKwECwEC8FCsBAsBAuDYCFYCBYGwUKwECwEC8HCQjBYiAkhJiSbZHez2Z3Z2Xv/c+6ec+bce+a8mBARERERERERERERERERERERERERERERERERERERERERERERSa2SdQAiJVAAhKQACEkBEJICICQFQEgKgJAUACEpAEJSAISkAAhJARCSAiAkBUBICoCAXgDfgQ+5A5ExPALYzR2EjOMCcCN3EDKOn8A+cDN3IDKGa8DX3EHIKBeBj8AucCl3MDLMJeAnsANczx2MDHIVeA/sAVdyByODXAd2gW1gM3cwMsht4BuwBWzmDkb62QCeAo+Bk7mDkX4uA0+AR8Cx3MFIPyeAZ8BD4ETuYKSfk8Bz4AFwOncw0s9p4CVwHziXOxjp5xzwCrgHnM8djPRzHngN3AXO5g5G+jkLvAFuA+dyByP9nAPeAreAC7mDkX4uAO+Am8DF3MFIPxeB98AN4FLuYKSfy8B74BpwJXcw0s9V4ANwFbiWOxjp5xrwEbgOXM8djPRzA/gE3ARu5Q5G+rkNfAZuA3dyByP93AG+AHeB7dzBSD93ga/APeB+7mCknwfAN+AhcDd3MNLPPeA78Ah4nDsY6ech8AN4CjzJHYz08wx4DjwDXuQORvp5CbwCXgNvcwcj/bwD3gNvgA+5g5F+PgKfgXfAx9zBSD9fgC/AV+Bb7mCkn+/AN+A78CN3MNLPLvAD2AN+5g5G+tkH9oE94FfuYKSfA+AQOAAOcwcj/RwBx8AxcJQ7GOnnGDgBToHTuYORfk6B09zBSD9ngDPgLHcw0s85YA44Bxa5g5F+FsAcmAMLYA7MgTmwAObAHFgAC2AOLII5sADmwByYA3NgAcyBObAA5sAcmANzYA4sgDkwB+bAHJgDc2AOzIE5MAcWwByYA3NgDsyBObAA5sAcmANzYA4sgDkwB+bAHJgDc2AOzIE5MAcWwByYA3NgDsyBObAA5sAcmANzYA4sgDkwB+bAHJgDc2AOzIE5MAcWwByYA3NgDsyBObAA5sAcmANzYA4sgDkwB+bAHJgDc2AOzIE5MAcWwByYA3NgDsyBObAA5sAcmANzYA4sgDkwB+bAHJgDc2AOzIE5MAcWwByYA3NgDsyBObAA5sAcmANzYA4sgDkwB+bAHJgDc2AOzIE5MAcWwByYA3NgDsyBObAA5sAcmANzYA4sgDkwB+bAHJgDc2AOzIE5MAcWwByYA3NgDsyBObAA5sAcmANzYA4sgDkwB+bAHJgDc2AOzIE5MAcWwAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-                    sizes: "128x128",
-                    type: "image/png"
-                }
-            ]
-        };
-        const blob = new Blob([JSON.stringify(manifest)], {type: 'application/manifest+json'});
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('link');
-        link.rel = 'manifest';
-        link.href = url;
-        document.currentScript.parentNode.insertBefore(link, document.currentScript);
-    })();
-    </script>
-
-    <!-- PWA: Service Worker inline -->
-    <script>
-    if ('serviceWorker' in navigator) {
-        const swCode = `
-const CACHE_NAME = 'audiobooks-pwa-v1';
-const URLS_TO_CACHE = [
-    '/l/',
-    '/l/index.html',
-    'https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js',
-    'https://fonts.googleapis.com/icon?family=Material+Icons'
-];
-
-self.addEventListener('install', (event) => {
-    event.waitUntil(
-        caches.open(CACHE_NAME).then((cache) => {
-            return cache.addAll(URLS_TO_CACHE).catch(() => {
-                return cache.add('/l/');
-            });
-        })
-    );
-    self.skipWaiting();
-});
-
-self.addEventListener('activate', (event) => {
-    event.waitUntil(
-        caches.keys().then((cacheNames) => {
-            return Promise.all(
-                cacheNames.filter(name => name !== CACHE_NAME)
-                          .map(name => caches.delete(name))
-            );
-        })
-    );
-    self.clients.claim();
-});
-
-self.addEventListener('fetch', (event) => {
-    // No interceptar audio files ni IndexedDB
-    if (event.request.url.includes('blob:') || event.request.method !== 'GET') return;
-    
-    event.respondWith(
-        caches.match(event.request).then((cached) => {
-            if (cached) return cached;
-            return fetch(event.request).then((response) => {
-                if (!response || response.status !== 200 || response.type === 'opaque') {
-                    return response;
-                }
-                const responseToCache = response.clone();
-                caches.open(CACHE_NAME).then((cache) => {
-                    cache.put(event.request, responseToCache);
-                });
-                return response;
-            }).catch(() => cached || new Response('Sin conexión', {status: 503}));
-        })
-    );
-});
-        `;
-        const swBlob = new Blob([swCode], {type: 'application/javascript'});
-        const swUrl = URL.createObjectURL(swBlob);
-        navigator.serviceWorker.register(swUrl, {scope: '/l/'})
-            .then(reg => console.log('SW registrado:', reg.scope))
-            .catch(err => console.warn('SW no pudo registrarse (normal en dev local):', err));
-    }
-    </script>
-
     <style>
         :root {
             --color-principal: #4a90e2;
@@ -737,9 +643,10 @@ self.addEventListener('fetch', (event) => {
         document.documentElement.style.setProperty('--color-principal', hex);
         document.documentElement.style.setProperty('--color-principal-rgb', rgb);
         
-        // Solo guardamos en localStorage si es una elección manual del usuario
+        // Solo guardamos si es una elección manual del usuario
         if (save) {
             localStorage.setItem('audiobook_theme_color', hex);
+            dbPut("settings", { key: "themeColor", value: hex }).catch(() => {});
         }
         
         document.body.style.background = `radial-gradient(circle at top, rgba(${rgb}, 0.15) 0%, #050505 100%)`;
@@ -754,9 +661,11 @@ self.addEventListener('fetch', (event) => {
             window.event.target.style.transform = 'scale(1.2)';
             window.event.target.style.borderColor = 'white';
         }
-    }    // Cargar tema al inicio
+    }    // Cargar tema al inicio (IDB primero, localStorage como fallback)
     const savedTheme = localStorage.getItem('audiobook_theme_color') || '#4a90e2';
     setThemeColor(savedTheme, false);
+    // Sobrescribir con valor de IDB si existe (más fiable)
+    // Se aplica de forma asíncrona al cargar la DB en initDB()
 
     // Cargar preferencia de botón Siguiente
     const nextAsTimerPref = localStorage.getItem('audiobook_next_timer');
@@ -790,8 +699,31 @@ self.addEventListener('fetch', (event) => {
     const timerSelect = document.getElementById('sleep-timer');
     const timerMsg = document.getElementById('timer-msg');    let sleepTimerTimeout;
     let sleepTimerInterval;
+    let timerTotalSeconds = 0;
     let currentFileName = "";
     let db;
+
+    // ── Helpers IndexedDB genéricos ──────────────────────────────────────
+    function dbPut(storeName, obj) {
+        return new Promise((resolve, reject) => {
+            if (!db) return reject("DB no lista");
+            const tx = db.transaction([storeName], "readwrite");
+            const req = tx.objectStore(storeName).put(obj);
+            tx.oncomplete = () => resolve();
+            tx.onerror = (e) => reject(e);
+        });
+    }
+    function dbGet(storeName, key) {
+        return new Promise((resolve, reject) => {
+            if (!db) return reject("DB no lista");
+            const tx = db.transaction([storeName], "readonly");
+            const req = tx.objectStore(storeName).get(key);
+            req.onsuccess = (e) => resolve(e.target.result);
+            req.onerror = (e) => reject(e);
+        });
+    }
+    // ────────────────────────────────────────────────────────────────────
+
     let reorderMode = false;
     let pressTimer;
     let draggedItem = null;
@@ -820,12 +752,18 @@ self.addEventListener('fetch', (event) => {
             console.log(`Persistencia de datos: ${isPersisted ? "Garantizada" : "Temporal"}`);
         }
 
-        const dbRequest = indexedDB.open("AudiobookProDB", 1);
+        const dbRequest = indexedDB.open("AudiobookProDB", 2);
 
         dbRequest.onupgradeneeded = (e) => {
             db = e.target.result;
             if (!db.objectStoreNames.contains("books")) {
                 db.createObjectStore("books", { keyPath: "name" });
+            }
+            if (!db.objectStoreNames.contains("progress")) {
+                db.createObjectStore("progress", { keyPath: "name" });
+            }
+            if (!db.objectStoreNames.contains("settings")) {
+                db.createObjectStore("settings", { keyPath: "key" });
             }
         };
 
@@ -833,6 +771,16 @@ self.addEventListener('fetch', (event) => {
             db = e.target.result;
             console.log("Base de datos lista");
             displayLibrary();
+            // Restaurar tema desde IDB (más fiable que localStorage)
+            dbGet("settings", "themeColor").then(entry => {
+                if (entry && entry.value) setThemeColor(entry.value, false);
+            }).catch(() => {});
+            // Restaurar último libro activo automáticamente
+            dbGet("settings", "lastBook").then(entry => {
+                if (entry && entry.value) {
+                    loadFromLibrary(entry.value);
+                }
+            }).catch(() => {});
         };
 
         dbRequest.onerror = (e) => console.error("Error IndexedDB:", e);
@@ -1200,7 +1148,18 @@ self.addEventListener('fetch', (event) => {
         playPauseBtn.classList.remove('playing');
 
             const savedTime = localStorage.getItem('audiobook_progress_' + currentFileName);
-            if(savedTime) audio.currentTime = parseFloat(savedTime);
+            // Cargar progreso desde IndexedDB primero (más fiable), con fallback a localStorage
+            dbGet("progress", currentFileName).then(entry => {
+                const idbTime = entry ? entry.time : null;
+                const lsTime = savedTime ? parseFloat(savedTime) : null;
+                // Usar el tiempo más alto de los dos (mayor progreso guardado)
+                const restoreTime = idbTime !== null ? idbTime : lsTime;
+                if (restoreTime && restoreTime > 0) {
+                    audio.currentTime = restoreTime;
+                }
+            }).catch(() => {
+                if (savedTime) audio.currentTime = parseFloat(savedTime);
+            });
 
             // Volver a mostrar suavemente
             ui.style.opacity = '1';
@@ -1232,12 +1191,12 @@ self.addEventListener('fetch', (event) => {
         navigator.mediaSession.setActionHandler('previoustrack', () => skip(-10));        navigator.mediaSession.setActionHandler('nexttrack', () => {
             const isTimerMode = document.getElementById('next-as-timer').checked;
             if (isTimerMode) {
-                // Si el temporizador no existe o está en 0, lo iniciamos
-                if (typeof timerTotalSeconds === 'undefined' || timerTotalSeconds <= 0) {
+                // Si el temporizador no está activo, lo iniciamos en 5 min
+                if (timerTotalSeconds <= 0) {
                     setTimer(5); 
                     timerMsg.textContent = "TIMER INICIADO: 5 MIN ⏱️";
                 } else {
-                    // Si ya está corriendo, sumamos 5 minutos
+                    // Si ya está corriendo, sumamos 5 minutos a la global
                     timerTotalSeconds += 300;
                     timerMsg.textContent = "+5 MIN (TOTAL: " + Math.ceil(timerTotalSeconds/60) + " min) 🎧";
                 }
@@ -1297,7 +1256,15 @@ self.addEventListener('fetch', (event) => {
     };
 
     function saveProgress() {
-        localStorage.setItem('audiobook_progress_' + currentFileName, audio.currentTime);
+        if (!currentFileName) return;
+        // Guardar progreso en IndexedDB (persistencia absoluta)
+        dbPut("progress", { name: currentFileName, time: audio.currentTime, saved: Date.now() })
+            .catch(e => console.warn("Error guardando progreso:", e));
+        // Guardar último libro activo
+        dbPut("settings", { key: "lastBook", value: currentFileName })
+            .catch(e => console.warn("Error guardando lastBook:", e));
+        // Mantener localStorage como fallback secundario
+        try { localStorage.setItem('audiobook_progress_' + currentFileName, audio.currentTime); } catch(e) {}
     }
 
     progressBar.oninput = () => {
@@ -1381,9 +1348,7 @@ self.addEventListener('fetch', (event) => {
 
         setupSwipeClose('timer-handle', 'timer-content', closeTimerModal);
         setupSwipeClose('speed-handle', 'speed-content', closeSpeedModal);
-    });
-
-    function setTimer(minutes) {
+    });    function setTimer(minutes) {
         clearTimeout(sleepTimerTimeout);
         clearInterval(sleepTimerInterval);
         closeTimerModal();
@@ -1391,14 +1356,15 @@ self.addEventListener('fetch', (event) => {
         const timerIcon = document.getElementById('timer-icon');
 
         if (minutes > 0) {
-            let totalSeconds = minutes * 60;
-            timerIcon.style.color = 'var(--color-principal)';            const updateUI = () => {
-                const m = Math.floor(totalSeconds / 60);
-                const s = totalSeconds % 60;
+            timerTotalSeconds = minutes * 60;
+            timerIcon.style.color = 'var(--color-principal)';
+
+            const updateUI = () => {
+                const m = Math.floor(timerTotalSeconds / 60);
+                const s = timerTotalSeconds % 60;
                 const timeStr = `${m}:${s < 10 ? '0' : ''}${s}`;
                 timerMsg.textContent = `Pausa en ${timeStr}`;
                 
-                // Actualizar la notificación con el tiempo restante de la cuenta atrás
                 if ('mediaSession' in navigator && navigator.mediaSession.metadata) {
                     const currentMeta = navigator.mediaSession.metadata;
                     navigator.mediaSession.metadata = new MediaMetadata({
@@ -1413,14 +1379,14 @@ self.addEventListener('fetch', (event) => {
             updateUI();
 
             sleepTimerInterval = setInterval(() => {
-                totalSeconds--;
-                if (totalSeconds <= 0) {
+                timerTotalSeconds--;
+                if (timerTotalSeconds <= 0) {
+                    timerTotalSeconds = 0;
                     clearInterval(sleepTimerInterval);
                     audio.pause();
                     playPauseBtn.innerHTML = '<i class="material-icons" style="font-size: 2.5rem;">play_arrow</i>';
                     timerMsg.textContent = "Zzz...";
                     timerIcon.style.color = '#888';
-                    // Restaurar título original al terminar el timer
                     if ('mediaSession' in navigator) {
                         navigator.mediaSession.metadata = new MediaMetadata({
                             title: titleEl.textContent,
@@ -1433,6 +1399,7 @@ self.addEventListener('fetch', (event) => {
                 }
             }, 1000);
         } else {
+            timerTotalSeconds = 0;
             timerMsg.textContent = "";
             timerIcon.style.color = '#888';
         }
