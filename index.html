@@ -596,22 +596,16 @@
                         <span class="slider"></span>
                     </label>
                 </div>                <div style="background:#1c1c1c; padding:14px 18px; border-radius:16px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
                         <div style="display:flex; align-items:center; gap:12px;">
                             <i class="material-icons" style="color:var(--color-principal); font-size:20px;">notifications_active</i>
-                            <span style="color:#ccc; font-size:0.9rem;">Bip de Seguridad</span>
+                            <span style="color:#ccc; font-size:0.9rem;">Aviso 5 min (Bip)</span>
                         </div>
                         <label class="switch">
                             <input type="checkbox" id="silence-beep" onchange="toggleSilenceDetection()">
                             <span class="slider"></span>
                         </label>
                     </div>
-                    <select id="beep-interval" style="width:100%; background:#252525; color:#aaa; border:none; padding:10px; border-radius:10px; font-size:0.8rem; outline:none;">
-                        <option value="300" selected>Cada 5 minutos</option>
-                        <option value="600">Cada 10 minutos</option>
-                        <option value="900">Cada 15 minutos</option>
-                        <option value="1800">Cada 30 minutos</option>
-                    </select>
                 </div>
             </div>
 
@@ -1512,10 +1506,15 @@
                 }
             };
 
-            updateUI();
-
-            sleepTimerInterval = setInterval(() => {
+            updateUI();            sleepTimerInterval = setInterval(() => {
                 timerTotalSeconds--;
+
+                // Bip de advertencia cuando falten exactamente 5 minutos (300 segundos)
+                if (timerTotalSeconds === 300 && document.getElementById('silence-beep').checked) {
+                    playBeep();
+                    if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+                }
+
                 if (timerTotalSeconds <= 0) {
                     timerTotalSeconds = 0;
                     clearInterval(sleepTimerInterval);
@@ -1595,40 +1594,18 @@
         }
         if (audioCtx.state === 'suspended') audioCtx.resume();
         setTimeout(() => timerMsg.textContent = "", 3000);
-    }
-
-    function toggleSilenceDetection() {
-        if (!audio.src) { document.getElementById('silence-beep').checked = false; alert("Carga un audio primero."); return; }
+    }    function toggleSilenceDetection() {
         initAudioContext();
-        
         const isEnabled = document.getElementById('silence-beep').checked;
-        if (isEnabled) {
-            source.connect(analyser);
-            silenceInterval = setInterval(checkSilence, 1000);
-            timerMsg.textContent = "Detector de silencio activo.";
-        } else {
-            clearInterval(silenceInterval);
-            timerMsg.textContent = "Detector desactivado.";
-        }
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-        setTimeout(() => timerMsg.textContent = "", 3000);
-    }
-
-    function checkSilence() {
-        if (audio.paused) return;
-
-        analyser.getByteFrequencyData(dataArray);
-        let average = dataArray.reduce((a, b) => a + b) / dataArray.length;
         
-        const currentTime = audio.currentTime;
-        const interval = parseInt(document.getElementById('beep-interval').value);
-
-        // Si hay silencio (volumen bajo) y ha pasado el tiempo necesario
-        if (average < 5 && (currentTime - lastBeepTime) >= interval) {
-            playBeep();
-            addMarker(currentTime);
-            lastBeepTime = currentTime;
+        if (isEnabled) {
+            timerMsg.textContent = "Aviso de 5 min activado.";
+        } else {
+            timerMsg.textContent = "Aviso desactivado.";
         }
+        
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        setTimeout(() => timerMsg.textContent = "", 3000);
     }
 
     function playBeep() {
