@@ -318,9 +318,9 @@
         }
         .active-scroll .marquee-text {
             display: inline-block;
-            padding-right: 50px; /* Espacio para el bucle continuo */
             animation: bus-marquee 10s linear infinite;
             flex-shrink: 0;
+            white-space: nowrap;
         }
         @keyframes bus-marquee {
             0% { transform: translateX(0); }
@@ -865,9 +865,9 @@
                     if (cleanName.includes("-")) {
                         const p = cleanName.split("-").map(x => x.trim());
                         tPart = p[0]; aPart = p[1];
-                    }                    const checkScroll = (txt) => txt.length > 16 ? 'active-scroll' : '';
-                    const tContent = checkScroll(tPart) ? `${tPart} &nbsp;&nbsp;&nbsp; ${tPart}` : tPart;
-                    const aContent = checkScroll(aPart) ? `${aPart} &nbsp;&nbsp;&nbsp; ${aPart}` : aPart;
+                    }                    const checkScroll = (txt) => txt.length > 16 ? 'active-scroll' : '';                    const spacer = "&nbsp;".repeat(10);
+                    const tContent = checkScroll(tPart) ? (tPart + spacer).repeat(2) : tPart;
+                    const aContent = checkScroll(aPart) ? (aPart + spacer).repeat(2) : aPart;
                     let formattedLabel = `<div class="marquee-container ${checkScroll(tPart)}"><span class="marquee-text">${tContent}</span></div>` + 
                                        `<div class="marquee-container ${checkScroll(aPart)}" style="color:var(--color-principal); opacity:0.8;"><span class="marquee-text">${aContent}</span></div>`;
                     
@@ -917,9 +917,9 @@
                                     const labelEl = card.querySelector('.book-label');                                    if (title) {
                                         let cleanTitle = title.replace(/\.[^/.]+$/, "").toUpperCase();
                                         let cleanArtist = (artist || "Autor Desconocido").toUpperCase();
-                                        const checkScroll = (txt) => txt.length > 16 ? 'active-scroll' : '';
-                                        const tCont = checkScroll(cleanTitle) ? `${cleanTitle} &nbsp;&nbsp;&nbsp; ${cleanTitle}` : cleanTitle;
-                                        const aCont = checkScroll(cleanArtist) ? `${cleanArtist} &nbsp;&nbsp;&nbsp; ${cleanArtist}` : cleanArtist;
+                                        const checkScroll = (txt) => txt.length > 16 ? 'active-scroll' : '';                                        const spacer = "&nbsp;".repeat(10);
+                                        const tCont = checkScroll(cleanTitle) ? (cleanTitle + spacer).repeat(2) : cleanTitle;
+                                        const aCont = checkScroll(cleanArtist) ? (cleanArtist + spacer).repeat(2) : cleanArtist;
                                         labelEl.innerHTML = `<div class="marquee-container ${checkScroll(cleanTitle)}"><span class="marquee-text">${tCont}</span></div>` + 
                                                            `<div class="marquee-container ${checkScroll(cleanArtist)}" style="color: var(--color-principal);"><span class="marquee-text">${aCont}</span></div>`;
                                     }
