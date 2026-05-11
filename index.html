@@ -946,9 +946,15 @@
                                                 else if (max === g) h = (b - r) / diff + 2;
                                                 else h = (r - g) / diff + 4;
                                                 h /= 6;
+                                            }                                            const extractedColor = `hsl(${Math.round(h * 360) || 0}, ${Math.max(Math.round(s * 100), 70)}%, 60%)`;
+                                            const dot = card.querySelector('.status-dot');
+                                            if (dot) {
+                                                dot.style.backgroundColor = extractedColor;
                                             }
-                                            const dot = card.querySelector('.status-dot');                                            if (dot) {
-                                                dot.style.backgroundColor = `hsl(${Math.round(h * 360) || 0}, ${Math.max(Math.round(s * 100), 70)}%, 60%)`;
+                                            // Aplicar el mismo color extraído a la segunda línea (autor)
+                                            const secondLine = card.querySelector('.book-label div:nth-child(2)');
+                                            if (secondLine) {
+                                                secondLine.style.color = extractedColor;
                                             }
                                         };
                                     } else {
