@@ -49,6 +49,128 @@
             margin: 0 auto;
             display: flex;
             flex-direction: column;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Adaptación Pro Landscape Dinámica */
+        @media (orientation: landscape) and (min-width: 660px) {
+            body {
+                height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                overflow: hidden;
+            }
+
+            .player-container {
+                max-width: 900px;
+                width: 95%;
+                height: 85vh;
+                padding: 25px;
+            }
+
+            /* ESTADO IDLE: Solo biblioteca a pantalla completa */
+            .player-container:not(.player-active) #player-ui-container,
+            .player-container:not(.player-active) #quick-settings-row {
+                display: none !important;
+            }
+
+            .player-container:not(.player-active) #library-container {
+                width: 100%;
+                max-width: 100%;
+                border-right: none;
+            }
+
+            .player-container:not(.player-active) #library-list {
+                display: grid !important;
+                grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)) !important;
+            }            /* ESTADO ACTIVO: Efecto de Paneles/Ventanas Independientes */
+            .player-container.player-active {
+                max-width: 920px;
+                display: grid !important;
+                grid-template-columns: 270px 1fr 70px;
+                grid-template-rows: 1fr;
+                gap: 20px;
+                padding: 15px;
+                align-items: stretch;
+                background: transparent; /* Eliminamos el fondo del contenedor para que los paneles floten */
+                box-shadow: none;
+                border: none;
+            }
+
+            .player-active #library-container,
+            .player-active #player-ui-container {
+                background: #0c0c0c;
+                border-radius: 28px;
+                border: 1px solid rgba(255,255,255,0.07);
+                padding: 22px;
+                box-shadow: 0 15px 45px rgba(0,0,0,0.7);
+                display: flex;
+                flex-direction: column;
+            }
+
+            .player-active #library-container {
+                text-align: left;
+            }
+            
+            .player-active #library-container h3 {
+                margin-top: 0;
+            }            #library-list.player-active {
+                display: flex !important;
+                flex-direction: column !important;
+                max-height: 65vh;
+                gap: 12px;
+                flex: 1;
+                align-items: stretch; /* Asegura que las tarjetas ocupen todo el ancho disponible */
+            }            .player-active .book-card {
+                flex-direction: row !important;
+                gap: 15px;
+                background: rgba(255,255,255,0.05);
+                padding: 12px;
+                border-radius: 20px;
+                width: 100%;
+                box-sizing: border-box;
+                align-items: center;
+            }
+
+            /* Corregimos el ancho del label para que se expanda en modo lista lateral */
+            .player-active .book-label {
+                width: auto !important;
+                flex: 1;
+                text-align: left;
+            }
+
+            .player-active .book-thumb {
+                width: 50px !important;
+                height: 50px !important;
+                min-width: 50px;
+                margin-bottom: 0;
+            }
+
+            .player-active #player-ui-container {
+                justify-content: center;
+                align-items: center;
+            }
+
+            #cover-art {
+                width: 240px !important;
+                height: 240px !important;
+                border-radius: 20px;
+            }
+
+            .book-info h2 { font-size: 1.4rem; margin-top: 10px; }
+            .progress-container { max-width: 400px; margin: 10px 0; }
+            .controls { max-width: 380px; gap: 15px; }
+            #play-pause { width: 75px !important; height: 75px !important; }
+
+            #quick-settings-row {
+                display: flex !important;
+                flex-direction: column !important;
+                border-top: none !important;
+                border-left: 1px solid rgba(255,255,255,0.06);
+                padding-left: 10px !important;
+                gap: 20px;
+            }
         }
 
         .book-info h2 {
@@ -1042,10 +1164,9 @@
         document.getElementById('cover-container').style.display = 'none';
         titleEl.textContent = "Cargando...";
         document.getElementById('author').textContent = "...";        playPauseBtn.innerHTML = '<i class="material-icons" style="font-size: 2.5rem;">play_arrow</i>';
-        playPauseBtn.classList.remove('playing');
-
-        setTimeout(() => {
+        playPauseBtn.classList.remove('playing');        setTimeout(() => {
             ui.style.display = 'block';
+            document.querySelector('.player-container').classList.add('player-active');
             document.getElementById('library-list').classList.add('player-active');
             currentFileName = file.name;
             fileLabel.textContent = "Libro: " + (currentFileName.length > 15 ? currentFileName.substring(0,12) + "..." : currentFileName);            // 1. Limpiar nombre del archivo (quitar extensión)
