@@ -642,11 +642,15 @@
             </div>
         </div>        <div class="controls" style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px; padding: 0 10px;">
             <button id="speed-display" onclick="openSpeedModal()" style="color: #666; font-size: 1rem; width: 40px;">1x</button>
-            <button onclick="skip(-10)"><i class="material-icons" style="font-size: 35px; color: var(--color-principal);">replay_10</i></button>
+            <button onclick="skip(-10)" style="width: 55px; height: 55px; border-radius: 50%; transition: background 0.1s;" onmousedown="this.style.background='rgba(var(--color-principal-rgb), 0.15)'" onmouseup="this.style.background='transparent'" onmouseleave="this.style.background='transparent'" ontouchstart="this.style.background='rgba(var(--color-principal-rgb), 0.15)'" ontouchend="this.style.background='transparent'">
+                <i class="material-icons" style="font-size: 35px; color: var(--color-principal);">replay_10</i>
+            </button>
             <button id="play-pause" class="play-btn" onclick="togglePlay()" style="width: 85px; height: 85px; border: 2px solid var(--color-principal); border-radius: 50%;">
                 <i class="material-icons" style="font-size: 50px; color: var(--color-principal);">play_arrow</i>
             </button>
-            <button onclick="skip(10)"><i class="material-icons" style="font-size: 35px; color: var(--color-principal);">forward_10</i></button>
+            <button onclick="skip(10)" style="width: 55px; height: 55px; border-radius: 50%; transition: background 0.1s;" onmousedown="this.style.background='rgba(var(--color-principal-rgb), 0.15)'" onmouseup="this.style.background='transparent'" onmouseleave="this.style.background='transparent'" ontouchstart="this.style.background='rgba(var(--color-principal-rgb), 0.15)'" ontouchend="this.style.background='transparent'">
+                <i class="material-icons" style="font-size: 35px; color: var(--color-principal);">forward_10</i>
+            </button>
             <button id="timer-icon" onclick="openTimerModal()">
                 <i class="material-icons" style="font-size: 30px; color: #666;">timer</i>
             </button>
