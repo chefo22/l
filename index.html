@@ -994,9 +994,7 @@
                             <button class="delete-btn-mini" onclick="event.stopPropagation(); deleteFromLibrary('${bookName.replace(/'/g, "\\'")}')"><i class="material-icons" style="font-size: 16px;">close</i></button>
                         </div>
                         <div class="book-label">${formattedLabel}</div>
-                    `;
-
-                    const thumb = card.querySelector('.book-thumb');
+                    `;                    const thumb = card.querySelector('.book-thumb');
                     
                     // Configuración de eventos de la tarjeta
                     const startPress = () => {
@@ -1007,16 +1005,46 @@
                         }, 800);
                     };
                     const endPress = () => clearTimeout(pressTimer);
+                    
                     thumb.addEventListener('touchstart', startPress);
                     thumb.addEventListener('mousedown', startPress);
                     thumb.addEventListener('touchend', endPress);
                     thumb.addEventListener('mouseup', endPress);
 
+                    // Lógica de Arrastrar y Soltar (Drag & Drop)
+                    card.addEventListener('dragstart', (e) => {
+                        if (!reorderMode) { e.preventDefault(); return; }
+                        draggedItem = card;
+                        setTimeout(() => card.classList.add('dragging'), 0);
+                    });
+
+                    card.addEventListener('dragend', () => {
+                        card.classList.remove('dragging');
+                        draggedItem = null;
+                        // Guardar el nuevo orden al soltar
+                        const newOrder = Array.from(list.querySelectorAll('.item-reorderable')).map(c => c.dataset.id);
+                        localStorage.setItem('library_order', JSON.stringify(newOrder));
+                    });
+
+                    card.addEventListener('dragover', (e) => {
+                        e.preventDefault();
+                        if (!draggedItem || draggedItem === card) return;
+                        
+                        const children = Array.from(list.children);
+                        const currIdx = children.indexOf(draggedItem);
+                        const nextIdx = children.indexOf(card);
+                        
+                        if (currIdx < nextIdx) {
+                            list.insertBefore(draggedItem, card.nextSibling);
+                        } else {
+                            list.insertBefore(draggedItem, card);
+                        }
+                    });
+
                     thumb.addEventListener('click', () => {
                         if (reorderMode) {
                             reorderMode = false;
-                            list.classList.remove('reorder-mode');                            const newOrder = Array.from(list.querySelectorAll('.item-reorderable')).map(c => c.dataset.id);
-                            localStorage.setItem('library_order', JSON.stringify(newOrder));
+                            list.classList.remove('reorder-mode');
                             return;
                         }
                         loadFromLibrary(bookName);
