@@ -1333,7 +1333,7 @@
                     if (bookData.metaCover) {
                         thumb.style.backgroundImage = `url(${bookData.metaCover})`;
                         const icon = thumb.querySelector('.material-icons');
-                        if (icon) icon.style.display = 'none';                        // Status Dot Camaleón Seguro: Color dominante
+                        if (icon) icon.style.display = 'none';                        // Status Dot Camaleón Seguro: Color dominante vibrante
                         const imgDot = new Image();
                         imgDot.src = bookData.metaCover;
                         imgDot.onload = () => {
@@ -1347,6 +1347,8 @@
                             for (let i = 0; i < data.length; i += 16) {
                                 if (data[i+3] < 128) continue;
                                 let cR = Math.round(data[i]/16)*16, cG = Math.round(data[i+1]/16)*16, cB = Math.round(data[i+2]/16)*16;
+                                // Ignorar grises desaturados para el status dot y el autor
+                                if (Math.abs(cR-cG)<20 && Math.abs(cG-cB)<20 && Math.abs(cR-cB)<20) continue;
                                 let key = cR+','+cG+','+cB;
                                 counts[key] = (counts[key] || 0) + 1;
                                 if (counts[key] > maxCount) {
