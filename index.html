@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mp4box@0.5.2/dist/mp4box.all.min.js"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,17 +11,33 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#050505">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2995/2995101.png">    
-    <style>
-        :root {
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2995/2995101.png">    <style>
+        /* Definición de propiedad para permitir transiciones suaves de color (Efecto Progresivo) */
+        @property --color-principal {
+            syntax: '<color>';
+            initial-value: #4a90e2;
+            inherits: true;
+        }        :root {
             --color-principal: #4a90e2;
-            --color-principal-rgb: 74, 144, 226;
+            /* Definimos una curva de suavizado pro para todos los elementos */
+            --transition-ui: 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        /* Estilos generales y fondo */        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+        /* Aplicamos la fluidez solo a las propiedades de color de los elementos clave */
+        #title, #author, .play-btn, .time-display, i.material-icons, 
+        .status-dot, .mode-btn, #timer-msg, .chapters-header-title, 
+        .ch-time, .book-label div, #speed-display {
+            transition: color var(--transition-ui), background-color var(--transition-ui), border-color var(--transition-ui), box-shadow var(--transition-ui);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
             background-color: #050505;
-            background: radial-gradient(circle at top, rgba(var(--color-principal-rgb), 0.15) 0%, #050505 100%);
+            /* Usamos color-mix para que el degradado transicione suavemente gracias a @property */
+            background-image: radial-gradient(circle at top, color-mix(in srgb, var(--color-principal), transparent 85%) 0%, #050505 100%);
+            transition: --color-principal 0.8s ease;
             background-attachment: fixed;
+            background-repeat: no-repeat;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -29,14 +46,14 @@
             margin: 0;
             padding: 0;
             color: #eeeeee;
-            -webkit-tap-highlight-color: transparent;
             overflow: hidden;
-            overscroll-behavior: none;
-        }
-
-        /* Elimina el borde de enfoque (outline) por defecto en todos los elementos */
+        }        /* Eliminación de indicadores de enfoque y resaltado táctil (Mobile) para una estética Pro */
         :focus {
             outline: none !important;
+        }
+
+        * {
+            -webkit-tap-highlight-color: transparent;
         }
 
         /* Contenedor principal - Más limpio y sin bordes pesados */        .player-container {
@@ -232,9 +249,7 @@
             gap: 20px;
             align-items: center;
             margin-bottom: 0px;
-        }
-
-        button {
+        }        button {
             background: none;
             border: none;
             color: #ffffff;
@@ -242,9 +257,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
-        }
-
-        button:hover { background-color: rgba(var(--color-principal-rgb), 0.1); }
+            transition: color 0.8s ease, background-color 0.3s ease, border-color 0.8s ease;
+        }        button:hover { background-color: color-mix(in srgb, var(--color-principal), transparent 90%); }
 
         .play-btn { 
             width: 63px; 
@@ -254,6 +268,10 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            flex-shrink: 0;
+            aspect-ratio: 1 / 1;
+            /* Aseguramos que el borde también use la variable animable */
+            border: 2px solid var(--color-principal) !important;
         }
 
         /* Ajustes (Velocidad y Temporizador) */
@@ -470,10 +488,31 @@
             padding: 0;
             font-weight: bold;
             transition: transform 0.2s;
+        }        /* Solo se muestra cuando el contenedor tiene la clase reorder-mode */        .reorder-mode .delete-btn-mini, .reorder-mode .download-btn-mini {
+            display: flex;
         }
 
-        /* Solo se muestra cuando el contenedor tiene la clase reorder-mode */        .reorder-mode .delete-btn-mini {
-            display: flex;
+        .download-btn-mini {
+            position: absolute;
+            bottom: -8px;
+            right: -8px;
+            background: #2ed573;
+            color: white;
+            border: 2px solid #111;
+            border-radius: 50%;
+            width: 26px;
+            height: 26px;
+            font-size: 0.75rem;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            line-height: 0;
+            padding: 0;
+            font-weight: bold;
+            transition: transform 0.2s;
         }
 
         /* Estilos para los Switches */
@@ -513,10 +552,56 @@
 
         input:checked + .slider {
             background-color: var(--color-principal);
+        }        input:checked + .slider:before {
+            transform: translateX(20px);
         }
 
-        input:checked + .slider:before {
-            transform: translateX(20px);
+        /* Estilos de Capítulos */
+        .chapters-wrapper {
+            margin: 20px 10px 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            padding-top: 15px;
+            text-align: left;
+        }
+        .chapters-header-title {
+            font-size: 0.7rem;
+            font-weight: 900;
+            color: var(--color-principal);
+            letter-spacing: 3px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            text-indent: 2px;
+        }
+        .chapters-list-box {
+            max-height: 160px;
+            overflow-y: auto;
+            background: #0d0d0d;
+            border-radius: 16px;
+            padding: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            scrollbar-width: none;
+        }
+        .chapters-list-box::-webkit-scrollbar { display: none; }
+        .chapter-row-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 14px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            border-bottom: 1px solid #141414;
+            color: #cccccc;
+            border-radius: 8px;
+        }
+        .chapter-row-item:last-child { border-bottom: none; }
+        .chapter-row-item:active {
+            background: rgba(var(--color-principal-rgb), 0.15);
+            color: #ffffff;
+        }
+        .chapter-row-item .ch-time {
+            color: var(--color-principal);
+            font-family: monospace;
+            font-weight: 700;
         }
     </style>
 </head>
@@ -622,12 +707,10 @@
         </div>
     </div>
 
-    <audio id="audio-player"></audio>
-
-    <div id="player-ui-container" style="display: none;">
+    <audio id="audio-player"></audio>    <div id="player-ui-container" style="display: none; position: relative;">
         <div class="book-info">
             <div id="cover-container" style="margin-bottom: 20px; display: none;">
-                <img id="cover-art" src="" alt="Portada" style="width: 270px; height: 270px; object-fit: cover; border-radius: 18px; box-shadow: 0 20px 50px rgba(0,0,0,0.8);">
+                <img id="cover-art" src="" alt="Portada" style="width: 270px; height: 270px; object-fit: cover; border-radius: 18px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1); filter: blur(0px); transform: scale(1);">
             </div>
             <h2 id="title">Sin archivo</h2>
             <p id="author">Reproductor Local</p>
@@ -640,35 +723,47 @@
                 <span id="current-time">0:00:00</span>
                 <span id="duration">0:00:00</span>
             </div>
-        </div>        <div class="controls" style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px; padding: 0 10px;">
-            <button id="speed-display" onclick="openSpeedModal()" style="color: #666; font-size: 1rem; width: 40px;">1x</button>
-            <button onclick="skip(-10)" style="width: 55px; height: 55px; border-radius: 50%; transition: background 0.1s;" onmousedown="this.style.background='rgba(var(--color-principal-rgb), 0.15)'" onmouseup="this.style.background='transparent'" onmouseleave="this.style.background='transparent'" ontouchstart="this.style.background='rgba(var(--color-principal-rgb), 0.15)'" ontouchend="this.style.background='transparent'">
+        </div>        <div class="controls" style="display: flex; justify-content: space-evenly; align-items: center; margin-top: 5px; padding: 0; width: 100%;">
+            <button id="speed-display" onclick="openSpeedModal()" style="width: 48px; height: 48px; border-radius: 50%; background: color-mix(in srgb, var(--color-principal), transparent 90%); color: var(--color-principal); font-size: 0.9rem; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">1x</button>
+            <button onclick="skip(-10)" style="width: 55px; height: 55px; border-radius: 50%; transition: background 0.1s; display: flex; align-items: center; justify-content: center; flex-shrink: 0;" onmousedown="this.style.background='rgba(var(--color-principal-rgb), 0.15)'" onmouseup="this.style.background='transparent'" onmouseleave="this.style.background='transparent'" ontouchstart="this.style.background='rgba(var(--color-principal-rgb), 0.15)'" ontouchend="this.style.background='transparent'">
                 <i class="material-icons" style="font-size: 35px; color: var(--color-principal);">replay_10</i>
             </button>
-            <button id="play-pause" class="play-btn" onclick="togglePlay()" style="width: 85px; height: 85px; border: 2px solid var(--color-principal); border-radius: 50%;">
+            <button id="play-pause" class="play-btn" onclick="togglePlay()" style="width: 82px; height: 82px; border: 2px solid var(--color-principal); border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
                 <i class="material-icons" style="font-size: 50px; color: var(--color-principal);">play_arrow</i>
             </button>
-            <button onclick="skip(10)" style="width: 55px; height: 55px; border-radius: 50%; transition: background 0.1s;" onmousedown="this.style.background='rgba(var(--color-principal-rgb), 0.15)'" onmouseup="this.style.background='transparent'" onmouseleave="this.style.background='transparent'" ontouchstart="this.style.background='rgba(var(--color-principal-rgb), 0.15)'" ontouchend="this.style.background='transparent'">
+            <button onclick="skip(10)" style="width: 55px; height: 55px; border-radius: 50%; transition: background 0.1s; display: flex; align-items: center; justify-content: center; flex-shrink: 0;" onmousedown="this.style.background='rgba(var(--color-principal-rgb), 0.15)'" onmouseup="this.style.background='transparent'" onmouseleave="this.style.background='transparent'" ontouchstart="this.style.background='rgba(var(--color-principal-rgb), 0.15)'" ontouchend="this.style.background='transparent'">
                 <i class="material-icons" style="font-size: 35px; color: var(--color-principal);">forward_10</i>
             </button>
-            <button id="timer-icon" onclick="openTimerModal()">
-                <i class="material-icons" style="font-size: 30px; color: #666;">timer</i>
+            <button id="timer-icon" onclick="openTimerModal()" style="width: 48px; height: 48px; border-radius: 50%; background: color-mix(in srgb, var(--color-principal), transparent 90%); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <i class="material-icons" style="font-size: 26px; color: var(--color-principal);">timer</i>
             </button>
         </div>
-    </div>
-    <div id="quick-settings-row" style="display: none; justify-content: space-evenly; align-items: center; margin: 15px 10px 5px; padding: 10px 0; border-top: 1px solid rgba(255,255,255,0.05);">
+    </div>    <div id="quick-settings-row" style="display: none; justify-content: space-evenly; align-items: center; margin: 15px 10px 5px; padding: 10px 0; border-top: 1px solid rgba(255,255,255,0.05);">
         <button onclick="document.getElementById('normalize-vol').click(); this.classList.toggle('active-mode')" class="mode-btn" title="Modo Noche">
             <i class="material-icons">brightness_4</i>
         </button>
         <button onclick="document.getElementById('lock-seek').click(); this.classList.toggle('active-mode')" class="mode-btn" title="Bloquear Seek">
             <i class="material-icons">lock</i>
         </button>
+        <button onclick="openChaptersModal()" class="mode-btn" title="Capítulos">
+            <i class="material-icons">format_list_bulleted</i>
+        </button>
         <button onclick="document.getElementById('next-as-timer').click(); this.classList.toggle('active-mode')" class="mode-btn" title="Siguiente +5min">
             <i class="material-icons">more_time</i>
-        </button>
-        <button onclick="document.getElementById('silence-beep').click(); this.classList.toggle('active-mode')" class="mode-btn" title="Bip Seguridad">
+        </button>        <button onclick="document.getElementById('silence-beep').click(); this.classList.toggle('active-mode')" class="mode-btn" title="Bip Seguridad">
             <i class="material-icons">notifications_active</i>
         </button>
+    </div>    <div id="chapters-wrapper-ui" style="display:none; position:fixed; bottom:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; align-items:flex-end; backdrop-filter: blur(10px);">
+        <div id="chapters-content" style="width:100%; background:#161616; border-radius: 30px 30px 0 0; padding: 24px; box-sizing: border-box; animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1); border-top: 1px solid #333; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);">
+            <div id="chapters-handle" style="width: 100%; height: 40px; display: flex; align-items: center; justify-content: center; margin-top: -15px; cursor: grab; touch-action: none;">
+                <div style="width: 40px; height: 4px; background: #444; border-radius: 2px;"></div>
+            </div>
+            <h3 id="chapters-status-title" style="text-align:center; margin-bottom: 20px; font-size: 1.1rem; color: var(--color-principal); font-weight: 900; letter-spacing: 2px; text-transform: uppercase;">Buscando capítulos...</h3>
+            <div class="chapters-list-box" id="chapters-list-box" style="max-height: 50vh; overflow-y: auto; scrollbar-width: none; background: #0d0d0d; border-radius: 16px; padding: 6px; border: 1px solid rgba(255, 255, 255, 0.04);">
+                 <div style="padding:15px; color:#888; text-align:center; font-size:0.85rem;">Analizando archivo binario...</div>
+            </div>
+            <button onclick="closeChaptersModal()" style="width:100%; text-align:center; border:none; padding:15px; color:var(--color-principal); font-weight:bold; margin-top:10px; background:none; cursor:pointer;">Cerrar</button>
+        </div>
     </div>
 
     <style>
@@ -726,15 +821,107 @@
                 <button onclick="closeTimerModal()" style="width:100%; text-align:center; border:none; padding:15px; color:var(--color-principal); font-weight:bold; margin-top:10px;">Cerrar</button>
             </div>
         </div>
-    </div>
+    </div>    <style>
+        /* Definición de propiedad para permitir transiciones suaves de color (Efecto Progresivo) */
+        @property --color-principal {
+            syntax: '<color>';
+            initial-value: #4a90e2;
+            inherits: true;
+        }
 
-    <style>
         :root {
             --color-principal: #4a90e2;
             --color-principal-rgb: 74, 144, 226;
+            /* Transición global para que el cambio de tema pase por colores intermedios (ej. Rojo -> Naranja -> Amarillo) */
+            transition: --color-principal 1.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        
+        /* Estilos del Mini Reproductor */        #mini-player {
+            display: none;
+            position: fixed;
+            bottom: 32px;
+            left: 50%;
+            transform: translateX(-50%) translateY(150%);
+            width: 85%;
+            max-width: 360px;
+            background: color-mix(in srgb, var(--color-principal), transparent 82%);
+            backdrop-filter: blur(25px) saturate(180%);
+            -webkit-backdrop-filter: blur(25px) saturate(180%);
+            border-radius: 28px;
+            padding: 12px 20px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(255,255,255,0.12);
+            border: none;
+            z-index: 1000;
+            align-items: center;
+            gap: 15px;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+        }
+        #mini-player.visible {
+            display: flex;
+            transform: translateX(-50%) translateY(0);
+        }
+        #mini-player-thumb {
+            width: 45px;
+            height: 45px;
+            border-radius: 8px;
+            object-fit: cover;
+            background: #222;
+        }
+        .mini-player-info {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: left;
+        }
+        .mini-player-title {
+            color: #fff;
+            font-size: 0.9rem;
+            font-weight: 700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 2px;
+        }
+        .mini-player-author {
+            color: var(--color-principal);
+            font-size: 0.75rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        #mini-play-btn {
+            background: transparent;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        
+        /* Ajuste de padding de la biblioteca para que no la tape el mini reproductor */
+        body.has-mini-player .player-container:not(.player-active) {
+            padding-bottom: 80px;
+        }
     </style>
+
+    
+    <div id="mini-player" onclick="maximizePlayer(event)">
+        <img id="mini-player-thumb" src="" alt="Cover">
+        <div class="mini-player-info">
+            <div class="mini-player-title" id="mini-title">Título</div>
+            <div class="mini-player-author" id="mini-author">Autor</div>
+        </div>
+        <button id="mini-play-btn" onclick="event.stopPropagation(); togglePlay()">
+            <i class="material-icons" style="font-size: 32px;">play_arrow</i>
+        </button>
+    </div>
 </div>
 
 <script>
@@ -766,27 +953,22 @@
         const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
         return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : "74, 144, 226";
     }    function setThemeColor(hex, save = true) {
-        const rgb = hexToRgb(hex);
+        // Actualizamos el color principal y sus valores RGB para que los efectos de pulso (box-shadow) sigan el tema
         document.documentElement.style.setProperty('--color-principal', hex);
-        document.documentElement.style.setProperty('--color-principal-rgb', rgb);
+        document.documentElement.style.setProperty('--color-principal-rgb', hexToRgb(hex));
         
-        // Solo guardamos si es una elección manual del usuario
         if (save) {
             localStorage.setItem('audiobook_theme_color', hex);
             dbPut("settings", { key: "themeColor", value: hex }).catch(() => {});
         }
-        
-        document.body.style.background = `radial-gradient(circle at top, rgba(${rgb}, 0.15) 0%, #050505 100%)`;
-        document.body.style.backgroundColor = "#050505";
-        document.body.style.backgroundAttachment = "fixed";
 
         if (window.event && window.event.target && window.event.target.classList.contains('color-dot')) {
             document.querySelectorAll('.color-dot').forEach(dot => {
                 dot.style.transform = 'scale(1)';
-                dot.style.borderColor = '#333';
+                dot.style.boxShadow = 'none';
             });
-            window.event.target.style.transform = 'scale(1.2)';
-            window.event.target.style.borderColor = 'white';
+            window.event.target.style.transform = 'scale(1.15)';
+            window.event.target.style.boxShadow = `0 0 15px ${hex}`;
         }
     }    // Cargar tema al inicio (IDB primero, localStorage como fallback)
     const savedTheme = localStorage.getItem('audiobook_theme_color') || '#4a90e2';
@@ -847,6 +1029,7 @@
     let sleepTimerInterval;
     let timerTotalSeconds = 0;
     let currentFileName = "";
+    let chapterStopPoint = null;
     let db;
 
     // ── Helpers IndexedDB genéricos ──────────────────────────────────────
@@ -896,9 +1079,7 @@
         if (navigator.storage && navigator.storage.persist) {
             const isPersisted = await navigator.storage.persist();
             console.log(`Persistencia de datos: ${isPersisted ? "Garantizada" : "Temporal"}`);
-        }
-
-        const dbRequest = indexedDB.open("AudiobookProDB", 2);
+        }        const dbRequest = indexedDB.open("AudiobookProDB", 3);
 
         dbRequest.onupgradeneeded = (e) => {
             db = e.target.result;
@@ -907,9 +1088,11 @@
             }
             if (!db.objectStoreNames.contains("progress")) {
                 db.createObjectStore("progress", { keyPath: "name" });
-            }
-            if (!db.objectStoreNames.contains("settings")) {
+            }            if (!db.objectStoreNames.contains("settings")) {
                 db.createObjectStore("settings", { keyPath: "key" });
+            }
+            if (!db.objectStoreNames.contains("chapters")) {
+                db.createObjectStore("chapters", { keyPath: "name" });
             }
         };        dbRequest.onsuccess = (e) => {
             db = e.target.result;
@@ -924,35 +1107,116 @@
         dbRequest.onerror = (e) => console.error("Error IndexedDB:", e);
     }
 
-    initDB();
-
-    function saveToLibrary(file) {
+    initDB();    function saveToLibrary(file) {
         if (!db) {
             timerMsg.textContent = "Error: BD no lista";
             return;
         }
+
+        // --- UI Optimista: Sensación de velocidad instantánea ---
+        const list = document.getElementById('library-list');
+        const tempId = 'opt-' + Date.now();
+        let tempCard = null;
         
-        const transaction = db.transaction(["books"], "readwrite");
-        const store = transaction.objectStore("books");
+        if (list) {
+            tempCard = document.createElement('div');
+            tempCard.className = 'book-card';
+            tempCard.id = tempId;
+            tempCard.style.opacity = '0.7';
+
+            let cleanName = file.name.replace(/\.[^/.]+$/, "").toUpperCase();
+            let tPart = cleanName, aPart = "GUARDANDO...";
+            if (cleanName.includes("-")) {
+                const p = cleanName.split("-").map(x => x.trim());
+                tPart = p[0]; aPart = p[1];
+            }
+
+            const checkScroll = (txt) => txt.length > 16 ? 'active-scroll' : '';
+            const spacer = "&nbsp;".repeat(10);
+            const tContent = checkScroll(tPart) ? (tPart + spacer).repeat(2) : tPart;
+            const aContent = checkScroll(aPart) ? (aPart + spacer).repeat(2) : aPart;
+
+            tempCard.innerHTML = `
+                <div class="book-thumb" style="position:relative; background-image: url(${generateRandomWaves()}); border: 2px dashed var(--color-principal);">
+                    <div class="status-dot" style="background:#f59e0b; animation: pulse 1s infinite;"></div>
+                </div>
+                <div class="book-label">
+                    <div class="marquee-container ${checkScroll(tPart)}"><span class="marquee-text" id="${tempId}-title">${tContent}</span></div>
+                    <div class="marquee-container ${checkScroll(aPart)}" style="color:var(--color-principal); opacity:0.8;"><span class="marquee-text" id="${tempId}-author">PROCESANDO...</span></div>
+                </div>
+            `;
+            
+            const addCard = list.lastElementChild;
+            if(addCard && addCard.innerHTML.includes('add_circle_outline')) {
+                list.insertBefore(tempCard, addCard);
+            } else {
+                list.appendChild(tempCard);
+            }
+        }
+        // --------------------------------------------------------
         
-        const bookData = { 
-            name: file.name, 
-            data: file, 
-            added: new Date().getTime()
+        const doSave = (meta) => {
+            // Actualizar UI optimista con carátula real ANTES del guardado IDB pesado
+            if (tempCard) {
+                if (meta.cover) tempCard.querySelector('.book-thumb').style.backgroundImage = `url(${meta.cover})`;
+                tempCard.querySelector('.book-thumb').style.border = "1px solid #252525";
+                if (meta.title) {
+                    const tEl = document.getElementById(`${tempId}-title`);
+                    if(tEl) tEl.innerHTML = meta.title.toUpperCase();
+                }
+                const aEl = document.getElementById(`${tempId}-author`);
+                if(aEl) aEl.innerHTML = "ALMACENANDO...";
+            }
+
+            // Pequeño retardo (50ms) para permitir que el navegador pinte (renderice) la carátula y la UI antes de congelarse guardando el binario masivo en IndexedDB
+            setTimeout(() => {
+                const transaction = db.transaction(["books"], "readwrite");
+                const store = transaction.objectStore("books");
+                
+                const bookData = { 
+                    name: file.name, 
+                    data: file, 
+                    added: new Date().getTime(),
+                    metaTitle: meta.title || null,
+                    metaArtist: meta.artist || null,
+                    metaCover: meta.cover || null
+                };
+
+                store.put(bookData);
+                
+                transaction.oncomplete = () => {
+                    timerMsg.textContent = "Guardado permanentemente ✓";
+                    displayLibrary();
+                    setTimeout(() => timerMsg.textContent = "", 3000);
+                };
+
+                transaction.onerror = (e) => {
+                    console.error("Error al guardar:", e);
+                    timerMsg.textContent = "Error al guardar libro";
+                    if (tempCard) tempCard.remove();
+                };
+            }, 50);
         };
 
-        const request = store.put(bookData);
-        
-        transaction.oncomplete = () => {
-            timerMsg.textContent = "Guardado permanentemente ✓";
-            displayLibrary();
-            setTimeout(() => timerMsg.textContent = "", 3000);
-        };
-
-        transaction.onerror = (e) => {
-            console.error("Error al guardar:", e);
-            timerMsg.textContent = "Error al guardar libro";
-        };
+        try {
+            window.jsmediatags.read(file, {
+                onSuccess: (tag) => {
+                    let meta = {};
+                    const { title, artist, picture } = (tag && tag.tags) || {};
+                    if (title) meta.title = title;
+                    if (artist) meta.artist = artist;
+                    if (picture) {
+                        let b = ""; 
+                        for (let i = 0; i < picture.data.length; i++) b += String.fromCharCode(picture.data[i]);
+                        meta.cover = `data:${picture.format};base64,${window.btoa(b)}`;
+                    }
+                    doSave(meta);
+                },
+                onError: () => doSave({})
+            });
+        } catch (e) {
+            doSave({});
+        }
     }    function displayLibrary() {
         const list = document.getElementById('library-list');
         if (!list) return;
@@ -989,13 +1253,12 @@
                     const tContent = checkScroll(tPart) ? (tPart + spacer).repeat(2) : tPart;
                     const aContent = checkScroll(aPart) ? (aPart + spacer).repeat(2) : aPart;
                     let formattedLabel = `<div class="marquee-container ${checkScroll(tPart)}"><span class="marquee-text">${tContent}</span></div>` + 
-                                       `<div class="marquee-container ${checkScroll(aPart)}" style="color:var(--color-principal); opacity:0.8;"><span class="marquee-text">${aContent}</span></div>`;
-                    
-                    card.innerHTML = `
+                                       `<div class="marquee-container ${checkScroll(aPart)}" style="color:var(--color-principal); opacity:0.8;"><span class="marquee-text">${aContent}</span></div>`;                    card.innerHTML = `
                         <div class="book-thumb" style="position:relative">
                             ${(progress && parseFloat(progress) > 0) ? '<div class="status-dot"></div>' : ''}
                             <i class="material-icons" style="font-size: 2.5rem; opacity: 0.15;">headset</i>
                             <button class="delete-btn-mini" onclick="event.stopPropagation(); deleteFromLibrary('${bookName.replace(/'/g, "\\'")}')"><i class="material-icons" style="font-size: 16px;">close</i></button>
+                            <button class="download-btn-mini" onclick="event.stopPropagation(); downloadFromLibrary('${bookName.replace(/'/g, "\\'")}')"><i class="material-icons" style="font-size: 16px;">download</i></button>
                         </div>
                         <div class="book-label">${formattedLabel}</div>
                     `;                    const thumb = card.querySelector('.book-thumb');
@@ -1054,85 +1317,73 @@
                         loadFromLibrary(bookName);
                     });
 
-                    list.appendChild(card);
-
-                    // Lectura de Metadatos Segura (No bloqueante)
-                    if (bookData.data) {
-                        try {
-                            window.jsmediatags.read(bookData.data, {
-                                onSuccess: (tag) => {
-                                    const { title, artist, picture } = (tag && tag.tags) || {};
-                                    const labelEl = card.querySelector('.book-label');                                    if (title) {
-                                        let cleanTitle = title.replace(/\.[^/.]+$/, "").toUpperCase();
-                                        let cleanArtist = (artist || "Autor Desconocido").toUpperCase();
-                                        const checkScroll = (txt) => txt.length > 16 ? 'active-scroll' : '';                                        const spacer = "&nbsp;".repeat(10);
-                                        const tCont = checkScroll(cleanTitle) ? (cleanTitle + spacer).repeat(2) : cleanTitle;
-                                        const aCont = checkScroll(cleanArtist) ? (cleanArtist + spacer).repeat(2) : cleanArtist;
-                                        labelEl.innerHTML = `<div class="marquee-container ${checkScroll(cleanTitle)}"><span class="marquee-text">${tCont}</span></div>` + 
-                                                           `<div class="marquee-container ${checkScroll(cleanArtist)}" style="color: var(--color-principal);"><span class="marquee-text">${aCont}</span></div>`;
-                                    }
-                                    if (picture) {
-                                        const p = picture;
-                                        let b = ""; for (let i = 0; i < p.data.length; i++) b += String.fromCharCode(p.data[i]);
-                                        const artworkUrl = `data:${p.format};base64,${window.btoa(b)}`;
-                                        thumb.style.backgroundImage = `url(${artworkUrl})`;
-                                        const icon = thumb.querySelector('.material-icons');
-                                        if (icon) icon.style.display = 'none';
-                                        
-                                        // Status Dot Camaleón Seguro
-                                        const imgDot = new Image();
-                                        imgDot.src = artworkUrl;
-                                        imgDot.onload = () => {
-                                            const canvas = document.createElement('canvas');
-                                            const ctx = canvas.getContext('2d');
-                                            canvas.width = 1; canvas.height = 1;
-                                            ctx.drawImage(imgDot, 0, 0, 1, 1);
-                                            const pix = ctx.getImageData(0, 0, 1, 1).data;
-                                            if (pix[3] === 0) return; // Ignorar si es transparente
-                                            let r = pix[0]/255, g = pix[1]/255, b = pix[2]/255;
-                                            let max = Math.max(r, g, b), min = Math.min(r, g, b);
-                                            let h, s, l = (max + min) / 2;
-                                            if (max === min) h = s = 0; 
-                                            else {
-                                                let diff = max - min;
-                                                s = l > 0.5 ? diff / (2 - max - min) : diff / (max + min);
-                                                if (max === r) h = (g - b) / diff + (g < b ? 6 : 0);
-                                                else if (max === g) h = (b - r) / diff + 2;
-                                                else h = (r - g) / diff + 4;
-                                                h /= 6;
-                                            }                                            const extractedColor = `hsl(${Math.round(h * 360) || 0}, ${Math.max(Math.round(s * 100), 70)}%, 60%)`;
-                                            const dot = card.querySelector('.status-dot');
-                                            if (dot) {
-                                                dot.style.backgroundColor = extractedColor;
-                                            }
-                                            // Aplicar el mismo color extraído a la segunda línea (autor)
-                                            const secondLine = card.querySelector('.book-label div:nth-child(2)');
-                                            if (secondLine) {
-                                                secondLine.style.color = extractedColor;
-                                            }
-                                        };
-                                    } else {
-                                        const waveUrl = generateRandomWaves();
-                                        thumb.style.backgroundImage = `url(${waveUrl})`;
-                                        const icon = thumb.querySelector('.material-icons');
-                                        if (icon) icon.style.display = 'none';
-                                    }
-                                },
-                                onError: (error) => {
-                                    console.warn("Error leyendo tags de: " + bookName);
-                                    const waveUrl = generateRandomWaves();
-                                    thumb.style.backgroundImage = `url(${waveUrl})`;
-                                    const icon = thumb.querySelector('.material-icons');
-                                    if (icon) icon.style.display = 'none';
+                    list.appendChild(card);                    // Aplicar Metadatos en Caché (Sin Bloqueo de Memoria)
+                    if (bookData.metaTitle || bookData.metaArtist) {
+                        const labelEl = card.querySelector('.book-label');
+                        let cleanTitle = (bookData.metaTitle || bookName).replace(/\.[^/.]+$/, "").toUpperCase();
+                        let cleanArtist = (bookData.metaArtist || "Autor Desconocido").toUpperCase();
+                        const checkScroll = (txt) => txt.length > 16 ? 'active-scroll' : '';
+                        const spacer = "&nbsp;".repeat(10);
+                        const tCont = checkScroll(cleanTitle) ? (cleanTitle + spacer).repeat(2) : cleanTitle;
+                        const aCont = checkScroll(cleanArtist) ? (cleanArtist + spacer).repeat(2) : cleanArtist;
+                        labelEl.innerHTML = `<div class="marquee-container ${checkScroll(cleanTitle)}"><span class="marquee-text">${tCont}</span></div>` + 
+                                           `<div class="marquee-container ${checkScroll(cleanArtist)}" style="color: var(--color-principal);"><span class="marquee-text">${aCont}</span></div>`;
+                    }
+                    
+                    if (bookData.metaCover) {
+                        thumb.style.backgroundImage = `url(${bookData.metaCover})`;
+                        const icon = thumb.querySelector('.material-icons');
+                        if (icon) icon.style.display = 'none';                        // Status Dot Camaleón Seguro: Color dominante
+                        const imgDot = new Image();
+                        imgDot.src = bookData.metaCover;
+                        imgDot.onload = () => {
+                            const canvas = document.createElement('canvas');
+                            const ctx = canvas.getContext('2d');
+                            canvas.width = 50; canvas.height = 50;
+                            ctx.drawImage(imgDot, 0, 0, 50, 50);
+                            const data = ctx.getImageData(0, 0, 50, 50).data;
+                            let counts = {}, maxCount = 0;
+                            let domR = 0, domG = 0, domB = 0;
+                            for (let i = 0; i < data.length; i += 16) {
+                                if (data[i+3] < 128) continue;
+                                let cR = Math.round(data[i]/16)*16, cG = Math.round(data[i+1]/16)*16, cB = Math.round(data[i+2]/16)*16;
+                                let key = cR+','+cG+','+cB;
+                                counts[key] = (counts[key] || 0) + 1;
+                                if (counts[key] > maxCount) {
+                                    maxCount = counts[key];
+                                    domR = data[i]; domG = data[i+1]; domB = data[i+2];
                                 }
-                            });
-                        } catch (e) { console.error("Error en proceso de tags:", e); }
+                            }
+                            if(maxCount === 0) { domR = Math.random()*255; domG = Math.random()*255; domB = Math.random()*255; }
+                            let r = domR/255, g = domG/255, b = domB/255;
+                            let max = Math.max(r, g, b), min = Math.min(r, g, b);
+                            let h, s, l = (max + min) / 2;
+                            if (max === min) h = s = 0; 
+                            else {
+                                let diff = max - min;
+                                s = l > 0.5 ? diff / (2 - max - min) : diff / (max + min);
+                                if (max === r) h = (g - b) / diff + (g < b ? 6 : 0);
+                                else if (max === g) h = (b - r) / diff + 2;
+                                else h = (r - g) / diff + 4;
+                                h /= 6;
+                            }
+                            const extractedColor = `hsl(${Math.round(h * 360) || 0}, ${Math.max(Math.round(s * 100), 70)}%, 60%)`;
+                            const dot = card.querySelector('.status-dot');
+                            if (dot) dot.style.backgroundColor = extractedColor;
+                            const secondLine = card.querySelector('.book-label div:nth-child(2)');
+                            if (secondLine) secondLine.style.color = extractedColor;
+                        };
+                    } else {
+                        const waveUrl = generateRandomWaves();
+                        thumb.style.backgroundImage = `url(${waveUrl})`;
+                        const icon = thumb.querySelector('.material-icons');
+                        if (icon) icon.style.display = 'none';
                     }
                 });                // Añadir tarjeta de carga al final de la lista
                 const addCard = document.createElement('div');
                 addCard.className = 'book-card';
                 addCard.innerHTML = `
-                    <div class="book-thumb" style="border: 2px dashed rgba(var(--color-principal-rgb), 0.3); background: rgba(var(--color-principal-rgb), 0.03); display: flex; align-items: center; justify-content: center;">
+                    <div class="book-thumb" style="border: 2px dashed color-mix(in srgb, var(--color-principal), transparent 70%); background: color-mix(in srgb, var(--color-principal), transparent 97%); display: flex; align-items: center; justify-content: center;">
                         <i class="material-icons" style="font-size: 2.2rem; color: var(--color-principal); opacity: 0.5;">add_circle_outline</i>
                     </div>
                     <div class="book-label">
@@ -1159,15 +1410,28 @@
                 }
             }
         };
-    }
-
-    function deleteFromLibrary(name) {
+    }    function deleteFromLibrary(name) {
         if (!confirm("¿Eliminar este libro de la memoria?")) return;
         const transaction = db.transaction(["books"], "readwrite");
         transaction.objectStore("books").delete(name);
         transaction.oncomplete = () => {
             if (currentFileName === name) location.reload();
             else displayLibrary();
+        };
+    }
+
+    function downloadFromLibrary(name) {
+        const transaction = db.transaction(["books"], "readonly");
+        const store = transaction.objectStore("books");
+        store.get(name).onsuccess = (e) => {
+            if (e.target.result && e.target.result.data) {
+                const file = e.target.result.data;
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(file);
+                a.download = name;
+                a.click();
+                setTimeout(() => URL.revokeObjectURL(a.href), 100);
+            }
         };
     }
 
@@ -1183,13 +1447,19 @@
         };
     }    function processAudioFile(file) {
         const ui = document.getElementById('player-ui-container');
+        const coverArt = document.getElementById('cover-art');
         
-        // 1. Reset visual inmediato fuera del timeout para eliminar el rastro del libro anterior
-        ui.style.opacity = '0';
-        document.getElementById('cover-art').src = '';
-        document.getElementById('cover-container').style.display = 'none';
-        titleEl.textContent = "Cargando...";
-        document.getElementById('author').textContent = "...";        playPauseBtn.innerHTML = '<i class="material-icons" style="font-size: 2.5rem;">play_arrow</i>';
+        // 1. Efecto de transición suave en la carátula
+        if (coverArt.src && coverArt.src.startsWith('data')) {
+            coverArt.style.filter = 'blur(20px) brightness(0.6)';
+            coverArt.style.transform = 'scale(0.9) translateY(10px)';
+        } else {
+            ui.style.opacity = '0';
+            document.getElementById('cover-container').style.display = 'none';
+        }
+
+        titleEl.textContent = "Sincronizando...";
+        document.getElementById('author').textContent = "Leyendo metadatos...";        playPauseBtn.innerHTML = '<i class="material-icons" style="font-size: 2.5rem;">play_arrow</i>';
         playPauseBtn.classList.remove('playing');        setTimeout(() => {
             ui.style.display = 'block';
             document.querySelector('.player-container').classList.add('player-active');
@@ -1206,11 +1476,23 @@
                 const parts = fileNameNoExt.split("-");
                 displayTitle = parts[0].trim();
                 displayArtist = parts[1].trim();
-            }
-
-            // Aplicar al UI (asegurando limpieza de la extensión .mp3)
+            }            // Aplicar al UI (asegurando limpieza de la extensión .mp3)
             titleEl.textContent = displayTitle.toUpperCase();
-            document.getElementById('author').textContent = displayArtist;            try {
+            document.getElementById('author').textContent = displayArtist;
+            
+            // Ocultar mini-reproductor si estuviera visible y actualizar datos iniciales
+            const miniPlayer = document.getElementById('mini-player');
+            if(miniPlayer) miniPlayer.classList.remove('visible');
+            document.body.classList.remove('has-mini-player');
+            
+            const miniTitle = document.getElementById('mini-title');
+            if(miniTitle) miniTitle.textContent = displayTitle;
+            const miniAuthor = document.getElementById('mini-author');
+            if(miniAuthor) miniAuthor.textContent = displayArtist;
+            const miniThumb = document.getElementById('mini-player-thumb');
+            if(miniThumb) miniThumb.src = '';
+
+            try {
                 window.jsmediatags.read(file, {
                     onSuccess: function(tag) {
                         let { title, artist, picture } = (tag && tag.tags) || {};
@@ -1230,19 +1512,38 @@
                             const { data, format } = picture;
                             let base64String = "";
                             for (let i = 0; i < data.length; i++) base64String += String.fromCharCode(data[i]);
-                            artworkUrl = "data:" + format + ";base64," + window.btoa(base64String);
-                            const img = document.getElementById('cover-art');
+                            artworkUrl = "data:" + format + ";base64," + window.btoa(base64String);                            const img = document.getElementById('cover-art');
                             img.src = artworkUrl;
-                            document.getElementById('cover-container').style.display = 'block';                            // Efecto Camaleón Unificado: Muestreo 1x1 fiel a la portada
+                            const miniThumb = document.getElementById('mini-player-thumb');
+                            if(miniThumb) miniThumb.src = artworkUrl;
+                            document.getElementById('cover-container').style.display = 'block';                            // Efecto Camaleón Unificado: Muestreo de color dominante real
                             img.onload = function() {
+                                // Restauramos la nitidez de la nueva carátula
+                                img.style.filter = 'blur(0px)';
+                                img.style.transform = 'scale(1) translateY(0)';
                                 try {
                                     const canvas = document.createElement('canvas');
                                     const ctx = canvas.getContext('2d');
-                                    canvas.width = 1; canvas.height = 1;
-                                    ctx.drawImage(img, 0, 0, 1, 1);
-                                    const pix = ctx.getImageData(0, 0, 1, 1).data;
+                                    canvas.width = 50; canvas.height = 50;
+                                    ctx.drawImage(img, 0, 0, 50, 50);
+                                    const data = ctx.getImageData(0, 0, 50, 50).data;
+                                    let counts = {}, maxCount = 0;
+                                    let domR = 0, domG = 0, domB = 0;
+                                    for (let i = 0; i < data.length; i += 16) {
+                                        if (data[i+3] < 128) continue;
+                                        let cR = Math.round(data[i]/16)*16, cG = Math.round(data[i+1]/16)*16, cB = Math.round(data[i+2]/16)*16;
+                                        // Ignorar grises desaturados para evitar un UI aburrido (buscamos un tema vibrante)
+                                        if (Math.abs(cR-cG)<20 && Math.abs(cG-cB)<20 && Math.abs(cR-cB)<20) continue;
+                                        let key = cR+','+cG+','+cB;
+                                        counts[key] = (counts[key] || 0) + 1;
+                                        if (counts[key] > maxCount) {
+                                            maxCount = counts[key];
+                                            domR = data[i]; domG = data[i+1]; domB = data[i+2];
+                                        }
+                                    }
+                                    if(maxCount === 0) { domR = Math.random()*255; domG = Math.random()*255; domB = Math.random()*255; }
                                     
-                                    let r = pix[0]/255, g = pix[1]/255, b = pix[2]/255;
+                                    let r = domR/255, g = domG/255, b = domB/255;
                                     let max = Math.max(r, g, b), min = Math.min(r, g, b);
                                     let h, s, l = (max + min) / 2;
                                     if (max === min) h = s = 0; 
@@ -1253,12 +1554,11 @@
                                         else if (max === g) h = (b - r) / diff + 2;
                                         else h = (r - g) / diff + 4;
                                         h /= 6;
-                                    }
-                                    
-                                    // Normalizar para que el tema siempre sea legible y vibrante usando el color extraído directamente
+                                    }                                    // Normalización Progresiva: Optimiza el rango de color para que los cambios sean vibrantes y fluidos
+                                    // Al ajustar H, S y L de forma dinámica, la transición entre libros es mucho más rica visualmente
                                     let finalH = isNaN(h) ? 0.58 : h;
-                                    let finalS = isNaN(s) ? 0.7 : Math.max(s, 0.7);
-                                    let finalL = 0.6;
+                                    let finalS = isNaN(s) ? 0.85 : Math.min(Math.max(s, 0.75), 0.9); // Saturación más alta para colores vivos
+                                    let finalL = isNaN(l) ? 0.6 : Math.min(Math.max(l, 0.55), 0.65); // Brillo equilibrado
 
                                     const hslToHex = (h, s, l) => {
                                         const f = (p, q, t) => {
@@ -1274,11 +1574,12 @@
                                         return `#${toHex(f(p,q,h+1/3))}${toHex(f(p,q,h))}${toHex(f(p,q,h-1/3))}`;
                                     };                                    setThemeColor(hslToHex(finalH, finalS, finalL), false);
                                 } catch (e) { console.error("Error en Chameleon Unificado:", e); }
-                            };
-                        } else {
+                            };                        } else {
                             artworkUrl = generateRandomWaves();
                             const img = document.getElementById('cover-art');
                             img.src = artworkUrl;
+                            const miniThumb = document.getElementById('mini-player-thumb');
+                            if(miniThumb) miniThumb.src = artworkUrl;
                             document.getElementById('cover-container').style.display = 'block';
                         }
 
@@ -1293,17 +1594,33 @@
                         }
                     },                    onError: () => { 
                         document.getElementById('author').textContent = "Reproductor Local";
+                        const miniAuthor = document.getElementById('mini-author');
+                        if(miniAuthor) miniAuthor.textContent = "Reproductor Local";
+                        
                         const waveUrl = generateRandomWaves();
                         const img = document.getElementById('cover-art');
                         img.src = waveUrl;
+                        const miniThumb = document.getElementById('mini-player-thumb');
+                        if(miniThumb) miniThumb.src = waveUrl;
+                        
                         document.getElementById('cover-container').style.display = 'block';
                     }
                 });
-            } catch (e) {}
-
-            const objectURL = URL.createObjectURL(file);
-            audio.src = objectURL;
-            audio.load();
+            } catch (e) {}            if (window.currentAudioURL) {
+                URL.revokeObjectURL(window.currentAudioURL);
+            }
+            window.currentAudioURL = URL.createObjectURL(file);
+            audio.src = window.currentAudioURL;
+            audio.load();            // Preparar UI de capítulos
+            const chapWrapper = document.getElementById('chapters-wrapper-ui');
+            const chapBox = document.getElementById('chapters-list-box');
+            const chapStatus = document.getElementById('chapters-status-title');
+            if(chapWrapper && chapBox) {
+                chapStatus.innerText = 'Analizando estructura...';
+                chapBox.innerHTML = '<div style="padding:15px; color:#888; text-align:center; font-size:0.85rem;"><i class="material-icons" style="font-size:18px; vertical-align:middle; margin-right:5px; animation: pulse 1.5s infinite;">hourglass_empty</i>Leyendo binarios...</div>';
+            }
+            
+            setTimeout(() => { if(typeof analyzeChaptersBinary === 'function') analyzeChaptersBinary(file); }, 200);
             
             // Mostrar la fila de ajustes rápidos al cargar un archivo
             document.getElementById('quick-settings-row').style.display = 'flex';        playPauseBtn.innerHTML = '<i class="material-icons" style="font-size: 2.5rem;">play_arrow</i>';
@@ -1384,18 +1701,20 @@
             return;
         }
         audio.paused ? audio.play() : audio.pause();
-    }
-
-    // Sincronización de estado de reproducción con el Sistema Operativo
+    }    // Sincronización de estado de reproducción con el Sistema Operativo
     audio.onplay = () => {
         playPauseBtn.innerHTML = '<i class="material-icons" style="font-size: 2.5rem;">pause</i>';
         playPauseBtn.classList.add('playing');
+        const miniBtn = document.getElementById('mini-play-btn');
+        if(miniBtn) miniBtn.innerHTML = '<i class="material-icons" style="font-size: 32px;">pause</i>';
         if ('mediaSession' in navigator) navigator.mediaSession.playbackState = "playing";
     };
 
     audio.onpause = () => {
         playPauseBtn.innerHTML = '<i class="material-icons" style="font-size: 2.5rem;">play_arrow</i>';
         playPauseBtn.classList.remove('playing');
+        const miniBtn = document.getElementById('mini-play-btn');
+        if(miniBtn) miniBtn.innerHTML = '<i class="material-icons" style="font-size: 32px;">play_arrow</i>';
         if ('mediaSession' in navigator) navigator.mediaSession.playbackState = "paused";
         saveProgress();
     };    // Función para "pintar" la línea de progreso
@@ -1411,6 +1730,13 @@
         currentTimeEl.textContent = formatTime(audio.currentTime);
         updateDurationDisplay();
         updateProgressFill();
+
+        if (chapterStopPoint && audio.currentTime >= chapterStopPoint) {
+            audio.pause();
+            chapterStopPoint = null;
+            if (timerMsg) timerMsg.textContent = "Pausado por fin de capítulo";
+            if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+        }
         
         if(currentFileName && !audio.paused) {
             saveProgress();
@@ -1457,7 +1783,7 @@
     function setSpeed(value) {
         audio.playbackRate = value;
         document.getElementById('speed-display').textContent = value + 'x';
-        document.getElementById('speed-display').style.color = value === 1 ? '#888' : 'var(--color-principal)';
+        document.getElementById('speed-display').style.color = value === 1 ? 'rgba(255,255,255,0.5)' : 'var(--color-principal)';
         closeSpeedModal();
     }
 
@@ -1506,20 +1832,38 @@
                     startY = 0; currentY = 0;
                 });
             }
-        };
-
-        setupSwipeClose('timer-handle', 'timer-content', closeTimerModal);
+        };        setupSwipeClose('timer-handle', 'timer-content', closeTimerModal);
         setupSwipeClose('speed-handle', 'speed-content', closeSpeedModal);
-    });    function setTimer(minutes) {
+        setupSwipeClose('chapters-handle', 'chapters-content', closeChaptersModal);
+    });
+
+    function openChaptersModal() {
+        if (!audio.src) {
+            alert("Por favor, selecciona primero un archivo de audio.");
+            return;
+        }
+        const modal = document.getElementById('chapters-wrapper-ui');
+        const content = document.getElementById('chapters-content');
+        modal.style.display = 'flex';
+        content.style.transform = 'translateY(0)';
+    }
+    
+    function closeChaptersModal() {
+        const modal = document.getElementById('chapters-wrapper-ui');
+        const content = document.getElementById('chapters-content');
+        content.style.transform = 'translateY(100%)';
+        setTimeout(() => { modal.style.display = 'none'; }, 300);
+    }    function setTimer(minutes) {
         clearTimeout(sleepTimerTimeout);
         clearInterval(sleepTimerInterval);
+        chapterStopPoint = null;
         closeTimerModal();
         
         const timerIcon = document.getElementById('timer-icon');
 
         if (minutes > 0) {
             timerTotalSeconds = minutes * 60;
-            timerIcon.style.color = 'var(--color-principal)';
+            timerIcon.querySelector('i').style.color = 'var(--color-principal)';
 
             const updateUI = () => {
                 const m = Math.floor(timerTotalSeconds / 60);
@@ -1553,7 +1897,7 @@
                     audio.pause();
                     playPauseBtn.innerHTML = '<i class="material-icons" style="font-size: 2.5rem;">play_arrow</i>';
                     timerMsg.textContent = "Zzz...";
-                    timerIcon.style.color = '#888';
+                    timerIcon.querySelector('i').style.color = 'rgba(255,255,255,0.5)';
                     if ('mediaSession' in navigator) {
                         navigator.mediaSession.metadata = new MediaMetadata({
                             title: titleEl.textContent,
@@ -1568,7 +1912,7 @@
         } else {
             timerTotalSeconds = 0;
             timerMsg.textContent = "";
-            timerIcon.style.color = '#888';
+            timerIcon.querySelector('i').style.color = 'rgba(255,255,255,0.5)';
         }
     }
 
@@ -1656,15 +2000,233 @@
 
         osc.start();
         osc.stop(audioCtx.currentTime + 0.7);
-    }
-
-    function addMarker(time) {
+    }    function addMarker(time) {
         const markerLayer = document.getElementById('marker-layer');
         const percent = (time / audio.duration) * 100;
         const marker = document.createElement('div');
         marker.className = 'beep-marker';
         marker.style.left = `calc(${percent}% - 1px)`;
         markerLayer.appendChild(marker);
+    }
+
+    // --- LÓGICA DE GESTOS (MINIMIZAR / MAXIMIZAR REPRODUCTOR) ---
+    function minimizePlayer() {
+        const pContainer = document.querySelector('.player-container');
+        if (pContainer.classList.contains('player-active')) {
+            pContainer.classList.remove('player-active');
+            document.getElementById('library-list').classList.remove('player-active');
+            
+            // Ocultar la UI del reproductor principal explícitamente
+            document.getElementById('player-ui-container').style.display = 'none';
+            document.getElementById('quick-settings-row').style.display = 'none';
+            
+            document.getElementById('mini-player').classList.add('visible');
+            document.body.classList.add('has-mini-player');
+        }
+    }
+
+    function maximizePlayer(event) {
+        if(event) event.stopPropagation();
+        const pContainer = document.querySelector('.player-container');
+        pContainer.classList.add('player-active');
+        document.getElementById('library-list').classList.add('player-active');
+        
+        // Mostrar la UI del reproductor principal de nuevo
+        document.getElementById('player-ui-container').style.display = 'block';
+        document.getElementById('quick-settings-row').style.display = 'flex';
+        
+        document.getElementById('mini-player').classList.remove('visible');
+        document.body.classList.remove('has-mini-player');
+    }
+
+    // Configurar swipe down seguro
+    document.addEventListener('DOMContentLoaded', () => {
+        const swipeArea = document.getElementById('library-container');
+        let startX = 0;
+        let startY = 0;
+        let isDragging = false;
+
+        const handleTouchStart = (e) => {
+            if (!document.querySelector('.player-container').classList.contains('player-active')) return;
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+            isDragging = true;
+        };
+
+        const handleTouchMove = (e) => {
+            if (!isDragging) return;
+            const currentX = e.touches[0].clientX;
+            const currentY = e.touches[0].clientY;
+            const diffX = Math.abs(currentX - startX);
+            const diffY = currentY - startY;
+
+            // Cancelar si el gesto es más horizontal que vertical (evita conflicto al scrollear la librería)
+            if (diffX > diffY) {
+                if (diffX > 15) isDragging = false;
+                return;
+            }
+
+            if (diffY > 65) { 
+                minimizePlayer();
+                isDragging = false;
+            }
+        };
+
+        const handleTouchEnd = () => { isDragging = false; };
+
+        swipeArea.addEventListener('touchstart', handleTouchStart, {passive: true});
+        swipeArea.addEventListener('touchmove', handleTouchMove, {passive: true});
+        swipeArea.addEventListener('touchend', handleTouchEnd);        const uiContainer = document.getElementById('player-ui-container');
+        if(uiContainer) {
+            uiContainer.addEventListener('touchstart', handleTouchStart, {passive: true});
+            uiContainer.addEventListener('touchmove', handleTouchMove, {passive: true});
+            uiContainer.addEventListener('touchend', handleTouchEnd);
+        }
+    });
+
+    // --- MOTOR DE EXTRACCIÓN MAESTRA BINARIA ---
+    async function analyzeChaptersBinary(file) {
+        const chapStatus = document.getElementById('chapters-status-title');
+        const box = document.getElementById('chapters-list-box');
+        if (!file.name.toLowerCase().match(/\.(m4a|m4b|mp4)$/)) {
+            if(chapStatus) chapStatus.innerText = 'Formato sin capítulos binarios';
+            if(box) box.innerHTML = '<div style="padding:15px; color:#666; text-align:center; font-size:0.85rem;">Solo archivos M4B/M4A soportan esta tabla.</div>';
+            return;
+        }
+        try {
+            const mp4box = MP4Box.createFile();
+            const buffer = await file.arrayBuffer();
+            buffer.fileStart = 0;
+
+            mp4box.onReady = (info) => {
+                let parsedList = [];
+                if (info.chapters && info.chapters.length > 0) {
+                    parsedList = info.chapters.map(c => ({
+                        name: c.title,
+                        time: c.start_time / info.timescale
+                    }));
+                } else {
+                    const moov = mp4box.moov;
+                    if (moov) {
+                        const udta = moov.boxes.find(b => b.type === 'udta');
+                        const chpl = udta?.boxes.find(b => b.type === 'chpl');
+                        if (chpl && chpl.chapters) {
+                            parsedList = chpl.chapters.map((c, i) => ({
+                                name: c.title || `Capítulo ${i + 1}`,
+                                time: c.start_time / 10000000
+                            }));
+                        }
+                    }
+                }
+
+                if (parsedList.length === 0) {
+                    const view = new Uint8Array(buffer);
+                    let offset = -1;
+                    for (let i = 0; i < view.length - 4; i++) {
+                        if (view[i] === 99 && view[i+1] === 104 && view[i+2] === 112 && view[i+3] === 108) {
+                            offset = i;
+                            break;
+                        }
+                    }
+                    if (offset !== -1) {
+                        const data = new DataView(buffer);
+                        let pos = offset + 12;
+                        let count = data.getUint8(pos);
+                        if (count === 0 || count > 255) {
+                            pos = offset + 9;
+                            count = data.getUint8(pos);
+                        }
+                        if (count > 0 && count < 500) {
+                            pos++;
+                            for (let i = 0; i < count; i++) {
+                                const timeRaw = Number(data.getBigUint64(pos));
+                                const seconds = timeRaw / 10000000;
+                                pos += 8;
+                                const nameLen = data.getUint8(pos);
+                                pos++;
+                                const nameBytes = new Uint8Array(buffer, pos, nameLen);                                const name = new TextDecoder().decode(nameBytes) || `Capítulo ${i + 1}`;
+                                pos += nameLen;
+                                parsedList.push({ name: name, time: seconds });
+                            }
+                        }
+                    }
+                }
+
+                if (parsedList.length > 0) {
+                    renderChaptersUI(parsedList);
+                } else {
+                    if(chapStatus) chapStatus.innerText = 'Sin capítulos';
+                    if(box) box.innerHTML = '<div style="padding:15px; color:#666; text-align:center; font-size:0.85rem;">No se encontraron marcas de capítulos internas.</div>';
+                }
+            };
+            mp4box.appendBuffer(buffer);
+            mp4box.flush();
+        } catch (err) {
+            console.warn("Error analizando cabeceras:", err);
+            if(chapStatus) chapStatus.innerText = 'Error de lectura';
+            if(box) box.innerHTML = '<div style="padding:15px; color:#ff4757; text-align:center; font-size:0.85rem;">El archivo es demasiado pesado o ilegible.</div>';
+        }
+    }
+
+    function renderChaptersUI(list) {
+        const box = document.getElementById('chapters-list-box');
+        const chapStatus = document.getElementById('chapters-status-title');
+        if (!box) return;
+        if (chapStatus) chapStatus.innerText = `CAPÍTULOS DETECTADOS (${list.length})`;
+        box.innerHTML = '';
+        list.forEach((c, index) => {
+            const div = document.createElement('div');
+            div.className = 'chapter-row-item';
+            div.style.display = 'flex';
+            div.style.alignItems = 'center';
+            div.style.gap = '10px';
+            
+            div.innerHTML = `
+                <div style="flex:1; display:flex; justify-content:space-between; align-items:center;" class="ch-text-info">
+                    <span>${c.name}</span>
+                    <span class="ch-time">${formatTime(c.time)}</span>
+                </div>
+                <button class="stop-ch-btn" style="color:#666; background:none; border:none; cursor:pointer; display:flex; align-items:center; padding:5px;" title="Pausar al terminar este capítulo">
+                    <i class="material-icons" style="font-size:20px;">update</i>
+                </button>
+            `;
+
+            div.querySelector('.ch-text-info').onclick = () => {
+                audio.currentTime = c.time;
+                audio.play();
+                closeChaptersModal();
+            };            const stopBtn = div.querySelector('.stop-ch-btn');
+            stopBtn.onclick = (e) => {
+                e.stopPropagation();
+                const nextC = list[index + 1];
+                const targetPoint = nextC ? nextC.time : audio.duration;
+
+                // Lógica de Toggle: Si ya es el punto de parada actual, se desactiva
+                if (chapterStopPoint === targetPoint) {
+                    chapterStopPoint = null;
+                    if(timerMsg) timerMsg.textContent = "";
+                    stopBtn.style.color = '#666';
+                    if (navigator.vibrate) navigator.vibrate(30);
+                } else {
+                    chapterStopPoint = targetPoint;
+                    
+                    // Limpiar otros temporizadores activos
+                    clearTimeout(sleepTimerTimeout);
+                    clearInterval(sleepTimerInterval);
+                    document.getElementById('timer-icon').style.color = '#888';
+
+                    if(timerMsg) timerMsg.textContent = "Se detendrá al finalizar: " + c.name;
+                    
+                    // Feedback visual de botones
+                    document.querySelectorAll('.stop-ch-btn').forEach(b => b.style.color = '#666');
+                    stopBtn.style.color = 'var(--color-principal)';
+                    if (navigator.vibrate) navigator.vibrate(50);
+                }
+                closeChaptersModal();
+            };
+
+            box.appendChild(div); 
+        });
     }
 </script>
 
