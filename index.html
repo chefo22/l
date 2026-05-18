@@ -35,7 +35,7 @@
             background-color: #050505;
             /* Usamos color-mix para que el degradado transicione suavemente gracias a @property */
             background-image: radial-gradient(circle at top, color-mix(in srgb, var(--color-principal), transparent 85%) 0%, #050505 100%);
-            transition: --color-principal 1.5s ease;
+            transition: --color-principal 1.5s cubic-bezier(0.1, 1, 0.1, 1);
             background-attachment: fixed;
             background-repeat: no-repeat;
             display: flex;
@@ -1057,6 +1057,11 @@
     let pressTimer;
     let draggedItem = null;
 
+    // Caché de colores dominantes por nombre de libro.
+    // Se rellena en segundo plano al renderizar la biblioteca (canvas sobre la carátula en base64).
+    // Permite aplicar el color al instante en el clic, sin esperar a cargar el audio ni releer la imagen.
+    const bookColorCache = {};
+
     function toggleSettings() {
         const modal = document.getElementById('settings-modal');
         const content = document.getElementById('settings-content');
@@ -1314,8 +1319,13 @@
                             list.classList.remove('reorder-mode');
                             return;
                         }
-                        loadFromLibrary(bookName);
-                    });
+                        // Aplicar el color dominante en el mismo instante del clic,
+                // sin esperar a que cargue el audio ni a que se relean los metadatos.
+                if (bookColorCache[bookName]) {
+                    setThemeColor(bookColorCache[bookName], false);
+                }
+                loadFromLibrary(bookName);
+            });
 
                     list.appendChild(card);                    // Aplicar Metadatos en Caché (Sin Bloqueo de Memoria)
                     if (bookData.metaTitle || bookData.metaArtist) {
@@ -1370,6 +1380,8 @@
                                 h /= 6;
                             }
                             const extractedColor = `hsl(${Math.round(h * 360) || 0}, ${Math.max(Math.round(s * 100), 70)}%, 60%)`;
+                            // Guardar en caché para poder aplicarlo al instante cuando el usuario haga clic
+                            bookColorCache[bookName] = extractedColor;
                             const dot = card.querySelector('.status-dot');
                             if (dot) dot.style.backgroundColor = extractedColor;
                             const secondLine = card.querySelector('.book-label div:nth-child(2)');
@@ -1575,6 +1587,8 @@
                                         const toHex = x => Math.round(x * 255).toString(16).padStart(2, '0');
                                         return `#${toHex(f(p,q,h+1/3))}${toHex(f(p,q,h))}${toHex(f(p,q,h-1/3))}`;
                                     };                                    setThemeColor(hslToHex(finalH, finalS, finalL), false);
+                                    // Guardar en caché para el próximo clic en este libro
+                                    if (currentFileName) bookColorCache[currentFileName] = hslToHex(finalH, finalS, finalL);
                                 } catch (e) { console.error("Error en Chameleon Unificado:", e); }
                             };                        } else {
                             artworkUrl = generateRandomWaves();
@@ -2176,34 +2190,55 @@
         if (!box) return;
         if (chapStatus) chapStatus.innerText = `CAPÍTULOS DETECTADOS (${list.length})`;
         box.innerHTML = '';
+        
+        // Determinar el capítulo actual activo basándonos en el tiempo de reproducción
+        let activeIndex = -1;
+        const curTime = audio.currentTime;
+        for (let i = 0; i < list.length; i++) {
+            const startTime = list[i].time;
+            const endTime = list[i + 1] ? list[i + 1].time : audio.duration;
+            if (curTime >= startTime && curTime < endTime) {
+                activeIndex = i;
+                break;
+            }
+        }
+
         list.forEach((c, index) => {
             const div = document.createElement('div');
             div.className = 'chapter-row-item';
-            div.style.display = 'flex';
-            div.style.alignItems = 'center';
-            div.style.gap = '10px';
             
-            div.innerHTML = `
-                <div style="flex:1; display:flex; justify-content:space-between; align-items:center;" class="ch-text-info">
-                    <span>${c.name}</span>
-                    <span class="ch-time">${formatTime(c.time)}</span>
-                </div>
-                <button class="stop-ch-btn" style="color:#666; background:none; border:none; cursor:pointer; display:flex; align-items:center; padding:5px;" title="Pausar al terminar este capítulo">
-                    <i class="material-icons" style="font-size:20px;">update</i>
-                </button>
-            `;
+            // Resaltar visualmente si es el capítulo actual por el que va el usuario
+            if (index === activeIndex) {
+                div.style.background = 'color-mix(in srgb, var(--color-principal), transparent 85%)';
+                div.style.borderLeft = '4px solid var(--color-principal)';
+                div.style.color = '#ffffff';
+                div.style.fontWeight = '700';
+            }
 
-            div.querySelector('.ch-text-info').onclick = () => {
+            const formatTime = (secs) => {
+                const h = Math.floor(secs / 3600);
+                const m = Math.floor((secs % 3600) / 60);
+                const s = Math.floor(secs % 60);
+                return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            };
+
+            div.innerHTML = `<span style="flex:1; padding-right:10px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${c.name}</span>` +
+                            `<span class="ch-time">${formatTime(c.time)}</span>` +
+                            `<button class="stop-ch-btn" style="padding:4px 0 4px 12px; margin:0; color:${chapterStopPoint === (list[index+1]?.time || audio.duration) ? 'var(--color-principal)' : '#666'};" title="Detener al finalizar"><i class="material-icons" style="font-size:18px;">flag</i></button>`;
+
+            div.onclick = () => {
+                if (document.getElementById('lock-seek').checked) return;
                 audio.currentTime = c.time;
-                audio.play();
+                updateProgressFill();
                 closeChaptersModal();
-            };            const stopBtn = div.querySelector('.stop-ch-btn');
+            };
+
+            const stopBtn = div.querySelector('.stop-ch-btn');
             stopBtn.onclick = (e) => {
                 e.stopPropagation();
                 const nextC = list[index + 1];
                 const targetPoint = nextC ? nextC.time : audio.duration;
 
-                // Lógica de Toggle: Si ya es el punto de parada actual, se desactiva
                 if (chapterStopPoint === targetPoint) {
                     chapterStopPoint = null;
                     if(timerMsg) timerMsg.textContent = "";
@@ -2211,15 +2246,10 @@
                     if (navigator.vibrate) navigator.vibrate(30);
                 } else {
                     chapterStopPoint = targetPoint;
-                    
-                    // Limpiar otros temporizadores activos
                     clearTimeout(sleepTimerTimeout);
                     clearInterval(sleepTimerInterval);
                     document.getElementById('timer-icon').style.color = '#888';
-
                     if(timerMsg) timerMsg.textContent = "Se detendrá al finalizar: " + c.name;
-                    
-                    // Feedback visual de botones
                     document.querySelectorAll('.stop-ch-btn').forEach(b => b.style.color = '#666');
                     stopBtn.style.color = 'var(--color-principal)';
                     if (navigator.vibrate) navigator.vibrate(50);
@@ -2229,7 +2259,38 @@
 
             box.appendChild(div); 
         });
+        
+        // Agregar evento para actualizar el resaltado en tiempo real mientras el audio avanza
+        audio.removeEventListener('timeupdate', window._updateActiveChapterHighlight);
+        window._updateActiveChapterHighlight = () => {
+            const currentT = audio.currentTime;
+            let currentIdx = -1;
+            for (let i = 0; i < list.length; i++) {
+                const startTime = list[i].time;
+                const endTime = list[i + 1] ? list[i + 1].time : audio.duration;
+                if (currentT >= startTime && currentT < endTime) {
+                    currentIdx = i;
+                    break;
+                }
+            }
+            const rows = box.querySelectorAll('.chapter-row-item');
+            rows.forEach((row, idx) => {
+                if (idx === currentIdx) {
+                    row.style.background = 'color-mix(in srgb, var(--color-principal), transparent 85%)';
+                    row.style.borderLeft = '4px solid var(--color-principal)';
+                    row.style.color = '#ffffff';
+                    row.style.fontWeight = '700';
+                } else {
+                    row.style.background = '';
+                    row.style.borderLeft = '';
+                    row.style.color = '#cccccc';
+                    row.style.fontWeight = '';
+                }
+            });
+        };
+        audio.addEventListener('timeupdate', window._updateActiveChapterHighlight);
     }
+
 </script>
 
 </body>
