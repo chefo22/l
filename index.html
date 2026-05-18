@@ -35,7 +35,7 @@
             background-color: #050505;
             /* Usamos color-mix para que el degradado transicione suavemente gracias a @property */
             background-image: radial-gradient(circle at top, color-mix(in srgb, var(--color-principal), transparent 85%) 0%, #050505 100%);
-            transition: --color-principal 0.8s ease;
+            transition: --color-principal 1.5s ease;
             background-attachment: fixed;
             background-repeat: no-repeat;
             display: flex;
@@ -793,7 +793,7 @@
             </div>
             <h3 style="text-align:center; margin-bottom: 20px; font-size: 1.1rem;">Velocidad de Reproducción</h3>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <button onclick="setSpeed(0.8)" style="border:none; padding:15px; color:white; background:#1c1c1c; border-radius:12px;">0.8x</button>
+                <button onclick="setSpeed(0.9)" style="border:none; padding:15px; color:white; background:#1c1c1c; border-radius:12px;">0.9x</button>
                 <button onclick="setSpeed(1.0)" style="border:none; padding:15px; color:white; background:#1c1c1c; border-radius:12px;">Normal (1x)</button>
                 <button onclick="setSpeed(1.1)" style="border:none; padding:15px; color:white; background:#1c1c1c; border-radius:12px;">1.1x</button>
                 <button onclick="setSpeed(1.25)" style="border:none; padding:15px; color:white; background:#1c1c1c; border-radius:12px;">1.25x</button>
