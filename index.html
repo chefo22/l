@@ -1,2297 +1,855 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mp4box@0.5.2/dist/mp4box.all.min.js"></script>
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Audiobook Pro</title>
-    <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22Audiobook%20Pro%22%2C%22short_name%22%3A%22Audiobook%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23050505%22%2C%22theme_color%22%3A%22%234a90e2%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Fcdn-icons-png.flaticon.com%2F512%2F2995%2F2995101.png%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fpng%22%7D%5D%7D">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#050505">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2995/2995101.png">    <style>
-        /* Definición de propiedad para permitir transiciones suaves de color (Efecto Progresivo) */
-        @property --color-principal {
-            syntax: '<color>';
-            initial-value: #4a90e2;
-            inherits: true;
-        }        :root {
-            --color-principal: #4a90e2;
-            /* Definimos una curva de suavizado pro para todos los elementos */
-            --transition-ui: 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        /* Aplicamos la fluidez solo a las propiedades de color de los elementos clave */
-        #title, #author, .play-btn, .time-display, i.material-icons, 
-        .status-dot, .mode-btn, #timer-msg, .chapters-header-title, 
-        .ch-time, .book-label div, #speed-display {
-            transition: color var(--transition-ui), background-color var(--transition-ui), border-color var(--transition-ui), box-shadow var(--transition-ui);
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #050505;
-            /* Usamos color-mix para que el degradado transicione suavemente gracias a @property */
-            background-image: radial-gradient(circle at top, color-mix(in srgb, var(--color-principal), transparent 85%) 0%, #050505 100%);
-            transition: --color-principal 1.5s cubic-bezier(0.1, 1, 0.1, 1);
-            background-attachment: fixed;
-            background-repeat: no-repeat;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100dvh;
-            margin: 0;
-            padding: 0;
-            color: #eeeeee;
-            overflow: hidden;
-        }        /* Eliminación de indicadores de enfoque y resaltado táctil (Mobile) para una estética Pro */
-        :focus {
-            outline: none !important;
-        }
-
-        * {
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        /* Contenedor principal - Más limpio y sin bordes pesados */        .player-container {
-            background: #090909;
-            padding: 1.35rem 0.9rem 0.2rem;
-            border-radius: 36px;
-            width: 96%;
-            max-width: 360px;
-            text-align: center;
-            margin: 0 auto;
-            display: flex;
-            flex-direction: column;
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        /* Adaptación Pro Landscape Dinámica */
-        @media (orientation: landscape) and (min-width: 660px) {
-            body {
-                height: 100vh;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                overflow: hidden;
-            }
-
-            .player-container {
-                max-width: 900px;
-                width: 95%;
-                height: 85vh;
-                padding: 25px;
-            }
-
-            /* ESTADO IDLE: Solo biblioteca a pantalla completa */
-            .player-container:not(.player-active) #player-ui-container,
-            .player-container:not(.player-active) #quick-settings-row {
-                display: none !important;
-            }
-
-            .player-container:not(.player-active) #library-container {
-                width: 100%;
-                max-width: 100%;
-                border-right: none;
-            }
-
-            .player-container:not(.player-active) #library-list {
-                display: grid !important;
-                grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)) !important;
-            }            /* ESTADO ACTIVO: Efecto de Paneles/Ventanas Independientes */
-            .player-container.player-active {
-                max-width: 920px;
-                display: grid !important;
-                grid-template-columns: 270px 1fr 70px;
-                grid-template-rows: 1fr;
-                gap: 20px;
-                padding: 15px;
-                align-items: stretch;
-                background: transparent; /* Eliminamos el fondo del contenedor para que los paneles floten */
-                box-shadow: none;
-                border: none;
-            }
-
-            .player-active #library-container,
-            .player-active #player-ui-container {
-                background: #0c0c0c;
-                border-radius: 28px;
-                border: 1px solid rgba(255,255,255,0.07);
-                padding: 22px;
-                box-shadow: 0 15px 45px rgba(0,0,0,0.7);
-                display: flex;
-                flex-direction: column;
-            }
-
-            .player-active #library-container {
-                text-align: left;
-            }
-            
-            .player-active #library-container h3 {
-                margin-top: 0;
-            }            #library-list.player-active {
-                display: flex !important;
-                flex-direction: column !important;
-                max-height: 65vh;
-                gap: 12px;
-                flex: 1;
-                align-items: stretch; /* Asegura que las tarjetas ocupen todo el ancho disponible */
-            }            .player-active .book-card {
-                flex-direction: row !important;
-                gap: 15px;
-                background: rgba(255,255,255,0.05);
-                padding: 12px;
-                border-radius: 20px;
-                width: 100%;
-                box-sizing: border-box;
-                align-items: center;
-            }
-
-            /* Corregimos el ancho del label para que se expanda en modo lista lateral */
-            .player-active .book-label {
-                width: auto !important;
-                flex: 1;
-                text-align: left;
-            }
-
-            .player-active .book-thumb {
-                width: 50px !important;
-                height: 50px !important;
-                min-width: 50px;
-                margin-bottom: 0;
-            }
-
-            .player-active #player-ui-container {
-                justify-content: center;
-                align-items: center;
-            }
-
-            #cover-art {
-                width: 240px !important;
-                height: 240px !important;
-                border-radius: 20px;
-            }
-
-            .book-info h2 { font-size: 1.4rem; margin-top: 10px; }
-            .progress-container { max-width: 400px; margin: 10px 0; }
-            .controls { max-width: 380px; gap: 15px; }
-            #play-pause { width: 75px !important; height: 75px !important; }
-
-            #quick-settings-row {
-                display: flex !important;
-                flex-direction: column !important;
-                border-top: none !important;
-                border-left: 1px solid rgba(255,255,255,0.06);
-                padding-left: 10px !important;
-                gap: 20px;
-            }
-        }
-
-        .book-info h2 {
-            margin: 12px 0 4px;
-            color: #ffffff;
-            font-weight: 700;
-            font-size: 1.35rem;
-            letter-spacing: -0.5px;
-            text-transform: uppercase;
-        }
-
-        .book-info p {
-            color: var(--color-principal);
-            margin-bottom: 15px;
-            font-weight: 500;
-            font-size: 0.9rem;
-            opacity: 0.8;
-        }        #file-input { display: none; }
-
-        /* Barra de progreso personalizada */
-        .progress-container { width: 100%; margin-bottom: 15px; }        input[type="range"] {
-            -webkit-appearance: none;
-            width: 100%;
-            background: #333; /* Fondo base */
-            cursor: pointer;
-            height: 6px;
-            border-radius: 3px;
-        }
-
-        input[type="range"]::-webkit-slider-runnable-track {
-            width: 100%;
-            height: 6px;
-            background: transparent; /* El color lo controlaremos con el gradiente del input */
-            border-radius: 3px;
-        }
-
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            height: 16px;
-            width: 16px;
-            border-radius: 50%;
-            background: var(--color-principal);
-            margin-top: -5px;
-            box-shadow: 0 0 10px rgba(var(--color-principal-rgb), 0.4);
-        }
-
-        .time-display {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.85rem;
-            color: #888;
-            margin-top: 10px;
-        }
-
-        /* Controles de reproducción */
-        .controls {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            align-items: center;
-            margin-bottom: 0px;
-        }        button {
-            background: none;
-            border: none;
-            color: #ffffff;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: color 0.8s ease, background-color 0.3s ease, border-color 0.8s ease;
-        }        button:hover { background-color: color-mix(in srgb, var(--color-principal), transparent 90%); }
-
-        .play-btn { 
-            width: 63px; 
-            height: 63px; 
-            border-radius: 50%; 
-            font-size: 1.35rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            aspect-ratio: 1 / 1;
-            /* Aseguramos que el borde también use la variable animable */
-            border: 2px solid var(--color-principal) !important;
-        }
-
-        /* Ajustes (Velocidad y Temporizador) */
-        .beep-marker {
-            position: absolute;
-            width: 2px;
-            height: 8px;
-            background-color: #ffffff;
-            top: 50%;
-            transform: translateY(-50%);
-            pointer-events: none;
-            z-index: 5;
-            box-shadow: 0 0 5px rgba(255,255,255,0.8);
-        }
-        .settings-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-top: 15px;
-            text-align: left;
-        }
-
-        .setting-item {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            font-size: 0.85rem;
-            color: #aaa;
-        }
-
-        select { 
-            background-color: #333; 
-            color: white; 
-            border: none;
-            border-radius: 8px; 
-            padding: 8px; 
-            outline: none;
-            cursor: pointer;
-        }        #timer-msg {
-            color: var(--color-principal);
-            font-size: 0.8rem;
-            margin-top: 10px;
-            min-height: 15px;
-        }        #library-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-            gap: clamp(10px, 3vw, 20px);
-            padding: 10px 0;
-            justify-items: center;
-            align-items: start;
-            width: 100%;
-            max-height: 60vh;
-            overflow-y: auto;
-            scrollbar-width: none;
-        }
-
-        /* Cuando el reproductor está activo, vuelve a modo fila horizontal */
-        #library-list.player-active {
-            display: flex;
-            flex-direction: row;
-            overflow-x: auto;
-            gap: 14px;
-            padding: 5px 0;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-            scroll-snap-type: x mandatory;
-        }
-        
-        #library-list::-webkit-scrollbar { display: none; }        .book-card {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            cursor: pointer;
-            position: relative;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            min-width: 90px;
-            scroll-snap-align: start;
-            animation: fadeIn 0.5s ease-out forwards;
-        }
-
-        .book-card:hover {
-            transform: translateY(-8px);
-        }
-
-        .book-card:active {
-            transform: scale(0.92);
-        }
-
-        #player-ui-container {
-            transition: opacity 0.4s ease-in-out;
-        }
-
-        .play-btn {
-            transition: all 0.3s ease !important;
-        }
-
-        .play-btn.playing {
-            animation: pulse 2s infinite;
-            border-color: var(--color-principal);
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes modalPop {
-            0% { opacity: 0; transform: scale(0.9) translateY(30px); }
-            100% { opacity: 1; transform: scale(1) translateY(0); }
-        }
-
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(var(--color-principal-rgb), 0.6); }
-            70% { box-shadow: 0 0 0 20px rgba(var(--color-principal-rgb), 0); }
-            100% { box-shadow: 0 0 0 0 rgba(var(--color-principal-rgb), 0); }
-        }
-
-        /* Animación de vibración para el modo reordenar */
-        @keyframes shake {
-            0% { transform: rotate(0deg); }
-            25% { transform: rotate(1.2deg); }
-            50% { transform: rotate(0deg); }
-            75% { transform: rotate(-1.2deg); }
-            100% { transform: rotate(0deg); }
-        }
-
-        .reorder-mode .book-card {
-            animation: shake 0.3s infinite ease-in-out;
-        }
-
-        .book-card.dragging {
-            opacity: 0.4;
-            transform: scale(1.05);
-            animation: none !important;
-        }        .book-thumb {
-            width: 85px;
-            height: 85px;
-            background: #1a1a1a;
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 6px;
-            position: relative;
-            border: 1px solid #252525;
-            background-size: cover;
-            background-position: center;
-            transition: transform 0.2s;
-        }
-
-        .status-dot {
-            position: absolute;
-            top: -4px;
-            right: -4px;
-            width: 14px;
-            height: 14px;
-            background: var(--color-principal);
-            border-radius: 50%;
-            border: 2px solid #111;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-            z-index: 2;
-        }        .book-label {
-            font-size: 0.55rem;
-            font-weight: 700;
-            color: #ffffff;
-            text-transform: uppercase;
-            text-align: center;
-            width: 85px;
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-            line-height: 1.2;
-            overflow: hidden;
-        }
-        .marquee-container {
-            width: 100%;
-            overflow: hidden;
-            white-space: nowrap;
-            text-overflow: ellipsis;
-        }        /* Solo se mueve si tiene la clase 'active-scroll' */
-        .active-scroll {
-            display: flex !important;
-            white-space: nowrap;
-        }
-        .active-scroll .marquee-text {
-            display: inline-block;
-            animation: bus-marquee 10s linear infinite;
-            flex-shrink: 0;
-            white-space: nowrap;
-        }
-        @keyframes bus-marquee {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
-        }
-
-        .delete-btn-mini {
-            position: absolute;
-            top: -8px;
-            left: -8px;
-            background: #ff4757;
-            color: white;
-            border: 2px solid #111;
-            border-radius: 50%;
-            width: 26px;
-            height: 26px;
-            font-size: 0.75rem;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            z-index: 10;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-            line-height: 0;
-            padding: 0;
-            font-weight: bold;
-            transition: transform 0.2s;
-        }        /* Solo se muestra cuando el contenedor tiene la clase reorder-mode */        .reorder-mode .delete-btn-mini, .reorder-mode .download-btn-mini {
-            display: flex;
-        }
-
-        .download-btn-mini {
-            position: absolute;
-            bottom: -8px;
-            right: -8px;
-            background: #2ed573;
-            color: white;
-            border: 2px solid #111;
-            border-radius: 50%;
-            width: 26px;
-            height: 26px;
-            font-size: 0.75rem;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            z-index: 10;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-            line-height: 0;
-            padding: 0;
-            font-weight: bold;
-            transition: transform 0.2s;
-        }
-
-        /* Estilos para los Switches */
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 42px;
-            height: 22px;
-        }
-
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #333;
-            transition: .3s;
-            border-radius: 34px;
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 16px;
-            width: 16px;
-            left: 3px;
-            bottom: 3px;
-            background-color: white;
-            transition: .3s;
-            border-radius: 50%;
-        }
-
-        input:checked + .slider {
-            background-color: var(--color-principal);
-        }        input:checked + .slider:before {
-            transform: translateX(20px);
-        }
-
-        /* Estilos de Capítulos */
-        .chapters-wrapper {
-            margin: 20px 10px 10px;
-            border-top: 1px solid rgba(255, 255, 255, 0.08);
-            padding-top: 15px;
-            text-align: left;
-        }
-        .chapters-header-title {
-            font-size: 0.7rem;
-            font-weight: 900;
-            color: var(--color-principal);
-            letter-spacing: 3px;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-            text-indent: 2px;
-        }
-        .chapters-list-box {
-            max-height: 160px;
-            overflow-y: auto;
-            background: #0d0d0d;
-            border-radius: 16px;
-            padding: 6px;
-            border: 1px solid rgba(255, 255, 255, 0.04);
-            scrollbar-width: none;
-        }
-        .chapters-list-box::-webkit-scrollbar { display: none; }
-        .chapter-row-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 14px;
-            font-size: 0.85rem;
-            cursor: pointer;
-            border-bottom: 1px solid #141414;
-            color: #cccccc;
-            border-radius: 8px;
-        }
-        .chapter-row-item:last-child { border-bottom: none; }
-        .chapter-row-item:active {
-            background: rgba(var(--color-principal-rgb), 0.15);
-            color: #ffffff;
-        }
-        .chapter-row-item .ch-time {
-            color: var(--color-principal);
-            font-family: monospace;
-            font-weight: 700;
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>🏁 F1 Timing PWA</title>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+    <style>
+        /* Estilos (idénticos a la versión anterior) */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #0d0d0d; color: #e0e0e0; font-family: 'Segoe UI', Roboto, sans-serif; padding: 16px; min-height: 100vh; display: flex; justify-content: center; align-items: flex-start; }
+        #root { width: 100%; max-width: 1400px; }
+        .app-header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; padding: 12px 0 20px 0; border-bottom: 1px solid #2a2a2a; margin-bottom: 20px; }
+        .app-header h1 { font-size: 1.8rem; font-weight: 600; color: #fff; }
+        .app-header h1 span { color: #ff3333; }
+        .header-controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+        .mode-selector { display: flex; gap: 6px; background: #1a1a1a; padding: 4px; border-radius: 8px; }
+        .mode-btn { background: transparent; border: none; color: #888; padding: 6px 16px; border-radius: 6px; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; }
+        .mode-btn.active { background: #ff3333; color: #fff; }
+        .mode-btn:not(.active):hover { color: #fff; }
+        .status-badge { background: #1a1a1a; padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; color: #aaa; display: flex; align-items: center; gap: 8px; }
+        .status-badge .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+        .dot.green { background: #4caf50; }
+        .dot.orange { background: #ff9800; animation: pulse 1.2s infinite; }
+        @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
+        .playback-controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; background: #1a1a1a; padding: 8px 16px; border-radius: 30px; margin-top: 10px; }
+        .playback-controls button { background: transparent; border: none; color: #ccc; font-size: 1.2rem; cursor: pointer; padding: 4px 10px; border-radius: 6px; transition: background 0.2s; }
+        .playback-controls button:hover { background: #333; color: #fff; }
+        .playback-controls .speed-btn { font-size: 0.8rem; background: #2a2a2a; padding: 4px 12px; border-radius: 16px; color: #aaa; font-weight: 600; }
+        .playback-controls .speed-btn.active { background: #ff3333; color: #fff; }
+        .playback-controls .lap-info { color: #aaa; font-size: 0.85rem; margin-left: 8px; }
+        .table-wrapper { overflow-x: auto; border-radius: 12px; background: #141414; padding: 4px 0; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; min-width: 720px; }
+        thead th { text-align: left; padding: 12px 12px 10px 12px; color: #888; font-weight: 500; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #2a2a2a; position: sticky; top: 0; background: #141414; z-index: 2; }
+        tbody tr { border-bottom: 1px solid #1e1e1e; transition: background 0.15s; }
+        tbody tr:hover { background: #1e1e1e; }
+        tbody td { padding: 10px 12px; vertical-align: middle; }
+        .pos { font-weight: 700; color: #fff; width: 36px; text-align: center; }
+        .driver-name { display: flex; align-items: center; gap: 10px; }
+        .driver-color { width: 4px; height: 28px; border-radius: 4px; display: inline-block; }
+        .driver-acronym { font-weight: 700; font-size: 1rem; color: #fff; }
+        .interval { font-family: 'Courier New', monospace; font-size: 0.9rem; color: #ccc; }
+        .gap-to-leader { font-family: 'Courier New', monospace; font-size: 0.9rem; color: #aaa; }
+        .lap-time { font-family: 'Courier New', monospace; color: #ddd; }
+        .tyre { display: inline-flex; align-items: center; gap: 6px; background: #1e1e1e; padding: 2px 12px 2px 8px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
+        .tyre-circle { width: 14px; height: 14px; border-radius: 50%; border: 1px solid #444; display: inline-block; }
+        .tyre-h .tyre-circle { background: #ffffff; }
+        .tyre-m .tyre-circle { background: #ffaa00; }
+        .tyre-s .tyre-circle { background: #ff3333; }
+        .tyre-unknown .tyre-circle { background: #555; }
+        .tyre-age { color: #999; font-weight: 400; }
+        .pit-stops { text-align: center; color: #ddd; }
+        .laps { text-align: center; color: #ddd; }
+        .inactive td { opacity: 0.5; }
+        .race-status { display: flex; flex-wrap: wrap; gap: 16px; padding: 10px 0 6px 0; font-size: 0.85rem; color: #aaa; }
+        .race-status .flag { font-weight: 600; color: #fff; }
+        .selector-panel { background: #1a1a1a; padding: 16px 20px; border-radius: 12px; margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; }
+        .selector-panel label { display: flex; flex-direction: column; gap: 4px; font-size: 0.8rem; color: #aaa; }
+        .selector-panel select, .selector-panel input { background: #2a2a2a; border: 1px solid #444; color: #fff; padding: 8px 12px; border-radius: 6px; font-size: 0.9rem; min-width: 140px; }
+        .selector-panel button { background: #ff3333; border: none; color: #fff; padding: 8px 24px; border-radius: 6px; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: background 0.2s; }
+        .selector-panel button:hover { background: #cc0000; }
+        .selector-panel button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .error-message { background: #3d1a1a; color: #ff6b6b; padding: 16px 20px; border-radius: 8px; border-left: 4px solid #ff3333; margin: 20px 0; }
+        .loading-message { color: #888; text-align: center; padding: 60px 20px; font-size: 1.2rem; }
+        .loading-message span { display: inline-block; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .info-message { background: #1a2a3a; color: #88ccff; padding: 12px 16px; border-radius: 8px; border-left: 4px solid #4caf50; margin: 12px 0; }
+        .map-container { background: #0a0a0a; border-radius: 12px; padding: 8px; margin-top: 16px; border: 1px solid #2a2a2a; }
+        .map-container canvas { width: 100%; height: auto; border-radius: 8px; display: block; background: #111; }
+        .map-controls { display: flex; gap: 12px; margin: 8px 0 4px 0; align-items: center; flex-wrap: wrap; }
+        .map-controls button { background: #2a2a2a; border: none; color: #ccc; padding: 4px 16px; border-radius: 16px; font-size: 0.8rem; cursor: pointer; transition: 0.2s; }
+        .map-controls button:hover { background: #444; color: #fff; }
+        .map-controls button.active { background: #ff3333; color: #fff; }
+        .map-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; padding: 4px 0; font-size: 0.7rem; color: #aaa; }
+        .map-legend .item { display: flex; align-items: center; gap: 4px; }
+        .map-legend .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+        .session-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+        .session-item { background: #2a2a2a; padding: 6px 14px; border-radius: 20px; cursor: pointer; border: 1px solid #444; font-size: 0.85rem; transition: 0.2s; }
+        .session-item:hover { background: #444; }
+        .session-item.active { background: #ff3333; border-color: #ff3333; }
+        .rate-limit-bar { background: #1a1a1a; padding: 10px 16px; border-radius: 8px; margin: 12px 0; display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
+        .rate-limit-bar .status { color: #aaa; font-size: 0.85rem; }
+        .rate-limit-bar .count { color: #88ccff; font-weight: bold; }
+        .rate-limit-bar .switch { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: #aaa; }
+        .rate-limit-bar .switch input[type="checkbox"] { width: 40px; height: 20px; appearance: none; background: #555; border-radius: 10px; position: relative; cursor: pointer; transition: 0.3s; }
+        .rate-limit-bar .switch input[type="checkbox"]:checked { background: #ff3333; }
+        .rate-limit-bar .switch input[type="checkbox"]::before { content: ''; position: absolute; width: 16px; height: 16px; background: #fff; border-radius: 50%; top: 2px; left: 2px; transition: 0.3s; }
+        .rate-limit-bar .switch input[type="checkbox"]:checked::before { left: 22px; }
+        .preload-indicator { color: #ffaa00; font-size: 0.8rem; margin-left: 8px; }
+        @media (max-width: 640px) {
+            .app-header { flex-direction: column; align-items: stretch; gap: 10px; }
+            .header-controls { justify-content: space-between; }
+            .playback-controls { flex-wrap: wrap; justify-content: center; }
+            table { font-size: 0.75rem; min-width: 600px; }
+            thead th, tbody td { padding: 6px 8px; }
+            .driver-acronym { font-size: 0.85rem; }
+            .tyre { font-size: 0.65rem; padding: 0 8px 0 4px; }
+            .tyre-circle { width: 10px; height: 10px; }
+            .selector-panel { flex-direction: column; align-items: stretch; }
+            .selector-panel label { width: 100%; }
+            .selector-panel select, .selector-panel input { width: 100%; }
+            .rate-limit-bar { flex-direction: column; align-items: stretch; }
         }
     </style>
 </head>
 <body>
+    <div id="root"></div>
 
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useCallback } = React;
 
-
-<div class="player-container" style="transform: none;">
-    
-    
-
-    
-    <div id="settings-modal" style="display:flex; opacity:0; visibility:hidden; pointer-events:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:2000; align-items:center; justify-content:center; backdrop-filter: blur(15px); transition: opacity 0.4s ease, visibility 0.4s ease;">
-        <div id="settings-content" style="background:#161616; border: 1px solid #2a2a2a; width: 90%; max-width: 360px; border-radius: 32px; padding: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); transform: scale(0.9) translateY(30px);">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 24px;">
-                <h3 style="color:white; margin:0; font-size: 1.2rem; font-weight: 600;">Ajustes</h3>
-                <i class="material-icons" onclick="toggleSettings()" style="color:#666; cursor:pointer; font-size: 24px;">close</i>
-            </div>
-
-            
-            <div style="background: #1f1f1f; padding: 20px; border-radius: 20px; border: 1px dashed #333; margin-bottom: 20px; text-align: center;">
-                <label for="file-input" style="cursor:pointer; display:block;">
-                    <i class="material-icons" style="color:var(--color-principal); font-size: 32px; margin-bottom: 8px;">cloud_upload</i>
-                    <span id="file-label" style="display:block; color:#eee; font-size: 0.9rem; font-weight: 500;">Importar Audiolibro</span>
-                </label>
-                <input type="file" id="file-input" accept="audio/*" style="display:none;">
-            </div>
-
-            
-            <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px;">
-                
-                <div style="background:#1c1c1c; padding:14px 18px; border-radius:16px;">
-                    <div style="display:flex; align-items:center; gap:12px; margin-bottom:15px;">
-                        <i class="material-icons" style="color:#888; font-size:20px;">palette</i>
-                        <span style="color:#ccc; font-size:0.9rem;">Color de Acento</span>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; background: #141414; padding: 10px; border-radius: 12px;">
-                        <div onclick="setThemeColor('#4a90e2')" style="width:28px; height:28px; border-radius:50%; background:#4a90e2; cursor:pointer; border:2px solid #333; transition: transform 0.2s;" class="color-dot"></div>
-                        <div onclick="setThemeColor('#a29bfe')" style="width:28px; height:28px; border-radius:50%; background:#a29bfe; cursor:pointer; border:2px solid #333; transition: transform 0.2s;" class="color-dot"></div>
-                        <div onclick="setThemeColor('#00b894')" style="width:28px; height:28px; border-radius:50%; background:#00b894; cursor:pointer; border:2px solid #333; transition: transform 0.2s;" class="color-dot"></div>
-                        <div onclick="setThemeColor('#fab1a0')" style="width:28px; height:28px; border-radius:50%; background:#fab1a0; cursor:pointer; border:2px solid #333; transition: transform 0.2s;" class="color-dot"></div>
-                        <div onclick="setThemeColor('#fdcb6e')" style="width:28px; height:28px; border-radius:50%; background:#fdcb6e; cursor:pointer; border:2px solid #333; transition: transform 0.2s;" class="color-dot"></div>
-                        <div style="position:relative; width:28px; height:28px; border-radius:50%; overflow:hidden; border:2px solid #333; background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%);">
-                            <input type="color" id="custom-color" onchange="setThemeColor(this.value)" style="position:absolute; top:-5px; left:-5px; width:40px; height:40px; cursor:pointer; opacity:0;">
-                            <i class="material-icons" style="font-size:16px; color:white; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); pointer-events:none;">colorize</i>
-                        </div>
-                    </div>
-                </div>                <div style="background:#1c1c1c; padding:14px 18px; border-radius:16px; display:flex; justify-content:space-between; align-items:center;">
-                    <div style="display:flex; align-items:center; gap:12px;">
-                        <i class="material-icons" style="color:#888; font-size:20px;">graphic_eq</i>
-                        <span style="color:#ccc; font-size:0.9rem;">Modo Noche</span>
-                    </div>
-                    <label class="switch">
-                        <input type="checkbox" id="normalize-vol" onchange="toggleNormalization()">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-
-                <div style="background:#1c1c1c; padding:14px 18px; border-radius:16px; display:flex; justify-content:space-between; align-items:center;">
-                    <div style="display:flex; align-items:center; gap:12px;">
-                        <i class="material-icons" style="color:#888; font-size:20px;">lock</i>
-                        <span style="color:#ccc; font-size:0.9rem;">Bloquear Seek</span>
-                    </div>
-                    <label class="switch">
-                        <input type="checkbox" id="lock-seek">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-
-                <div style="background:#1c1c1c; padding:14px 18px; border-radius:16px; display:flex; justify-content:space-between; align-items:center;">
-                    <div style="display:flex; align-items:center; gap:12px;">
-                        <i class="material-icons" style="color:#888; font-size:20px;">more_time</i>
-                        <span style="color:#ccc; font-size:0.9rem;">Siguiente = +5 Min</span>
-                    </div>
-                    <label class="switch">
-                        <input type="checkbox" id="next-as-timer" onchange="localStorage.setItem('audiobook_next_timer', this.checked)">
-                        <span class="slider"></span>
-                    </label>
-                </div>                <div style="background:#1c1c1c; padding:14px 18px; border-radius:16px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <div style="display:flex; align-items:center; gap:12px;">
-                            <i class="material-icons" style="color:var(--color-principal); font-size:20px;">bedtime</i>
-                            <span style="color:#ccc; font-size:0.9rem;">Aviso 5 min (Bip)</span>
-                        </div>
-                        <label class="switch">
-                            <input type="checkbox" id="silence-beep" onchange="toggleSilenceDetection()">
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                </div>
-            </div>
-
-            <button onclick="toggleSettings()" style="width:100%; background:var(--color-principal); color:white; border:none; padding: 16px; border-radius: 18px; font-size: 1rem; font-weight:600; box-shadow: 0 10px 20px rgba(var(--color-principal-rgb),0.2);">Guardar Cambios</button>
-        </div>
-    </div>    <div id="library-container" style="margin-bottom: 10px; text-align: center; position: relative;">
-        <h3 ondblclick="setThemeColor('#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0'))" style="font-size: 0.65rem; margin: 0 0 10px 0; color: var(--color-principal); display: flex; justify-content: center; align-items: center; letter-spacing: 4px; opacity: 0.6; font-weight: 900; text-indent: 4px; cursor: pointer; user-select: none;">
-            BIBLIOTECA
-        </h3>        <div id="library-list">
-            <div style="grid-column: 1 / -1; padding: 60px 20px; color: #444; display: flex; flex-direction: column; align-items: center; gap: 20px; width: 100%;">
-                <i class="material-icons" style="font-size: 48px; opacity: 0.1; animation: pulse 2s infinite;">auto_stories</i>
-                <small style="font-weight: 700; letter-spacing: 3px; font-size: 0.6rem; opacity: 0.3; text-transform: uppercase;">Organizando Colección</small>
-            </div>
-        </div>
-    </div>
-
-    <audio id="audio-player"></audio>    <div id="player-ui-container" style="display: none; position: relative;">
-        <div class="book-info">
-            <div id="cover-container" style="margin-bottom: 20px; display: none;">
-                <img id="cover-art" src="" alt="Portada" style="width: 270px; height: 270px; object-fit: cover; border-radius: 18px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1); filter: blur(0px); transform: scale(1);">
-            </div>
-            <h2 id="title">Sin archivo</h2>
-            <p id="author">Reproductor Local</p>
-        </div>
-
-        <div class="progress-container" style="position: relative; height: 40px; display: flex; flex-direction: column; justify-content: center;">
-            <div id="marker-layer" style="position: absolute; width: 100%; height: 6px; pointer-events: none;"></div>
-            <input type="range" id="progress-bar" value="0" step="1" style="position: relative; z-index: 2;">
-            <div class="time-display">
-                <span id="current-time">0:00:00</span>
-                <span id="duration">0:00:00</span>
-            </div>
-        </div>        <div class="controls" style="display: flex; justify-content: space-evenly; align-items: center; margin-top: 5px; padding: 0; width: 100%;">
-            <button id="speed-display" onclick="openSpeedModal()" style="width: 48px; height: 48px; border-radius: 50%; background: color-mix(in srgb, var(--color-principal), transparent 90%); color: var(--color-principal); font-size: 0.9rem; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">1x</button>
-            <button onclick="skip(-10)" style="width: 55px; height: 55px; border-radius: 50%; transition: background 0.1s; display: flex; align-items: center; justify-content: center; flex-shrink: 0;" onmousedown="this.style.background='rgba(var(--color-principal-rgb), 0.15)'" onmouseup="this.style.background='transparent'" onmouseleave="this.style.background='transparent'" ontouchstart="this.style.background='rgba(var(--color-principal-rgb), 0.15)'" ontouchend="this.style.background='transparent'">
-                <i class="material-icons" style="font-size: 35px; color: var(--color-principal);">replay_10</i>
-            </button>
-            <button id="play-pause" class="play-btn" onclick="togglePlay()" style="width: 82px; height: 82px; border: 2px solid var(--color-principal); border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
-                <i class="material-icons" style="font-size: 50px; color: var(--color-principal);">play_arrow</i>
-            </button>
-            <button onclick="skip(10)" style="width: 55px; height: 55px; border-radius: 50%; transition: background 0.1s; display: flex; align-items: center; justify-content: center; flex-shrink: 0;" onmousedown="this.style.background='rgba(var(--color-principal-rgb), 0.15)'" onmouseup="this.style.background='transparent'" onmouseleave="this.style.background='transparent'" ontouchstart="this.style.background='rgba(var(--color-principal-rgb), 0.15)'" ontouchend="this.style.background='transparent'">
-                <i class="material-icons" style="font-size: 35px; color: var(--color-principal);">forward_10</i>
-            </button>
-            <button id="timer-icon" onclick="openTimerModal()" style="width: 48px; height: 48px; border-radius: 50%; background: color-mix(in srgb, var(--color-principal), transparent 90%); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                <i class="material-icons" style="font-size: 26px; color: var(--color-principal);">timer</i>
-            </button>
-        </div>
-    </div>    <div id="quick-settings-row" style="display: none; justify-content: space-evenly; align-items: center; margin: 15px 10px 5px; padding: 10px 0; border-top: 1px solid rgba(255,255,255,0.05);">
-        <button onclick="document.getElementById('normalize-vol').click(); this.classList.toggle('active-mode')" class="mode-btn" title="Modo Noche">
-            <i class="material-icons">graphic_eq</i>
-        </button>
-        <button onclick="document.getElementById('lock-seek').click(); this.classList.toggle('active-mode')" class="mode-btn" title="Bloquear Seek">
-            <i class="material-icons">lock</i>
-        </button>
-        <button onclick="openChaptersModal()" class="mode-btn" title="Capítulos">
-            <i class="material-icons">format_list_bulleted</i>
-        </button>
-        <button onclick="document.getElementById('next-as-timer').click(); this.classList.toggle('active-mode')" class="mode-btn" title="Siguiente +5min">
-            <i class="material-icons">more_time</i>
-        </button>        <button onclick="document.getElementById('silence-beep').click(); this.classList.toggle('active-mode')" class="mode-btn" title="Bip Seguridad">
-            <i class="material-icons">bedtime</i>
-        </button>
-    </div>    <div id="chapters-wrapper-ui" style="display:none; position:fixed; bottom:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; align-items:flex-end; backdrop-filter: blur(10px);">
-        <div id="chapters-content" style="width:100%; background:#161616; border-radius: 30px 30px 0 0; padding: 24px; box-sizing: border-box; animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1); border-top: 1px solid #333; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);">
-            <div id="chapters-handle" style="width: 100%; height: 40px; display: flex; align-items: center; justify-content: center; margin-top: -15px; cursor: grab; touch-action: none;">
-                <div style="width: 40px; height: 4px; background: #444; border-radius: 2px;"></div>
-            </div>
-            <h3 id="chapters-status-title" style="text-align:center; margin-bottom: 20px; font-size: 1.1rem; color: var(--color-principal); font-weight: 900; letter-spacing: 2px; text-transform: uppercase;">Buscando capítulos...</h3>
-            <div class="chapters-list-box" id="chapters-list-box" style="max-height: 50vh; overflow-y: auto; scrollbar-width: none; background: #0d0d0d; border-radius: 16px; padding: 6px; border: 1px solid rgba(255, 255, 255, 0.04);">
-                 <div style="padding:15px; color:#888; text-align:center; font-size:0.85rem;">Analizando archivo binario...</div>
-            </div>
-            <button onclick="closeChaptersModal()" style="width:100%; text-align:center; border:none; padding:15px; color:var(--color-principal); font-weight:bold; margin-top:10px; background:none; cursor:pointer;">Cerrar</button>
-        </div>
-    </div>
-
-    <style>
-        .mode-btn {
-            color: #444;
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .mode-btn i { font-size: 24px; }
-        .mode-btn.active-mode {
-            color: var(--color-principal);
-            background: rgba(var(--color-principal-rgb), 0.1);
-            box-shadow: 0 0 15px rgba(var(--color-principal-rgb), 0.15);
-        }
-    </style>
-
-    <div id="timer-msg" style="font-size: 0.75rem; color: var(--color-principal); margin-top: 2px; height: 10px;"></div>    
-    <div id="speed-bottom-modal" style="display:none; position:fixed; bottom:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; align-items:flex-end; backdrop-filter: blur(10px);">
-        <div id="speed-content" style="width:100%; background:#161616; border-radius: 30px 30px 0 0; padding: 24px; box-sizing: border-box; animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1); border-top: 1px solid #333; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);">
-            <div id="speed-handle" style="width: 100%; height: 40px; display: flex; align-items: center; justify-content: center; margin-top: -15px; cursor: grab; touch-action: none;">
-                <div style="width: 40px; height: 4px; background: #444; border-radius: 2px;"></div>
-            </div>
-            <h3 style="text-align:center; margin-bottom: 20px; font-size: 1.1rem;">Velocidad de Reproducción</h3>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <button onclick="setSpeed(0.9)" style="border:none; padding:15px; color:white; background:#1c1c1c; border-radius:12px;">0.9x</button>
-                <button onclick="setSpeed(1.0)" style="border:none; padding:15px; color:white; background:#1c1c1c; border-radius:12px;">Normal (1x)</button>
-                <button onclick="setSpeed(1.1)" style="border:none; padding:15px; color:white; background:#1c1c1c; border-radius:12px;">1.1x</button>
-                <button onclick="setSpeed(1.25)" style="border:none; padding:15px; color:white; background:#1c1c1c; border-radius:12px;">1.25x</button>
-                <button onclick="setSpeed(1.50)" style="border:none; padding:15px; color:white; background:#1c1c1c; border-radius:12px;">1.50x</button>
-                <button onclick="setSpeed(1.75)" style="border:none; padding:15px; color:white; background:#1c1c1c; border-radius:12px;">1.75x</button>
-            </div>
-            <button onclick="closeSpeedModal()" style="width:100%; text-align:center; border:none; padding:15px; color:var(--color-principal); font-weight:bold; margin-top:10px;">Cerrar</button>
-        </div>
-    </div>
-
-    
-    <div id="timer-bottom-modal" style="display:none; position:fixed; bottom:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; align-items:flex-end; backdrop-filter: blur(10px);">
-        <div id="timer-content" style="width:100%; background:#161616; border-radius: 30px 30px 0 0; padding: 24px; box-sizing: border-box; animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1); border-top: 1px solid #333; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);">
-            <div id="timer-handle" style="width: 100%; height: 40px; display: flex; align-items: center; justify-content: center; margin-top: -15px; cursor: grab; touch-action: none;">
-                <div style="width: 40px; height: 4px; background: #444; border-radius: 2px;"></div>
-            </div>
-            <h3 style="text-align:center; margin-bottom: 20px; font-size: 1.1rem;">Temporizador</h3>
-            <div style="display:flex; flex-direction:column; gap: 5px;">
-                <button onclick="setTimer(0)" style="width:100%; text-align:left; border:none; padding:15px; color:white;">Desactivado</button>
-                <button onclick="setTimer(5)" style="width:100%; text-align:left; border:none; padding:15px; color:white;">5 minutos</button>
-                <button onclick="setTimer(15)" style="width:100%; text-align:left; border:none; padding:15px; color:white;">15 minutos</button>
-                <button onclick="setTimer(30)" style="width:100%; text-align:left; border:none; padding:15px; color:white;">30 minutos</button>
-                <button onclick="setTimer(45)" style="width:100%; text-align:left; border:none; padding:15px; color:white;">45 minutos</button>
-                <button onclick="setTimer(60)" style="width:100%; text-align:left; border:none; padding:15px; color:white;">1 hora</button>
-                <button onclick="closeTimerModal()" style="width:100%; text-align:center; border:none; padding:15px; color:var(--color-principal); font-weight:bold; margin-top:10px;">Cerrar</button>
-            </div>
-        </div>
-    </div>    <style>
-        /* Definición de propiedad para permitir transiciones suaves de color (Efecto Progresivo) */
-        @property --color-principal {
-            syntax: '<color>';
-            initial-value: #4a90e2;
-            inherits: true;
-        }
-
-        :root {
-            --color-principal: #4a90e2;
-            --color-principal-rgb: 74, 144, 226;
-            /* Transición global para que el cambio de tema pase por colores intermedios (ej. Rojo -> Naranja -> Amarillo) */
-            transition: --color-principal 1.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        
-        /* Estilos del Mini Reproductor */        #mini-player {
-            display: none;
-            position: fixed;
-            bottom: 32px;
-            left: 50%;
-            transform: translateX(-50%) translateY(150%);
-            width: 85%;
-            max-width: 360px;
-            background: color-mix(in srgb, var(--color-principal), transparent 82%);
-            backdrop-filter: blur(25px) saturate(180%);
-            -webkit-backdrop-filter: blur(25px) saturate(180%);
-            border-radius: 28px;
-            padding: 12px 20px;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(255,255,255,0.12);
-            border: none;
-            z-index: 1000;
-            align-items: center;
-            gap: 15px;
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            cursor: pointer;
-        }
-        #mini-player.visible {
-            display: flex;
-            transform: translateX(-50%) translateY(0);
-        }
-        #mini-player-thumb {
-            width: 45px;
-            height: 45px;
-            border-radius: 8px;
-            object-fit: cover;
-            background: #222;
-        }
-        .mini-player-info {
-            flex: 1;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            text-align: left;
-        }
-        .mini-player-title {
-            color: #fff;
-            font-size: 0.9rem;
-            font-weight: 700;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            margin-bottom: 2px;
-        }
-        .mini-player-author {
-            color: var(--color-principal);
-            font-size: 0.75rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        #mini-play-btn {
-            background: transparent;
-            color: white;
-            border: none;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-        }
-        
-        /* Ajuste de padding de la biblioteca para que no la tape el mini reproductor */
-        body.has-mini-player .player-container:not(.player-active) {
-            padding-bottom: 80px;
-        }
-    </style>
-
-    
-    <div id="mini-player" onclick="maximizePlayer(event)">
-        <img id="mini-player-thumb" src="" alt="Cover">
-        <div class="mini-player-info">
-            <div class="mini-player-title" id="mini-title">Título</div>
-            <div class="mini-player-author" id="mini-author">Autor</div>
-        </div>
-        <button id="mini-play-btn" onclick="event.stopPropagation(); togglePlay()">
-            <i class="material-icons" style="font-size: 32px;">play_arrow</i>
-        </button>
-    </div>
-</div>
-
-<script>
-    function generateRandomWaves() {
-        const canvas = document.createElement('canvas');
-        canvas.width = 300; canvas.height = 300;
-        const ctx = canvas.getContext('2d');
-        const hue = Math.floor(Math.random() * 360);
-        const grad = ctx.createLinearGradient(0, 0, 300, 300);
-        grad.addColorStop(0, `hsl(${hue}, 80%, 60%)`);
-        grad.addColorStop(1, `hsl(${(hue + 60) % 360}, 80%, 40%)`);
-        ctx.fillStyle = grad;
-        ctx.fillRect(0, 0, 300, 300);
-        
-        for(let j=0; j<3; j++) {
-            ctx.beginPath();
-            ctx.moveTo(0, 150 + j*30);
-            for(let i=0; i<=300; i+=20) {
-                ctx.lineTo(i, 150 + j*30 + Math.sin(i*0.05 + Math.random()*2)*30);
-            }
-            ctx.lineTo(300, 300); ctx.lineTo(0, 300);
-            ctx.fillStyle = `rgba(255,255,255,0.${2+j})`;
-            ctx.fill();
-        }
-        return canvas.toDataURL();
-    }
-
-    function hexToRgb(hex) {
-        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-        return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : "74, 144, 226";
-    }    function setThemeColor(hex, save = true) {
-        // Actualizamos el color principal y sus valores RGB para que los efectos de pulso (box-shadow) sigan el tema
-        document.documentElement.style.setProperty('--color-principal', hex);
-        document.documentElement.style.setProperty('--color-principal-rgb', hexToRgb(hex));
-        
-        if (save) {
-            localStorage.setItem('audiobook_theme_color', hex);
-            dbPut("settings", { key: "themeColor", value: hex }).catch(() => {});
-        }
-
-        if (window.event && window.event.target && window.event.target.classList.contains('color-dot')) {
-            document.querySelectorAll('.color-dot').forEach(dot => {
-                dot.style.transform = 'scale(1)';
-                dot.style.boxShadow = 'none';
-            });
-            window.event.target.style.transform = 'scale(1.15)';
-            window.event.target.style.boxShadow = `0 0 15px ${hex}`;
-        }
-    }    // Cargar tema al inicio (IDB primero, localStorage como fallback)
-    const savedTheme = localStorage.getItem('audiobook_theme_color') || '#4a90e2';
-    setThemeColor(savedTheme, false);
-    // Sobrescribir con valor de IDB si existe (más fiable)
-    // Se aplica de forma asíncrona al cargar la DB en initDB()
-
-    // Cargar preferencia de botón Siguiente
-    const nextAsTimerPref = localStorage.getItem('audiobook_next_timer');
-    if(nextAsTimerPref !== null) {
-        document.getElementById('next-as-timer').checked = nextAsTimerPref === 'true';
-    }
-
-    // Configuración PWA Autocontenida
-    if ('serviceWorker' in navigator) {
-        const swCode = `
-            const CACHE = 'audiobook-cache-v1';
-            self.addEventListener('install', e => e.waitUntil(caches.open(CACHE).then(c => c.add('index.html'))));
-            self.addEventListener('fetch', e => e.respondWith(caches.match(e.request).then(r => r || fetch(e.request))));
-        `;
-        const blob = new Blob([swCode], { type: 'text/javascript' });
-        const swUrl = URL.createObjectURL(blob);
-        
-        window.addEventListener('load', () => {
-            // Intentamos registrar mediante Blob para mantenerlo en un solo archivo
-            // Nota: Algunos navegadores requieren un archivo sw.js físico para habilitar el botón 'Instalar'
-            navigator.serviceWorker.register(swUrl).catch(() => {
-                navigator.serviceWorker.register('sw.js').catch(() => {});
-            });
-        });
-    }
-
-    const audio = document.getElementById('audio-player');
-    const playPauseBtn = document.getElementById('play-pause');
-    const progressBar = document.getElementById('progress-bar');
-    const currentTimeEl = document.getElementById('current-time');
-    const durationEl = document.getElementById('duration');
-    let showRemainingTime = false;
-    durationEl.style.cursor = 'pointer';
-    durationEl.onclick = () => { showRemainingTime = !showRemainingTime; updateDurationDisplay(); };
-
-    function updateDurationDisplay() {
-        if (!audio.duration) return;
-        if (showRemainingTime) {
-            const remaining = audio.duration - audio.currentTime;
-            durationEl.textContent = "-" + formatTime(remaining >= 0 ? remaining : 0);
-        } else {
-            durationEl.textContent = formatTime(audio.duration);
-        }
-    }
-
-    const speedSelect = document.getElementById('speed');
-    const fileInput = document.getElementById('file-input');
-    const fileLabel = document.getElementById('file-label');
-    const titleEl = document.getElementById('title');
-    const timerSelect = document.getElementById('sleep-timer');
-    const timerMsg = document.getElementById('timer-msg');    let sleepTimerTimeout;
-    let sleepTimerInterval;
-    let timerTotalSeconds = 0;
-    let currentFileName = "";
-    let chapterStopPoint = null;
-    let db;
-
-    // ── Helpers IndexedDB genéricos ──────────────────────────────────────
-    function dbPut(storeName, obj) {
-        return new Promise((resolve, reject) => {
-            if (!db) return reject("DB no lista");
-            const tx = db.transaction([storeName], "readwrite");
-            const req = tx.objectStore(storeName).put(obj);
-            tx.oncomplete = () => resolve();
-            tx.onerror = (e) => reject(e);
-        });
-    }
-    function dbGet(storeName, key) {
-        return new Promise((resolve, reject) => {
-            if (!db) return reject("DB no lista");
-            const tx = db.transaction([storeName], "readonly");
-            const req = tx.objectStore(storeName).get(key);
-            req.onsuccess = (e) => resolve(e.target.result);
-            req.onerror = (e) => reject(e);
-        });
-    }
-    // ────────────────────────────────────────────────────────────────────
-
-    let reorderMode = false;
-    let pressTimer;
-    let draggedItem = null;
-
-    // Caché de colores dominantes por nombre de libro.
-    // Se rellena en segundo plano al renderizar la biblioteca (canvas sobre la carátula en base64).
-    // Permite aplicar el color al instante en el clic, sin esperar a cargar el audio ni releer la imagen.
-    const bookColorCache = {};
-
-    function toggleSettings() {
-        const modal = document.getElementById('settings-modal');
-        const content = document.getElementById('settings-content');
-        const isVisible = modal.style.opacity === '1';
-
-        if (isVisible) {
-            modal.style.opacity = '0';
-            modal.style.pointerEvents = 'none';
-            content.style.transform = 'scale(0.9) translateY(30px)';
-            setTimeout(() => { if(modal.style.opacity === '0') modal.style.visibility = 'hidden'; }, 400);
-        } else {
-            modal.style.visibility = 'visible';
-            modal.style.opacity = '1';
-            modal.style.pointerEvents = 'auto';
-            content.style.transform = 'scale(1) translateY(0)';
-        }
-    }    // Inicialización robusta con Persistencia de Datos
-    async function initDB() {
-        // Solicitar al navegador que no borre los datos automáticamente
-        if (navigator.storage && navigator.storage.persist) {
-            const isPersisted = await navigator.storage.persist();
-            console.log(`Persistencia de datos: ${isPersisted ? "Garantizada" : "Temporal"}`);
-        }        const dbRequest = indexedDB.open("AudiobookProDB", 3);
-
-        dbRequest.onupgradeneeded = (e) => {
-            db = e.target.result;
-            if (!db.objectStoreNames.contains("books")) {
-                db.createObjectStore("books", { keyPath: "name" });
-            }
-            if (!db.objectStoreNames.contains("progress")) {
-                db.createObjectStore("progress", { keyPath: "name" });
-            }            if (!db.objectStoreNames.contains("settings")) {
-                db.createObjectStore("settings", { keyPath: "key" });
-            }
-            if (!db.objectStoreNames.contains("chapters")) {
-                db.createObjectStore("chapters", { keyPath: "name" });
-            }
-        };        dbRequest.onsuccess = (e) => {
-            db = e.target.result;
-            console.log("Base de datos lista");
-            displayLibrary();
-            // Restaurar tema desde IDB (más fiable que localStorage)
-            dbGet("settings", "themeColor").then(entry => {
-                if (entry && entry.value) setThemeColor(entry.value, false);
-            }).catch(() => {});
-        };
-
-        dbRequest.onerror = (e) => console.error("Error IndexedDB:", e);
-    }
-
-    initDB();    function saveToLibrary(file) {
-        if (!db) {
-            timerMsg.textContent = "Error: BD no lista";
-            return;
-        }
-
-        // --- UI Optimista: Sensación de velocidad instantánea ---
-        const list = document.getElementById('library-list');
-        const tempId = 'opt-' + Date.now();
-        let tempCard = null;
-        
-        if (list) {
-            tempCard = document.createElement('div');
-            tempCard.className = 'book-card';
-            tempCard.id = tempId;
-            tempCard.style.opacity = '0.7';
-
-            let cleanName = file.name.replace(/\.[^/.]+$/, "").toUpperCase();
-            let tPart = cleanName, aPart = "GUARDANDO...";
-            if (cleanName.includes("-")) {
-                const p = cleanName.split("-").map(x => x.trim());
-                tPart = p[0]; aPart = p[1];
+        // ================================================================
+        // 1. RATE LIMITER (3/s, 30/min)
+        // ================================================================
+        class RateLimiter {
+            constructor(options = {}) {
+                this.maxPerSecond = options.maxPerSecond || 3;
+                this.maxPerMinute = options.maxPerMinute || 30;
+                this.history = [];
+                this.listeners = [];
             }
 
-            const checkScroll = (txt) => txt.length > 16 ? 'active-scroll' : '';
-            const spacer = "&nbsp;".repeat(10);
-            const tContent = checkScroll(tPart) ? (tPart + spacer).repeat(2) : tPart;
-            const aContent = checkScroll(aPart) ? (aPart + spacer).repeat(2) : aPart;
+            async waitForSlot() {
+                const now = Date.now();
+                this.history = this.history.filter(t => now - t < 60000);
 
-            tempCard.innerHTML = `
-                <div class="book-thumb" style="position:relative; background-image: url(${generateRandomWaves()}); border: 2px dashed var(--color-principal);">
-                    <div class="status-dot" style="background:#f59e0b; animation: pulse 1s infinite;"></div>
-                </div>
-                <div class="book-label">
-                    <div class="marquee-container ${checkScroll(tPart)}"><span class="marquee-text" id="${tempId}-title">${tContent}</span></div>
-                    <div class="marquee-container ${checkScroll(aPart)}" style="color:var(--color-principal); opacity:0.8;"><span class="marquee-text" id="${tempId}-author">PROCESANDO...</span></div>
-                </div>
-            `;
-            
-            const addCard = list.lastElementChild;
-            if(addCard && addCard.innerHTML.includes('add_circle_outline')) {
-                list.insertBefore(tempCard, addCard);
-            } else {
-                list.appendChild(tempCard);
-            }
-        }
-        // --------------------------------------------------------
-        
-        const doSave = (meta) => {
-            // Actualizar UI optimista con carátula real ANTES del guardado IDB pesado
-            if (tempCard) {
-                if (meta.cover) tempCard.querySelector('.book-thumb').style.backgroundImage = `url(${meta.cover})`;
-                tempCard.querySelector('.book-thumb').style.border = "1px solid #252525";
-                if (meta.title) {
-                    const tEl = document.getElementById(`${tempId}-title`);
-                    if(tEl) tEl.innerHTML = meta.title.toUpperCase();
+                const lastSecond = this.history.filter(t => now - t < 1000).length;
+                const lastMinute = this.history.length;
+
+                let waitTime = 0;
+                if (lastSecond >= this.maxPerSecond) {
+                    const oldestInSecond = this.history.filter(t => now - t < 1000)
+                        .sort((a, b) => a - b)[0];
+                    waitTime = Math.max(waitTime, 1000 - (now - oldestInSecond));
                 }
-                const aEl = document.getElementById(`${tempId}-author`);
-                if(aEl) aEl.innerHTML = "ALMACENANDO...";
+                if (lastMinute >= this.maxPerMinute) {
+                    const oldestInMinute = this.history.sort((a, b) => a - b)[0];
+                    waitTime = Math.max(waitTime, 60000 - (now - oldestInMinute));
+                }
+
+                if (waitTime > 0) {
+                    this.notifyWait(waitTime);
+                    await new Promise(resolve => setTimeout(resolve, waitTime + 10));
+                }
+
+                this.history.push(Date.now());
+                this.notifyReady();
+                return true;
             }
 
-            // Pequeño retardo (50ms) para permitir que el navegador pinte (renderice) la carátula y la UI antes de congelarse guardando el binario masivo en IndexedDB
-            setTimeout(() => {
-                const transaction = db.transaction(["books"], "readwrite");
-                const store = transaction.objectStore("books");
-                
-                const bookData = { 
-                    name: file.name, 
-                    data: file, 
-                    added: new Date().getTime(),
-                    metaTitle: meta.title || null,
-                    metaArtist: meta.artist || null,
-                    metaCover: meta.cover || null
-                };
+            notifyWait(waitTime) {
+                this.listeners.forEach(fn => fn({ type: 'wait', waitTime }));
+            }
 
-                store.put(bookData);
-                
-                transaction.oncomplete = () => {
-                    timerMsg.textContent = "Guardado permanentemente ✓";
-                    displayLibrary();
-                    setTimeout(() => timerMsg.textContent = "", 3000);
-                };
+            notifyReady() {
+                this.listeners.forEach(fn => fn({ type: 'ready' }));
+            }
 
-                transaction.onerror = (e) => {
-                    console.error("Error al guardar:", e);
-                    timerMsg.textContent = "Error al guardar libro";
-                    if (tempCard) tempCard.remove();
+            subscribe(listener) {
+                this.listeners.push(listener);
+                return () => {
+                    this.listeners = this.listeners.filter(l => l !== listener);
                 };
-            }, 50);
-        };
+            }
 
-        try {
-            window.jsmediatags.read(file, {
-                onSuccess: (tag) => {
-                    let meta = {};
-                    const { title, artist, picture } = (tag && tag.tags) || {};
-                    if (title) meta.title = title;
-                    if (artist) meta.artist = artist;
-                    if (picture) {
-                        let b = ""; 
-                        for (let i = 0; i < picture.data.length; i++) b += String.fromCharCode(picture.data[i]);
-                        meta.cover = `data:${picture.format};base64,${window.btoa(b)}`;
+            getRequestsInLastMinute() {
+                const now = Date.now();
+                this.history = this.history.filter(t => now - t < 60000);
+                return this.history.length;
+            }
+        }
+
+        // ================================================================
+        // 2. API HELPERS
+        // ================================================================
+        const API_BASE = 'https://api.openf1.org/v1';
+
+        async function fetchAPI(endpoint, params = {}) {
+            const clean = {};
+            Object.entries(params).forEach(([k, v]) => {
+                if (v !== undefined && v !== null && v !== '') clean[k] = v;
+            });
+            const url = new URL(`${API_BASE}${endpoint}`);
+            Object.entries(clean).forEach(([k, v]) => url.searchParams.append(k, v));
+            const res = await fetch(url);
+            if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`);
+            return res.json();
+        }
+
+        // ================================================================
+        // 3. INDEXED DB (sin fallback, para servidor)
+        // ================================================================
+        const DB_NAME = 'F1TimingDB';
+        const STORE_NAME = 'sessionData';
+        const DRIVERS_STORE = 'yearDrivers';
+
+        function openDB() {
+            return new Promise((resolve, reject) => {
+                const req = indexedDB.open(DB_NAME, 2);
+                req.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) {
+                        db.createObjectStore(STORE_NAME, { keyPath: 'sessionKey' });
                     }
-                    doSave(meta);
-                },
-                onError: () => doSave({})
+                    if (!db.objectStoreNames.contains(DRIVERS_STORE)) {
+                        db.createObjectStore(DRIVERS_STORE, { keyPath: 'year' });
+                    }
+                };
+                req.onsuccess = () => resolve(req.result);
+                req.onerror = () => reject(req.error);
             });
-        } catch (e) {
-            doSave({});
         }
-    }    function displayLibrary() {
-        const list = document.getElementById('library-list');
-        if (!list) return;
-        list.innerHTML = "";
 
-        const transaction = db.transaction(["books"], "readonly");
-        const store = transaction.objectStore("books");
-        const books = [];
-        
-        store.openCursor().onsuccess = (e) => {
-            const cursor = e.target.result;
-            if (cursor) {
-                books.push(cursor.value);
-                cursor.continue();
-            } else {
-                const savedOrder = JSON.parse(localStorage.getItem('library_order') || "[]");
-                if (savedOrder.length > 0) {
-                    books.sort((a, b) => (savedOrder.indexOf(a.name) === -1 ? 999 : savedOrder.indexOf(a.name)) - (savedOrder.indexOf(b.name) === -1 ? 999 : savedOrder.indexOf(b.name)));
+        // Guardar datos de sesión
+        async function saveSessionData(sessionKey, data) {
+            const db = await openDB();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(STORE_NAME, 'readwrite');
+                const store = tx.objectStore(STORE_NAME);
+                store.put({ sessionKey, ...data, timestamp: Date.now() });
+                tx.oncomplete = () => resolve();
+                tx.onerror = () => reject(tx.error);
+            });
+        }
+
+        async function loadSessionData(sessionKey) {
+            const db = await openDB();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(STORE_NAME, 'readonly');
+                const store = tx.objectStore(STORE_NAME);
+                const req = store.get(sessionKey);
+                req.onsuccess = () => resolve(req.result || null);
+                req.onerror = () => reject(req.error);
+            });
+        }
+
+        // Guardar pilotos por año
+        async function saveYearDrivers(year, drivers) {
+            const db = await openDB();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(DRIVERS_STORE, 'readwrite');
+                const store = tx.objectStore(DRIVERS_STORE);
+                store.put({ year, drivers, timestamp: Date.now() });
+                tx.oncomplete = () => resolve();
+                tx.onerror = () => reject(tx.error);
+            });
+        }
+
+        async function loadYearDrivers(year) {
+            const db = await openDB();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(DRIVERS_STORE, 'readonly');
+                const store = tx.objectStore(DRIVERS_STORE);
+                const req = store.get(year);
+                req.onsuccess = () => {
+                    const result = req.result;
+                    if (result && result.drivers) {
+                        resolve(result.drivers);
+                    } else {
+                        resolve(null);
+                    }
+                };
+                req.onerror = () => reject(req.error);
+            });
+        }
+
+        // ================================================================
+        // 4. PROCESAR DATOS (COMPACTAR)
+        // ================================================================
+        function buildCompactData({ drivers, positions, intervals, locations = [] }) {
+            const driverMap = {};
+            drivers.forEach(d => {
+                driverMap[d.driver_number] = {
+                    a: d.name_acronym || d.full_name?.substring(0, 3).toUpperCase() || '??',
+                    c: d.team_colour ? `#${d.team_colour}` : '#888',
+                };
+            });
+
+            // Trazado del circuito (desde locations)
+            let trackPoints = [];
+            if (locations && locations.length > 0) {
+                const grouped = {};
+                locations.forEach(l => {
+                    if (!grouped[l.driver_number]) grouped[l.driver_number] = [];
+                    grouped[l.driver_number].push(l);
+                });
+                let bestDriver = null, maxPoints = 0;
+                Object.entries(grouped).forEach(([num, pts]) => {
+                    if (pts.length > maxPoints) { maxPoints = pts.length; bestDriver = num; }
+                });
+                if (bestDriver) {
+                    const pts = grouped[bestDriver].sort((a, b) => new Date(a.date) - new Date(b.date));
+                    const step = Math.max(1, Math.floor(pts.length / 500));
+                    trackPoints = pts.filter((_, i) => i % step === 0).map(p => ({ x: p.x, y: p.y }));
                 }
-                
-                books.forEach(bookData => {
-                    const bookName = bookData.name;
-                    const card = document.createElement('div');                    card.className = 'book-card item-reorderable';
-                    card.draggable = true;
-                    card.dataset.id = bookName;
-                    
-                    const progress = localStorage.getItem('audiobook_progress_' + bookName);
-                    const cleanName = bookName.replace(/\.[^/.]+$/, "").toUpperCase();
-                    let tPart = cleanName, aPart = "";
-                    if (cleanName.includes("-")) {
-                        const p = cleanName.split("-").map(x => x.trim());
-                        tPart = p[0]; aPart = p[1];
-                    }                    const checkScroll = (txt) => txt.length > 16 ? 'active-scroll' : '';                    const spacer = "&nbsp;".repeat(10);
-                    const tContent = checkScroll(tPart) ? (tPart + spacer).repeat(2) : tPart;
-                    const aContent = checkScroll(aPart) ? (aPart + spacer).repeat(2) : aPart;
-                    let formattedLabel = `<div class="marquee-container ${checkScroll(tPart)}"><span class="marquee-text">${tContent}</span></div>` + 
-                                       `<div class="marquee-container ${checkScroll(aPart)}" style="color:var(--color-principal); opacity:0.8;"><span class="marquee-text">${aContent}</span></div>`;                    card.innerHTML = `
-                        <div class="book-thumb" style="position:relative">
-                            ${(progress && parseFloat(progress) > 0) ? '<div class="status-dot"></div>' : ''}
-                            <i class="material-icons" style="font-size: 2.5rem; opacity: 0.15;">headset</i>
-                            <button class="delete-btn-mini" onclick="event.stopPropagation(); deleteFromLibrary('${bookName.replace(/'/g, "\\'")}')"><i class="material-icons" style="font-size: 16px;">close</i></button>
-                            <button class="download-btn-mini" onclick="event.stopPropagation(); downloadFromLibrary('${bookName.replace(/'/g, "\\'")}')"><i class="material-icons" style="font-size: 16px;">download</i></button>
-                        </div>
-                        <div class="book-label">${formattedLabel}</div>
-                    `;                    const thumb = card.querySelector('.book-thumb');
-                    
-                    // Configuración de eventos de la tarjeta
-                    const startPress = () => {
-                        pressTimer = setTimeout(() => {
-                            reorderMode = true;
-                            list.classList.add('reorder-mode');
-                            if (navigator.vibrate) navigator.vibrate(60);
-                        }, 800);
-                    };
-                    const endPress = () => clearTimeout(pressTimer);
-                    
-                    thumb.addEventListener('touchstart', startPress);
-                    thumb.addEventListener('mousedown', startPress);
-                    thumb.addEventListener('touchend', endPress);
-                    thumb.addEventListener('mouseup', endPress);
+            }
 
-                    // Lógica de Arrastrar y Soltar (Drag & Drop)
-                    card.addEventListener('dragstart', (e) => {
-                        if (!reorderMode) { e.preventDefault(); return; }
-                        draggedItem = card;
-                        setTimeout(() => card.classList.add('dragging'), 0);
+            // Snapshots
+            const dates = [...new Set([
+                ...positions.map(p => p.date),
+                ...intervals.map(i => i.date)
+            ])].sort();
+
+            let snapshots = [];
+            if (dates.length === 0) {
+                const driversSnap = {};
+                positions.forEach(p => { driversSnap[p.driver_number] = { p: p.position }; });
+                intervals.forEach(i => {
+                    if (!driversSnap[i.driver_number]) driversSnap[i.driver_number] = {};
+                    driversSnap[i.driver_number].g = i.gap_to_leader;
+                    driversSnap[i.driver_number].i = i.interval;
+                });
+                const list = Object.entries(driversSnap).map(([num, data]) => ({
+                    n: parseInt(num), p: data.p || 20, g: data.g ?? null, i: data.i ?? null
+                }));
+                list.sort((a, b) => a.p - b.p);
+                snapshots.push({ lap: 0, d: list });
+            } else {
+                dates.forEach((date, idx) => {
+                    const posAtDate = positions.filter(p => p.date <= date);
+                    const intAtDate = intervals.filter(i => i.date <= date);
+                    const posMap = {};
+                    posAtDate.forEach(p => posMap[p.driver_number] = p.position);
+                    const intMap = {};
+                    intAtDate.forEach(i => intMap[i.driver_number] = { g: i.gap_to_leader, i: i.interval });
+
+                    const driverNumbers = new Set([...Object.keys(posMap), ...Object.keys(driverMap)]);
+                    const list = [];
+                    driverNumbers.forEach(num => {
+                        const pos = posMap[num] || 20;
+                        const intData = intMap[num] || { g: null, i: null };
+                        list.push({ n: parseInt(num), p: pos, g: intData.g, i: intData.i });
                     });
+                    list.sort((a, b) => a.p - b.p);
+                    snapshots.push({ lap: idx + 1, d: list });
+                });
+            }
 
-                    card.addEventListener('dragend', () => {
-                        card.classList.remove('dragging');
-                        draggedItem = null;
-                        // Guardar el nuevo orden al soltar
-                        const newOrder = Array.from(list.querySelectorAll('.item-reorderable')).map(c => c.dataset.id);
-                        localStorage.setItem('library_order', JSON.stringify(newOrder));
-                    });
+            // Limitar a 200 snapshots
+            if (snapshots.length > 200) {
+                const step = Math.ceil(snapshots.length / 200);
+                snapshots = snapshots.filter((_, i) => i % step === 0);
+            }
 
-                    card.addEventListener('dragover', (e) => {
-                        e.preventDefault();
-                        if (!draggedItem || draggedItem === card) return;
-                        
-                        const children = Array.from(list.children);
-                        const currIdx = children.indexOf(draggedItem);
-                        const nextIdx = children.indexOf(card);
-                        
-                        if (currIdx < nextIdx) {
-                            list.insertBefore(draggedItem, card.nextSibling);
-                        } else {
-                            list.insertBefore(draggedItem, card);
-                        }
-                    });
+            return { drivers: driverMap, snapshots, trackPoints };
+        }
 
-                    thumb.addEventListener('click', () => {
-                        if (reorderMode) {
-                            reorderMode = false;
-                            list.classList.remove('reorder-mode');
+        // ================================================================
+        // 5. FUNCIÓN OBTENER DATOS (CON CACHÉ Y PRECARGA)
+        // ================================================================
+        async function getSessionData(sessionKey, year, rateLimiter, useRateLimiter, yearDriversCache) {
+            // Intentar cargar desde IndexedDB
+            let stored = await loadSessionData(sessionKey);
+            if (stored && stored.snapshots) {
+                return stored;
+            }
+
+            // Obtener pilotos: primero desde caché de año
+            let drivers = null;
+            if (year && yearDriversCache[year]) {
+                drivers = yearDriversCache[year];
+            } else {
+                // Si no, descargar de la API
+                if (useRateLimiter) await rateLimiter.waitForSlot();
+                drivers = await fetchAPI('/drivers', { session_key: sessionKey });
+                // Guardar en caché de año
+                if (year) {
+                    yearDriversCache[year] = drivers;
+                    await saveYearDrivers(year, drivers);
+                }
+            }
+
+            // Descargar el resto
+            const endpoints = [
+                { name: 'position', endpoint: '/position', params: { session_key: sessionKey } },
+                { name: 'intervals', endpoint: '/intervals', params: { session_key: sessionKey } },
+                { name: 'location', endpoint: '/location', params: { session_key: sessionKey } },
+            ];
+            const results = {};
+            for (const ep of endpoints) {
+                if (useRateLimiter) await rateLimiter.waitForSlot();
+                results[ep.name] = await fetchAPI(ep.endpoint, ep.params);
+            }
+            const { position, intervals, location } = results;
+            const compact = buildCompactData({
+                drivers,
+                positions: position || [],
+                intervals: intervals || [],
+                locations: location || [],
+            });
+            if (!compact.snapshots || compact.snapshots.length === 0) {
+                throw new Error('No se pudieron generar snapshots');
+            }
+            await saveSessionData(sessionKey, compact);
+            return compact;
+        }
+
+        // ================================================================
+        // 6. COMPONENTE PRINCIPAL
+        // ================================================================
+        function App() {
+            // ---- Estado ----
+            const [sessions, setSessions] = useState([]);
+            const [selectedSession, setSelectedSession] = useState(null);
+            const [loading, setLoading] = useState(false);
+            const [error, setError] = useState('');
+            const [info, setInfo] = useState('');
+            const [compactData, setCompactData] = useState(null);
+            const [snapshotIndex, setSnapshotIndex] = useState(0);
+            const [isPlaying, setIsPlaying] = useState(false);
+            const [speed, setSpeed] = useState(1);
+            const [mode, setMode] = useState('offline');
+            const [showMap, setShowMap] = useState(true);
+            const [carPositions, setCarPositions] = useState({});
+            const [yearDriversCache, setYearDriversCache] = useState({});
+            const [selectedYear, setSelectedYear] = useState('2024');
+            const [preloading, setPreloading] = useState(false);
+            const [preloadDone, setPreloadDone] = useState(false);
+
+            // Rate limiter
+            const [rateLimiter] = useState(() => new RateLimiter());
+            const [useRateLimiter, setUseRateLimiter] = useState(true);
+            const [rateStatus, setRateStatus] = useState('⏱️ Listo');
+            const [rateCount, setRateCount] = useState(0);
+            const [rateWaiting, setRateWaiting] = useState(false);
+
+            // Referencias
+            const timerRef = useRef(null);
+            const unsubscribeRef = useRef(null);
+            const preloadRef = useRef(false);
+
+            // ---- Suscripción al rate limiter ----
+            useEffect(() => {
+                const unsub = rateLimiter.subscribe((event) => {
+                    if (event.type === 'wait') {
+                        const sec = (event.waitTime / 1000).toFixed(1);
+                        setRateStatus(`⏳ Esperando ${sec}s...`);
+                        setRateWaiting(true);
+                    } else if (event.type === 'ready') {
+                        setRateStatus('✅ Listo');
+                        setRateWaiting(false);
+                    }
+                });
+                const interval = setInterval(() => {
+                    setRateCount(rateLimiter.getRequestsInLastMinute());
+                }, 1000);
+                return () => {
+                    unsub();
+                    clearInterval(interval);
+                };
+            }, [rateLimiter]);
+
+            // ---- PRECARGA DE PILOTOS POR AÑO ----
+            useEffect(() => {
+                const preloadYearDrivers = async (year) => {
+                    if (!year) return;
+                    if (yearDriversCache[year]) return;
+                    try {
+                        const stored = await loadYearDrivers(year);
+                        if (stored) {
+                            setYearDriversCache(prev => ({ ...prev, [year]: stored }));
                             return;
                         }
-                        // Aplicar el color dominante en el mismo instante del clic,
-                // sin esperar a que cargue el audio ni a que se relean los metadatos.
-                if (bookColorCache[bookName]) {
-                    setThemeColor(bookColorCache[bookName], false);
-                }
-                loadFromLibrary(bookName);
-            });
-
-                    list.appendChild(card);                    // Aplicar Metadatos en Caché (Sin Bloqueo de Memoria)
-                    if (bookData.metaTitle || bookData.metaArtist) {
-                        const labelEl = card.querySelector('.book-label');
-                        let cleanTitle = (bookData.metaTitle || bookName).replace(/\.[^/.]+$/, "").toUpperCase();
-                        let cleanArtist = (bookData.metaArtist || "Autor Desconocido").toUpperCase();
-                        const checkScroll = (txt) => txt.length > 16 ? 'active-scroll' : '';
-                        const spacer = "&nbsp;".repeat(10);
-                        const tCont = checkScroll(cleanTitle) ? (cleanTitle + spacer).repeat(2) : cleanTitle;
-                        const aCont = checkScroll(cleanArtist) ? (cleanArtist + spacer).repeat(2) : cleanArtist;
-                        labelEl.innerHTML = `<div class="marquee-container ${checkScroll(cleanTitle)}"><span class="marquee-text">${tCont}</span></div>` + 
-                                           `<div class="marquee-container ${checkScroll(cleanArtist)}" style="color: var(--color-principal);"><span class="marquee-text">${aCont}</span></div>`;
+                    } catch (e) { /* ignorar */ }
+                    // Descargar
+                    try {
+                        const sessionsYear = await fetchAPI('/sessions', { year, session_type: 'Race' });
+                        if (!sessionsYear || sessionsYear.length === 0) return;
+                        const sessionKey = sessionsYear[0].session_key;
+                        if (useRateLimiter) await rateLimiter.waitForSlot();
+                        const drivers = await fetchAPI('/drivers', { session_key: sessionKey });
+                        if (drivers && drivers.length > 0) {
+                            setYearDriversCache(prev => ({ ...prev, [year]: drivers }));
+                            await saveYearDrivers(year, drivers);
+                        }
+                    } catch (e) {
+                        console.warn('Error precargando pilotos:', e);
                     }
-                    
-                    if (bookData.metaCover) {
-                        thumb.style.backgroundImage = `url(${bookData.metaCover})`;
-                        const icon = thumb.querySelector('.material-icons');
-                        if (icon) icon.style.display = 'none';                        // Status Dot Camaleón Seguro: Color dominante vibrante
-                        const imgDot = new Image();
-                        imgDot.src = bookData.metaCover;
-                        imgDot.onload = () => {
-                            const canvas = document.createElement('canvas');
-                            const ctx = canvas.getContext('2d');
-                            canvas.width = 50; canvas.height = 50;
-                            ctx.drawImage(imgDot, 0, 0, 50, 50);
-                            const data = ctx.getImageData(0, 0, 50, 50).data;
-                            let counts = {}, maxCount = 0;
-                            let domR = 0, domG = 0, domB = 0;
-                            for (let i = 0; i < data.length; i += 16) {
-                                if (data[i+3] < 128) continue;
-                                let cR = Math.round(data[i]/16)*16, cG = Math.round(data[i+1]/16)*16, cB = Math.round(data[i+2]/16)*16;
-                                // Ignorar grises desaturados para el status dot y el autor
-                                if (Math.abs(cR-cG)<20 && Math.abs(cG-cB)<20 && Math.abs(cR-cB)<20) continue;
-                                let key = cR+','+cG+','+cB;
-                                counts[key] = (counts[key] || 0) + 1;
-                                if (counts[key] > maxCount) {
-                                    maxCount = counts[key];
-                                    domR = data[i]; domG = data[i+1]; domB = data[i+2];
-                                }
-                            }
-                            if(maxCount === 0) { domR = Math.random()*255; domG = Math.random()*255; domB = Math.random()*255; }
-                            let r = domR/255, g = domG/255, b = domB/255;
-                            let max = Math.max(r, g, b), min = Math.min(r, g, b);
-                            let h, s, l = (max + min) / 2;
-                            if (max === min) h = s = 0; 
-                            else {
-                                let diff = max - min;
-                                s = l > 0.5 ? diff / (2 - max - min) : diff / (max + min);
-                                if (max === r) h = (g - b) / diff + (g < b ? 6 : 0);
-                                else if (max === g) h = (b - r) / diff + 2;
-                                else h = (r - g) / diff + 4;
-                                h /= 6;
-                            }
-                            const extractedColor = `hsl(${Math.round(h * 360) || 0}, ${Math.max(Math.round(s * 100), 70)}%, 60%)`;
-                            // Guardar en caché para poder aplicarlo al instante cuando el usuario haga clic
-                            bookColorCache[bookName] = extractedColor;
-                            const dot = card.querySelector('.status-dot');
-                            if (dot) dot.style.backgroundColor = extractedColor;
-                            const secondLine = card.querySelector('.book-label div:nth-child(2)');
-                            if (secondLine) secondLine.style.color = extractedColor;
-                        };
-                    } else {
-                        const waveUrl = generateRandomWaves();
-                        thumb.style.backgroundImage = `url(${waveUrl})`;
-                        const icon = thumb.querySelector('.material-icons');
-                        if (icon) icon.style.display = 'none';
-                    }
-                });                // Añadir tarjeta de carga al final de la lista
-                const addCard = document.createElement('div');
-                addCard.className = 'book-card';
-                addCard.innerHTML = `
-                    <div class="book-thumb" style="border: 2px dashed color-mix(in srgb, var(--color-principal), transparent 70%); background: color-mix(in srgb, var(--color-principal), transparent 97%); display: flex; align-items: center; justify-content: center;">
-                        <i class="material-icons" style="font-size: 2.2rem; color: var(--color-principal); opacity: 0.5;">add_circle_outline</i>
-                    </div>
-                    <div class="book-label">
-                        <div class="marquee-container"><span class="marquee-text" style="color: var(--color-principal); font-weight: 800;">AÑADIR</span></div>
-                        <div class="marquee-container" style="opacity: 0.5;"><span class="marquee-text">NUEVO LIBRO</span></div>
-                    </div>
-                `;
-                
-                addCard.onclick = () => {
-                    if (reorderMode) {
-                        reorderMode = false;
-                        list.classList.remove('reorder-mode');
-                        return;
-                    }
-                    document.getElementById('file-input').click();
                 };
-                list.appendChild(addCard);
+                preloadYearDrivers(selectedYear);
+            }, [selectedYear, useRateLimiter, rateLimiter]);
 
-                if (books.length === 0) {
-                    const emptyHint = document.createElement('div');
-                    emptyHint.style.cssText = "grid-column: 1 / -1; margin-bottom: 10px; opacity: 0.2; font-size: 0.6rem; font-weight: 900; letter-spacing: 3px;";
-                    emptyHint.textContent = "BIBLIOTECA VACÍA";
-                    list.insertBefore(emptyHint, addCard);
+            // ---- PRECARGA DE LA PRIMERA SESIÓN AL LISTAR ----
+            useEffect(() => {
+                if (sessions.length === 0 || preloadRef.current) return;
+                preloadRef.current = true;
+                setPreloading(true);
+                const firstSession = sessions[0]; // la más reciente
+                (async () => {
+                    try {
+                        const year = firstSession.year;
+                        const sessionKey = firstSession.session_key;
+                        // Verificar si ya está en caché
+                        const stored = await loadSessionData(sessionKey);
+                        if (stored && stored.snapshots) {
+                            setPreloadDone(true);
+                            setPreloading(false);
+                            setInfo(`📦 Datos de ${firstSession.country_name} ya en caché`);
+                            return;
+                        }
+                        // Descargar en segundo plano
+                        const compact = await getSessionData(
+                            sessionKey,
+                            year,
+                            rateLimiter,
+                            useRateLimiter,
+                            yearDriversCache
+                        );
+                        setPreloadDone(true);
+                        setInfo(`✅ Precargada: ${firstSession.country_name} (${compact.snapshots.length} snapshots)`);
+                    } catch (e) {
+                        console.warn('Error en precarga:', e);
+                        setInfo(`⚠️ No se pudo precargar: ${e.message}`);
+                    } finally {
+                        setPreloading(false);
+                    }
+                })();
+            }, [sessions, rateLimiter, useRateLimiter, yearDriversCache]);
+
+            // ---- Cargar sesiones ----
+            const loadSessions = useCallback(async (year, country, type) => {
+                setLoading(true);
+                setError('');
+                setPreloadDone(false);
+                preloadRef.current = false;
+                try {
+                    const params = {};
+                    if (year) params.year = year;
+                    if (country) params.country_name = country;
+                    if (type) params.session_type = type;
+                    if (useRateLimiter) await rateLimiter.waitForSlot();
+                    const data = await fetchAPI('/sessions', params);
+                    data.sort((a, b) => new Date(b.date_start) - new Date(a.date_start));
+                    setSessions(data);
+                    setInfo(`✅ ${data.length} sesiones encontradas`);
+                } catch (e) {
+                    setError(`❌ Error: ${e.message}`);
                 }
-            }
-        };
-    }    function deleteFromLibrary(name) {
-        if (!confirm("¿Eliminar este libro de la memoria?")) return;
-        const transaction = db.transaction(["books"], "readwrite");
-        transaction.objectStore("books").delete(name);
-        transaction.oncomplete = () => {
-            if (currentFileName === name) location.reload();
-            else displayLibrary();
-        };
-    }
+                setLoading(false);
+            }, [rateLimiter, useRateLimiter]);
 
-    function downloadFromLibrary(name) {
-        const transaction = db.transaction(["books"], "readonly");
-        const store = transaction.objectStore("books");
-        store.get(name).onsuccess = (e) => {
-            if (e.target.result && e.target.result.data) {
-                const file = e.target.result.data;
-                const a = document.createElement('a');
-                a.href = URL.createObjectURL(file);
-                a.download = name;
-                a.click();
-                setTimeout(() => URL.revokeObjectURL(a.href), 100);
-            }
-        };
-    }
+            // ---- Descargar y mostrar una sesión ----
+            const downloadSession = useCallback(async (session) => {
+                setSelectedSession(session);
+                setLoading(true);
+                setError('');
+                setInfo('');
+                try {
+                    const sessionKey = session.session_key;
+                    const year = session.year;
+                    const compact = await getSessionData(
+                        sessionKey,
+                        year,
+                        rateLimiter,
+                        useRateLimiter,
+                        yearDriversCache
+                    );
+                    setCompactData(compact);
+                    setSnapshotIndex(0);
+                    setInfo(`✅ Datos cargados (${compact.snapshots.length} snapshots, ${Object.keys(compact.drivers).length} pilotos)`);
 
-    function loadFromLibrary(name) {
-        const transaction = db.transaction(["books"], "readonly");
-        const store = transaction.objectStore("books");
-        store.get(name).onsuccess = (e) => {
-            if (e.target.result) {
-                processAudioFile(e.target.result.data);
-                timerMsg.textContent = "Cargando de memoria...";
-                setTimeout(() => timerMsg.textContent = "", 2000);
-            }
-        };
-    }    function processAudioFile(file) {
-        const ui = document.getElementById('player-ui-container');
-        const coverArt = document.getElementById('cover-art');
-        
-        // 1. Efecto de transición suave en la carátula
-        if (coverArt.src && coverArt.src.startsWith('data')) {
-            coverArt.style.filter = 'blur(20px) brightness(0.6)';
-            coverArt.style.transform = 'scale(0.9) translateY(10px)';
-        } else {
-            ui.style.opacity = '0';
-            document.getElementById('cover-container').style.display = 'none';
-        }
-
-        titleEl.textContent = "Sincronizando...";
-        document.getElementById('author').textContent = "Leyendo metadatos...";        playPauseBtn.innerHTML = '<i class="material-icons" style="font-size: 2.5rem;">play_arrow</i>';
-        playPauseBtn.classList.remove('playing');        setTimeout(() => {
-            ui.style.display = 'block';
-            document.querySelector('.player-container').classList.add('player-active');
-            document.getElementById('library-list').classList.add('player-active');
-            currentFileName = file.name;
-            fileLabel.textContent = "Libro: " + (currentFileName.length > 15 ? currentFileName.substring(0,12) + "..." : currentFileName);            // 1. Limpiar nombre del archivo (quitar extensión)
-            const fileNameNoExt = currentFileName.replace(/\.[^/.]+$/, "");
-            
-            // 2. Lógica de separación: Título - Artista
-            let displayTitle = fileNameNoExt;
-            let displayArtist = "Autor Desconocido";
-
-            if (fileNameNoExt.includes("-")) {
-                const parts = fileNameNoExt.split("-");
-                displayTitle = parts[0].trim();
-                displayArtist = parts[1].trim();
-            }            // Aplicar al UI (asegurando limpieza de la extensión .mp3)
-            titleEl.textContent = displayTitle.toUpperCase();
-            document.getElementById('author').textContent = displayArtist;
-            
-            // Ocultar mini-reproductor si estuviera visible y actualizar datos iniciales
-            const miniPlayer = document.getElementById('mini-player');
-            if(miniPlayer) miniPlayer.classList.remove('visible');
-            document.body.classList.remove('has-mini-player');
-            
-            const miniTitle = document.getElementById('mini-title');
-            if(miniTitle) miniTitle.textContent = displayTitle;
-            const miniAuthor = document.getElementById('mini-author');
-            if(miniAuthor) miniAuthor.textContent = displayArtist;
-            const miniThumb = document.getElementById('mini-player-thumb');
-            if(miniThumb) miniThumb.src = '';
-
-            try {
-                window.jsmediatags.read(file, {
-                    onSuccess: function(tag) {
-                        let { title, artist, picture } = (tag && tag.tags) || {};
-                        let artworkUrl = '';
-                        
-                        if (title) {
-                            title = title.replace(/\.[^/.]+$/, "");
-                            if (title.includes("-") && (!artist || artist === "Autor Desconocido")) {
-                                const tParts = title.split("-");
-                                title = tParts[0].trim();
-                                artist = tParts[1].trim();
-                            }
-                            titleEl.textContent = title.toUpperCase();
-                        }
-                        
-                        if (artist) document.getElementById('author').textContent = artist;                        if (picture) {
-                            const { data, format } = picture;
-                            let base64String = "";
-                            for (let i = 0; i < data.length; i++) base64String += String.fromCharCode(data[i]);
-                            artworkUrl = "data:" + format + ";base64," + window.btoa(base64String);                            const img = document.getElementById('cover-art');
-                            img.src = artworkUrl;
-                            const miniThumb = document.getElementById('mini-player-thumb');
-                            if(miniThumb) miniThumb.src = artworkUrl;
-                            document.getElementById('cover-container').style.display = 'block';                            // Efecto Camaleón Unificado: Muestreo de color dominante real
-                            img.onload = function() {
-                                // Restauramos la nitidez de la nueva carátula
-                                img.style.filter = 'blur(0px)';
-                                img.style.transform = 'scale(1) translateY(0)';
-                                try {
-                                    const canvas = document.createElement('canvas');
-                                    const ctx = canvas.getContext('2d');
-                                    canvas.width = 50; canvas.height = 50;
-                                    ctx.drawImage(img, 0, 0, 50, 50);
-                                    const data = ctx.getImageData(0, 0, 50, 50).data;
-                                    let counts = {}, maxCount = 0;
-                                    let domR = 0, domG = 0, domB = 0;
-                                    for (let i = 0; i < data.length; i += 16) {
-                                        if (data[i+3] < 128) continue;
-                                        let cR = Math.round(data[i]/16)*16, cG = Math.round(data[i+1]/16)*16, cB = Math.round(data[i+2]/16)*16;
-                                        // Ignorar grises desaturados para evitar un UI aburrido (buscamos un tema vibrante)
-                                        if (Math.abs(cR-cG)<20 && Math.abs(cG-cB)<20 && Math.abs(cR-cB)<20) continue;
-                                        let key = cR+','+cG+','+cB;
-                                        counts[key] = (counts[key] || 0) + 1;
-                                        if (counts[key] > maxCount) {
-                                            maxCount = counts[key];
-                                            domR = data[i]; domG = data[i+1]; domB = data[i+2];
-                                        }
-                                    }
-                                    if(maxCount === 0) { domR = Math.random()*255; domG = Math.random()*255; domB = Math.random()*255; }
-                                    
-                                    let r = domR/255, g = domG/255, b = domB/255;
-                                    let max = Math.max(r, g, b), min = Math.min(r, g, b);
-                                    let h, s, l = (max + min) / 2;
-                                    if (max === min) h = s = 0; 
-                                    else {
-                                        let diff = max - min;
-                                        s = l > 0.5 ? diff / (2 - max - min) : diff / (max + min);
-                                        if (max === r) h = (g - b) / diff + (g < b ? 6 : 0);
-                                        else if (max === g) h = (b - r) / diff + 2;
-                                        else h = (r - g) / diff + 4;
-                                        h /= 6;
-                                    }                                    // Normalización Progresiva: Optimiza el rango de color para que los cambios sean vibrantes y fluidos
-                                    // Al ajustar H, S y L de forma dinámica, la transición entre libros es mucho más rica visualmente
-                                    let finalH = isNaN(h) ? 0.58 : h;
-                                    let finalS = isNaN(s) ? 0.85 : Math.min(Math.max(s, 0.75), 0.9); // Saturación más alta para colores vivos
-                                    let finalL = isNaN(l) ? 0.6 : Math.min(Math.max(l, 0.55), 0.65); // Brillo equilibrado
-
-                                    const hslToHex = (h, s, l) => {
-                                        const f = (p, q, t) => {
-                                            if (t < 0) t += 1; if (t > 1) t -= 1;
-                                            if (t < 1/6) return p + (q - p) * 6 * t;
-                                            if (t < 1/2) return q;
-                                            if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
-                                            return p;
-                                        };
-                                        const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-                                        const p = 2 * l - q;
-                                        const toHex = x => Math.round(x * 255).toString(16).padStart(2, '0');
-                                        return `#${toHex(f(p,q,h+1/3))}${toHex(f(p,q,h))}${toHex(f(p,q,h-1/3))}`;
-                                    };                                    setThemeColor(hslToHex(finalH, finalS, finalL), false);
-                                    // Guardar en caché para el próximo clic en este libro
-                                    if (currentFileName) bookColorCache[currentFileName] = hslToHex(finalH, finalS, finalL);
-                                } catch (e) { console.error("Error en Chameleon Unificado:", e); }
-                            };                        } else {
-                            artworkUrl = generateRandomWaves();
-                            const img = document.getElementById('cover-art');
-                            img.src = artworkUrl;
-                            const miniThumb = document.getElementById('mini-player-thumb');
-                            if(miniThumb) miniThumb.src = artworkUrl;
-                            document.getElementById('cover-container').style.display = 'block';
-                        }
-
-                        // Integración con Media Session API (Controles de sistema)
-                        if ('mediaSession' in navigator) {
-                            navigator.mediaSession.metadata = new MediaMetadata({
-                                title: titleEl.textContent,
-                                artist: document.getElementById('author').textContent,
-                                album: 'Audiolibro',
-                                artwork: artworkUrl ? [{ src: artworkUrl, sizes: '512x512', type: 'image/png' }] : []
+                    // Posiciones para el mapa
+                    const locs = await loadSessionData(sessionKey); // ya tiene location si estaba en caché
+                    // Si no, podemos obtener location de la caché o descargar de nuevo
+                    // Como ya tenemos location en el compact, pero no las posiciones actuales,
+                    // podemos intentar cargar location desde la API si no las tenemos.
+                    // Por simplicidad, usamos las que tenemos en el compact (trackPoints no da posiciones de coches)
+                    // En la versión anterior, cargábamos carPositions desde location. Aquí no lo hacemos.
+                    // Pero podemos volver a pedir location si queremos las posiciones actuales.
+                    // Lo dejamos como estaba: si hay location, se guarda en compact, pero no tenemos carPositions.
+                    // Para mantener funcionalidad, cargamos carPositions desde location si existe.
+                    try {
+                        if (useRateLimiter) await rateLimiter.waitForSlot();
+                        const locationData = await fetchAPI('/location', { session_key: sessionKey });
+                        if (locationData && locationData.length > 0) {
+                            const latest = {};
+                            locationData.forEach(l => {
+                                if (!latest[l.driver_number] || new Date(l.date) > new Date(latest[l.driver_number].date)) {
+                                    latest[l.driver_number] = l;
+                                }
                             });
+                            const posMap = {};
+                            Object.entries(latest).forEach(([num, pos]) => {
+                                posMap[num] = { x: pos.x, y: pos.y };
+                            });
+                            setCarPositions(posMap);
                         }
-                    },                    onError: () => { 
-                        document.getElementById('author').textContent = "Reproductor Local";
-                        const miniAuthor = document.getElementById('mini-author');
-                        if(miniAuthor) miniAuthor.textContent = "Reproductor Local";
-                        
-                        const waveUrl = generateRandomWaves();
-                        const img = document.getElementById('cover-art');
-                        img.src = waveUrl;
-                        const miniThumb = document.getElementById('mini-player-thumb');
-                        if(miniThumb) miniThumb.src = waveUrl;
-                        
-                        document.getElementById('cover-container').style.display = 'block';
+                    } catch (e) {
+                        console.warn('No se pudieron obtener ubicaciones para el mapa:', e);
                     }
-                });
-            } catch (e) {}            if (window.currentAudioURL) {
-                URL.revokeObjectURL(window.currentAudioURL);
-            }
-            window.currentAudioURL = URL.createObjectURL(file);
-            audio.src = window.currentAudioURL;
-            audio.load();            // Preparar UI de capítulos
-            const chapWrapper = document.getElementById('chapters-wrapper-ui');
-            const chapBox = document.getElementById('chapters-list-box');
-            const chapStatus = document.getElementById('chapters-status-title');
-            if(chapWrapper && chapBox) {
-                chapStatus.innerText = 'Analizando estructura...';
-                chapBox.innerHTML = '<div style="padding:15px; color:#888; text-align:center; font-size:0.85rem;"><i class="material-icons" style="font-size:18px; vertical-align:middle; margin-right:5px; animation: pulse 1.5s infinite;">hourglass_empty</i>Leyendo binarios...</div>';
-            }
-            
-            setTimeout(() => { if(typeof analyzeChaptersBinary === 'function') analyzeChaptersBinary(file); }, 200);
-            
-            // Mostrar la fila de ajustes rápidos al cargar un archivo
-            document.getElementById('quick-settings-row').style.display = 'flex';        playPauseBtn.innerHTML = '<i class="material-icons" style="font-size: 2.5rem;">play_arrow</i>';
-        playPauseBtn.classList.remove('playing');
-
-            const savedTime = localStorage.getItem('audiobook_progress_' + currentFileName);
-            // Cargar progreso desde IndexedDB primero (más fiable), con fallback a localStorage
-            dbGet("progress", currentFileName).then(entry => {
-                const idbTime = entry ? entry.time : null;
-                const lsTime = savedTime ? parseFloat(savedTime) : null;
-                // Usar el tiempo más alto de los dos (mayor progreso guardado)
-                const restoreTime = idbTime !== null ? idbTime : lsTime;
-                if (restoreTime && restoreTime > 0) {
-                    audio.currentTime = restoreTime;
+                } catch (e) {
+                    setError(`❌ Error: ${e.message}`);
                 }
-            }).catch(() => {
-                if (savedTime) audio.currentTime = parseFloat(savedTime);
-            });
+                setLoading(false);
+            }, [rateLimiter, useRateLimiter, yearDriversCache]);
 
-            // Volver a mostrar suavemente
-            ui.style.opacity = '1';
-        }, 300);
-    }
+            // ---- Control de reproducción ----
+            useEffect(() => {
+                if (!compactData || !isPlaying) return;
+                if (timerRef.current) clearInterval(timerRef.current);
+                const interval = 4000 / speed;
+                timerRef.current = setInterval(() => {
+                    setSnapshotIndex(prev => {
+                        if (prev < compactData.snapshots.length - 1) return prev + 1;
+                        setIsPlaying(false);
+                        return prev;
+                    });
+                }, interval);
+                return () => {
+                    if (timerRef.current) clearInterval(timerRef.current);
+                };
+            }, [isPlaying, speed, compactData]);
 
-    fileInput.addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            saveToLibrary(file);
-            processAudioFile(file);
+            const playPause = () => setIsPlaying(!isPlaying);
+            const stop = () => { setIsPlaying(false); setSnapshotIndex(0); };
+            const prevSnapshot = () => setSnapshotIndex(prev => Math.max(0, prev - 1));
+            const nextSnapshot = () => setSnapshotIndex(prev => Math.min(compactData?.snapshots?.length - 1 || 0, prev + 1));
+
+            // ---- Render ----
+            const currentSnapshot = compactData?.snapshots?.[snapshotIndex] || null;
+            const drivers = currentSnapshot?.d || [];
+            const totalSnapshots = compactData?.snapshots?.length || 0;
+
+            return (
+                <div>
+                    <header className="app-header">
+                        <h1>🏁 <span>F1</span> Timing</h1>
+                        <div className="header-controls">
+                            <div className="mode-selector">
+                                <button className={`mode-btn ${mode === 'offline' ? 'active' : ''}`} onClick={() => setMode('offline')}>📼 Offline</button>
+                                <button className={`mode-btn ${mode === 'online' ? 'active' : ''}`} onClick={() => setMode('online')}>📡 Online</button>
+                            </div>
+                            <div className="status-badge">
+                                <span className={`dot ${mode === 'offline' ? 'green' : 'orange'}`}></span>
+                                {mode === 'offline' ? (isPlaying ? 'Reproduciendo' : 'Pausado') : 'En directo (WS)'}
+                            </div>
+                        </div>
+                    </header>
+
+                    <div className="rate-limit-bar">
+                        <span className="status">{rateStatus}</span>
+                        <span className="count">{rateCount} peticiones/min</span>
+                        <div className="switch">
+                            <label>
+                                <input type="checkbox" checked={useRateLimiter} onChange={(e) => setUseRateLimiter(e.target.checked)} />
+                                Modo Free
+                            </label>
+                        </div>
+                        {rateWaiting && <span style={{ color: '#ffaa00', fontSize: '0.8rem' }}>⏳ Esperando...</span>}
+                        {preloading && <span className="preload-indicator">⏳ Precargando sesión...</span>}
+                        {preloadDone && !preloading && <span className="preload-indicator" style={{ color: '#4caf50' }}>✅ Precargado</span>}
+                    </div>
+
+                    <div className="selector-panel">
+                        <label>Año
+                            <select id="yearSelect" value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)}>
+                                <option value="">Todos</option>
+                                <option value="2024">2024</option>
+                                <option value="2023">2023</option>
+                                <option value="2025">2025</option>
+                            </select>
+                        </label>
+                        <label>País
+                            <input type="text" id="countryInput" placeholder="Ej: Spain" style={{ background: '#2a2a2a', border: '1px solid #444', color: '#fff', padding: '8px 12px', borderRadius: '6px', width: '140px' }} />
+                        </label>
+                        <label>Tipo
+                            <select id="typeSelect">
+                                <option value="">Todos</option>
+                                <option value="Race">Race</option>
+                                <option value="Qualifying">Qualifying</option>
+                                <option value="Practice">Practice</option>
+                            </select>
+                        </label>
+                        <button onClick={() => {
+                            const year = document.getElementById('yearSelect').value;
+                            const country = document.getElementById('countryInput').value.trim();
+                            const type = document.getElementById('typeSelect').value;
+                            loadSessions(year, country, type);
+                        }} disabled={loading || rateWaiting}>
+                            {loading ? 'Cargando...' : 'Buscar sesiones'}
+                        </button>
+                    </div>
+
+                    {sessions.length > 0 && (
+                        <div className="session-list">
+                            {sessions.slice(0, 30).map(s => (
+                                <span key={s.session_key} className={`session-item ${selectedSession?.session_key === s.session_key ? 'active' : ''}`}
+                                    onClick={() => downloadSession(s)}>
+                                    {s.country_name} {s.session_name} ({s.year})
+                                </span>
+                            ))}
+                            {sessions.length > 30 && <span style={{ color: '#888', fontSize: '0.8rem', padding: '6px' }}>+{sessions.length - 30} más</span>}
+                        </div>
+                    )}
+
+                    {error && <div className="error-message">{error}</div>}
+                    {info && <div className="info-message">{info}</div>}
+                    {loading && <div className="loading-message"><span>🏎️</span> Descargando...</div>}
+
+                    {compactData && currentSnapshot && (
+                        <>
+                            <div className="race-status">
+                                <span>🏁 <span className="flag">{selectedSession?.country_name} {selectedSession?.session_name}</span></span>
+                                <span>Vuelta {currentSnapshot.lap} / {totalSnapshots}</span>
+                                <span>⏱ {mode === 'offline' ? (isPlaying ? '▶ Reproduciendo' : '⏸ Pausado') : '📡 En directo'}</span>
+                            </div>
+
+                            {mode === 'offline' && (
+                                <div className="playback-controls">
+                                    <button onClick={prevSnapshot}>⏮</button>
+                                    <button onClick={playPause}>{isPlaying ? '⏸' : '▶️'}</button>
+                                    <button onClick={stop}>⏹</button>
+                                    <button onClick={nextSnapshot}>⏭</button>
+                                    <span className="lap-info">Snapshot {snapshotIndex + 1} / {totalSnapshots}</span>
+                                    <div style={{ display: 'flex', gap: '4px', marginLeft: '12px' }}>
+                                        {[0.5, 1, 2, 4].map(s => (
+                                            <button key={s} className={`speed-btn ${speed === s ? 'active' : ''}`} onClick={() => setSpeed(s)}>{s}×</button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="map-controls">
+                                <button className={showMap ? 'active' : ''} onClick={() => setShowMap(!showMap)}>
+                                    {showMap ? '🗺️ Ocultar mapa' : '🗺️ Mostrar mapa'}
+                                </button>
+                                {Object.keys(carPositions).length > 0 && <span style={{ color: '#aaa', fontSize: '0.8rem' }}>{Object.keys(carPositions).length} coches</span>}
+                            </div>
+                            {showMap && compactData.trackPoints && compactData.trackPoints.length > 0 && (
+                                <div className="map-container">
+                                    <TrackMap
+                                        trackPoints={compactData.trackPoints}
+                                        carPositions={carPositions}
+                                        driverMap={compactData.drivers}
+                                    />
+                                    <div className="map-legend">
+                                        <span style={{ color: '#aaa', fontSize: '0.7rem' }}>🟦 Trazado</span>
+                                        {Object.entries(compactData.drivers).slice(0, 5).map(([num, info]) => (
+                                            <span key={num} className="item">
+                                                <span className="dot" style={{ background: info.c }}></span>
+                                                {info.a}
+                                            </span>
+                                        ))}
+                                        {Object.keys(compactData.drivers).length > 5 && <span>+{Object.keys(compactData.drivers).length - 5}</span>}
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="table-wrapper">
+                                <table>
+                                    <thead><tr><th>#</th><th>Piloto</th><th>Intervalo</th><th>Gap líder</th></tr></thead>
+                                    <tbody>
+                                        {drivers.map((d, idx) => {
+                                            const info = compactData.drivers[d.n] || { a: `#${d.n}`, c: '#888' };
+                                            return (
+                                                <tr key={d.n || idx} className={d.p > 10 ? 'inactive' : ''}>
+                                                    <td className="pos">{d.p}</td>
+                                                    <td><div className="driver-name"><span className="driver-color" style={{ background: info.c }}></span><span className="driver-acronym">{info.a}</span></div></td>
+                                                    <td><div className="gap-to-leader">{d.g !== null && d.g !== undefined ? `${d.g}s` : '--'}</div><div className="interval" style={{ fontSize: '0.7rem', color: '#777' }}>{d.i !== null && d.i !== undefined ? `(± ${d.i}s)` : ''}</div></td>
+                                                    <td>{d.g !== null && d.g !== undefined ? `${d.g}s` : '--'}</td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </>
+                    )}
+                </div>
+            );
         }
-    });    audio.onloadedmetadata = () => {
-        progressBar.max = Math.floor(audio.duration);
-        updateDurationDisplay();
-        updateProgressFill();
-        if ('mediaSession' in navigator) {
-            navigator.mediaSession.setPositionState({
-                duration: audio.duration,
-                playbackRate: audio.playbackRate,
-                position: audio.currentTime
-            });
-        }
-    };    // Configuración de controles remotos optimizada para móviles
-    if ('mediaSession' in navigator) {
-        navigator.mediaSession.setActionHandler('play', () => audio.play());
-        navigator.mediaSession.setActionHandler('pause', () => audio.pause());
-        // Mapeamos avanzar/retroceder a botones de pista para asegurar visibilidad en la notificación
-        navigator.mediaSession.setActionHandler('previoustrack', () => skip(-10));        navigator.mediaSession.setActionHandler('nexttrack', () => {
-            const isTimerMode = document.getElementById('next-as-timer').checked;
-            if (isTimerMode) {
-                // Si el temporizador no está activo, lo iniciamos en 5 min
-                if (timerTotalSeconds <= 0) {
-                    setTimer(5); 
-                    timerMsg.textContent = "TIMER INICIADO: 5 MIN ⏱️";
-                } else {
-                    // Si ya está corriendo, sumamos 5 minutos a la global
-                    timerTotalSeconds += 300;
-                    timerMsg.textContent = "+5 MIN (TOTAL: " + Math.ceil(timerTotalSeconds/60) + " min) 🎧";
+
+        // ================================================================
+        // 7. COMPONENTE MAPA
+        // ================================================================
+        function TrackMap({ trackPoints, carPositions, driverMap }) {
+            const canvasRef = useRef(null);
+            useEffect(() => {
+                const canvas = canvasRef.current;
+                if (!canvas) return;
+                const ctx = canvas.getContext('2d');
+                const rect = canvas.parentElement.getBoundingClientRect();
+                const width = rect.width || 600;
+                const height = Math.min(width * 0.6, 400);
+                canvas.width = width * 2;
+                canvas.height = height * 2;
+                canvas.style.width = width + 'px';
+                canvas.style.height = height + 'px';
+                ctx.scale(2, 2);
+                ctx.clearRect(0, 0, width, height);
+
+                if (!trackPoints || trackPoints.length < 3) {
+                    ctx.fillStyle = '#666';
+                    ctx.font = '16px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('Datos de ubicación no disponibles', width/2, height/2);
+                    return;
                 }
-                
-                if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
-                
-                // Feedback visual breve antes de volver a la cuenta atrás normal
-                setTimeout(() => {
-                    if (timerTotalSeconds <= 0) timerMsg.textContent = "";
-                }, 2500);
-            } else {
-                skip(10);
-            }
-        });
-        navigator.mediaSession.setActionHandler('seekbackward', (details) => skip(details.seekOffset || -10));
-        navigator.mediaSession.setActionHandler('seekforward', (details) => skip(details.seekOffset || 10));
-        navigator.mediaSession.setActionHandler('stop', () => { audio.pause(); audio.currentTime = 0; });
-    }
 
-    function togglePlay() {
-        if (!audio.src) {
-            alert("Por favor, selecciona primero un archivo de audio.");
-            return;
-        }
-        audio.paused ? audio.play() : audio.pause();
-    }    // Sincronización de estado de reproducción con el Sistema Operativo
-    audio.onplay = () => {
-        playPauseBtn.innerHTML = '<i class="material-icons" style="font-size: 2.5rem;">pause</i>';
-        playPauseBtn.classList.add('playing');
-        const miniBtn = document.getElementById('mini-play-btn');
-        if(miniBtn) miniBtn.innerHTML = '<i class="material-icons" style="font-size: 32px;">pause</i>';
-        if ('mediaSession' in navigator) navigator.mediaSession.playbackState = "playing";
-    };
-
-    audio.onpause = () => {
-        playPauseBtn.innerHTML = '<i class="material-icons" style="font-size: 2.5rem;">play_arrow</i>';
-        playPauseBtn.classList.remove('playing');
-        const miniBtn = document.getElementById('mini-play-btn');
-        if(miniBtn) miniBtn.innerHTML = '<i class="material-icons" style="font-size: 32px;">play_arrow</i>';
-        if ('mediaSession' in navigator) navigator.mediaSession.playbackState = "paused";
-        saveProgress();
-    };    // Función para "pintar" la línea de progreso
-    function updateProgressFill() {
-        if (!audio.duration) return;
-        const percentage = (audio.currentTime / audio.duration) * 100;
-        progressBar.style.background = `linear-gradient(to right, var(--color-principal) ${percentage}%, #333 ${percentage}%)`;
-    }
-
-    // 2. Guardado automático de progreso y actualización visual
-    audio.ontimeupdate = () => {
-        progressBar.value = Math.floor(audio.currentTime);
-        currentTimeEl.textContent = formatTime(audio.currentTime);
-        updateDurationDisplay();
-        updateProgressFill();
-
-        if (chapterStopPoint && audio.currentTime >= chapterStopPoint) {
-            audio.pause();
-            chapterStopPoint = null;
-            if (timerMsg) timerMsg.textContent = "Pausado por fin de capítulo";
-            if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
-        }
-        
-        if(currentFileName && !audio.paused) {
-            saveProgress();
-        }
-    };
-
-    function saveProgress() {
-        if (!currentFileName) return;
-        // Guardar progreso en IndexedDB (persistencia absoluta)
-        dbPut("progress", { name: currentFileName, time: audio.currentTime, saved: Date.now() })
-            .catch(e => console.warn("Error guardando progreso:", e));
-        // Guardar último libro activo
-        dbPut("settings", { key: "lastBook", value: currentFileName })
-            .catch(e => console.warn("Error guardando lastBook:", e));
-        // Mantener localStorage como fallback secundario
-        try { localStorage.setItem('audiobook_progress_' + currentFileName, audio.currentTime); } catch(e) {}
-    }
-
-    progressBar.oninput = () => {
-        if (document.getElementById('lock-seek').checked) {
-            progressBar.value = Math.floor(audio.currentTime);
-            return;
-        }
-        audio.currentTime = progressBar.value;
-        updateProgressFill();
-    };
-
-    function skip(seconds) {
-        audio.currentTime += seconds;
-    }    function openSpeedModal() { 
-        const modal = document.getElementById('speed-bottom-modal');
-        const content = document.getElementById('speed-content');
-        modal.style.display = 'flex'; 
-        content.style.transform = 'translateY(0)';
-    }
-    
-    function closeSpeedModal() { 
-        const modal = document.getElementById('speed-bottom-modal');
-        const content = document.getElementById('speed-content');
-        content.style.transform = 'translateY(100%)';
-        setTimeout(() => { modal.style.display = 'none'; }, 300);
-    }
-
-    function setSpeed(value) {
-        audio.playbackRate = value;
-        document.getElementById('speed-display').textContent = value + 'x';
-        document.getElementById('speed-display').style.color = value === 1 ? 'rgba(255,255,255,0.5)' : 'var(--color-principal)';
-        closeSpeedModal();
-    }
-
-    function openTimerModal() { 
-        const modal = document.getElementById('timer-bottom-modal');
-        const content = document.getElementById('timer-content');
-        modal.style.display = 'flex'; 
-        content.style.transform = 'translateY(0)';
-    }
-    
-    function closeTimerModal() { 
-        const modal = document.getElementById('timer-bottom-modal');
-        const content = document.getElementById('timer-content');
-        content.style.transform = 'translateY(100%)';
-        setTimeout(() => { modal.style.display = 'none'; }, 300);
-    }    // Lógica de deslizamiento para cerrar (Temporizador y Velocidad)
-    document.addEventListener('DOMContentLoaded', () => {
-        const setupSwipeClose = (handleId, contentId, closeFn) => {
-            const handle = document.getElementById(handleId);
-            const content = document.getElementById(contentId);
-            let startY = 0;
-            let currentY = 0;
-
-            if(handle) {
-                handle.addEventListener('touchstart', (e) => {
-                    startY = e.touches[0].clientY;
-                    content.style.transition = 'none';
-                }, {passive: true});
-
-                handle.addEventListener('touchmove', (e) => {
-                    currentY = e.touches[0].clientY;
-                    const deltaY = currentY - startY;
-                    if (deltaY > 0) {
-                        content.style.transform = `translateY(${deltaY}px)`;
-                    }
-                }, {passive: true});
-
-                handle.addEventListener('touchend', () => {
-                    content.style.transition = 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
-                    const deltaY = currentY - startY;
-                    if (deltaY > 100) {
-                        closeFn();
-                    } else {
-                        content.style.transform = 'translateY(0)';
-                    }
-                    startY = 0; currentY = 0;
+                let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+                trackPoints.forEach(p => {
+                    if (p.x < minX) minX = p.x;
+                    if (p.x > maxX) maxX = p.x;
+                    if (p.y < minY) minY = p.y;
+                    if (p.y > maxY) maxY = p.y;
                 });
-            }
-        };        setupSwipeClose('timer-handle', 'timer-content', closeTimerModal);
-        setupSwipeClose('speed-handle', 'speed-content', closeSpeedModal);
-        setupSwipeClose('chapters-handle', 'chapters-content', closeChaptersModal);
-    });
+                const padding = 20;
+                const scale = Math.min((width - padding * 2) / (maxX - minX || 1), (height - padding * 2) / (maxY - minY || 1));
+                const offsetX = (width - (maxX - minX) * scale) / 2 - minX * scale;
+                const offsetY = (height - (maxY - minY) * scale) / 2 - minY * scale;
+                const transform = (x, y) => ({ cx: x * scale + offsetX, cy: y * scale + offsetY });
 
-    function openChaptersModal() {
-        if (!audio.src) {
-            alert("Por favor, selecciona primero un archivo de audio.");
-            return;
-        }
-        const modal = document.getElementById('chapters-wrapper-ui');
-        const content = document.getElementById('chapters-content');
-        modal.style.display = 'flex';
-        content.style.transform = 'translateY(0)';
-    }
-    
-    function closeChaptersModal() {
-        const modal = document.getElementById('chapters-wrapper-ui');
-        const content = document.getElementById('chapters-content');
-        content.style.transform = 'translateY(100%)';
-        setTimeout(() => { modal.style.display = 'none'; }, 300);
-    }    function setTimer(minutes) {
-        clearTimeout(sleepTimerTimeout);
-        clearInterval(sleepTimerInterval);
-        chapterStopPoint = null;
-        closeTimerModal();
-        
-        const timerIcon = document.getElementById('timer-icon');
+                ctx.beginPath();
+                ctx.strokeStyle = '#2a5a7a';
+                ctx.lineWidth = 2.5;
+                trackPoints.forEach((p, i) => {
+                    const { cx, cy } = transform(p.x, p.y);
+                    if (i === 0) ctx.moveTo(cx, cy);
+                    else ctx.lineTo(cx, cy);
+                });
+                ctx.stroke();
 
-        if (minutes > 0) {
-            timerTotalSeconds = minutes * 60;
-            timerIcon.querySelector('i').style.color = 'var(--color-principal)';
-
-            const updateUI = () => {
-                const m = Math.floor(timerTotalSeconds / 60);
-                const s = timerTotalSeconds % 60;
-                const timeStr = `${m}:${s < 10 ? '0' : ''}${s}`;
-                timerMsg.textContent = `Pausa en ${timeStr}`;
-                
-                if ('mediaSession' in navigator && navigator.mediaSession.metadata) {
-                    const currentMeta = navigator.mediaSession.metadata;
-                    navigator.mediaSession.metadata = new MediaMetadata({
-                        title: titleEl.textContent + ' (⌛ ' + timeStr + ')',
-                        artist: currentMeta.artist,
-                        album: currentMeta.album,
-                        artwork: currentMeta.artwork
+                if (carPositions) {
+                    Object.entries(carPositions).forEach(([num, pos]) => {
+                        if (!pos) return;
+                        const { cx, cy } = transform(pos.x, pos.y);
+                        const color = driverMap[num]?.c || '#fff';
+                        ctx.beginPath();
+                        ctx.arc(cx, cy, 6, 0, 2 * Math.PI);
+                        ctx.fillStyle = color;
+                        ctx.fill();
+                        ctx.strokeStyle = '#000';
+                        ctx.lineWidth = 1.5;
+                        ctx.stroke();
+                        ctx.fillStyle = '#fff';
+                        ctx.font = 'bold 8px sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'bottom';
+                        ctx.fillText(num, cx, cy - 8);
                     });
                 }
-            };
-
-            updateUI();            sleepTimerInterval = setInterval(() => {
-                timerTotalSeconds--;
-
-                // Bip de advertencia cuando falten exactamente 5 minutos (300 segundos)
-                if (timerTotalSeconds === 300 && document.getElementById('silence-beep').checked) {
-                    playBeep();
-                    if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-                }
-
-                if (timerTotalSeconds <= 0) {
-                    timerTotalSeconds = 0;
-                    clearInterval(sleepTimerInterval);
-                    audio.pause();
-                    playPauseBtn.innerHTML = '<i class="material-icons" style="font-size: 2.5rem;">play_arrow</i>';
-                    timerMsg.textContent = "Zzz...";
-                    timerIcon.querySelector('i').style.color = 'rgba(255,255,255,0.5)';
-                    if ('mediaSession' in navigator) {
-                        navigator.mediaSession.metadata = new MediaMetadata({
-                            title: titleEl.textContent,
-                            artist: document.getElementById('author').textContent
-                        });
-                    }
-                    saveProgress();
-                } else {
-                    updateUI();
-                }
-            }, 1000);
-        } else {
-            timerTotalSeconds = 0;
-            timerMsg.textContent = "";
-            timerIcon.querySelector('i').style.color = 'rgba(255,255,255,0.5)';
-        }
-    }
-
-    function formatTime(seconds) {
-        const hrs = Math.floor(seconds / 3600);
-        const min = Math.floor((seconds % 3600) / 60);
-        const sec = Math.floor(seconds % 60);
-        return `${hrs}:${min < 10 ? '0' + min : min}:${sec < 10 ? '0' + sec : sec}`;
-    }    audio.onerror = () => {
-        if (audio.src) {
-            alert("Error: No se pudo reproducir este archivo.");
-        }
-    };    // Lógica para Audio Plano (Compresión Dinámica) y Detector de Silencio
-    let audioCtx, source, compressor, analyser, dataArray;
-    let lastBeepTime = 0;
-    let silenceInterval;
-
-    function initAudioContext() {
-        if (!audioCtx) {
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            source = audioCtx.createMediaElementSource(audio);
-            
-            // Configuración Compresor
-            compressor = audioCtx.createDynamicsCompressor();
-            compressor.threshold.setValueAtTime(-45, audioCtx.currentTime);
-            compressor.knee.setValueAtTime(30, audioCtx.currentTime);
-            compressor.ratio.setValueAtTime(12, audioCtx.currentTime);
-            compressor.attack.setValueAtTime(0.003, audioCtx.currentTime);
-            compressor.release.setValueAtTime(0.25, audioCtx.currentTime);
-
-            // Analizador para silencio
-            analyser = audioCtx.createAnalyser();
-            analyser.fftSize = 256;
-            dataArray = new Uint8Array(analyser.frequencyBinCount);
-
-            // Conexión inicial estándar
-            source.connect(audioCtx.destination);
-        }
-    }
-
-    function toggleNormalization() {
-        if (!audio.src) { document.getElementById('normalize-vol').checked = false; alert("Carga un audio primero."); return; }
-        initAudioContext();
-
-        const isChecked = document.getElementById('normalize-vol').checked;
-        source.disconnect();
-
-        if (isChecked) {
-            source.connect(compressor);
-            compressor.connect(audioCtx.destination);
-            timerMsg.textContent = "Modo Noche activado.";
-        } else {
-            source.connect(audioCtx.destination);
-            timerMsg.textContent = "Audio normal.";
-        }
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-        setTimeout(() => timerMsg.textContent = "", 3000);
-    }    function toggleSilenceDetection() {
-        initAudioContext();
-        const isEnabled = document.getElementById('silence-beep').checked;
-        
-        if (isEnabled) {
-            timerMsg.textContent = "Aviso de 5 min activado.";
-        } else {
-            timerMsg.textContent = "Aviso desactivado.";
-        }
-        
-        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-        setTimeout(() => timerMsg.textContent = "", 3000);
-    }
-
-    function playBeep() {
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(440, audioCtx.currentTime); // Nota La
-
-        gain.gain.setValueAtTime(0, audioCtx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.1, audioCtx.currentTime + 0.1);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
-
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.7);
-    }    function addMarker(time) {
-        const markerLayer = document.getElementById('marker-layer');
-        const percent = (time / audio.duration) * 100;
-        const marker = document.createElement('div');
-        marker.className = 'beep-marker';
-        marker.style.left = `calc(${percent}% - 1px)`;
-        markerLayer.appendChild(marker);
-    }
-
-    // --- LÓGICA DE GESTOS (MINIMIZAR / MAXIMIZAR REPRODUCTOR) ---
-    function minimizePlayer() {
-        const pContainer = document.querySelector('.player-container');
-        if (pContainer.classList.contains('player-active')) {
-            pContainer.classList.remove('player-active');
-            document.getElementById('library-list').classList.remove('player-active');
-            
-            // Ocultar la UI del reproductor principal explícitamente
-            document.getElementById('player-ui-container').style.display = 'none';
-            document.getElementById('quick-settings-row').style.display = 'none';
-            
-            document.getElementById('mini-player').classList.add('visible');
-            document.body.classList.add('has-mini-player');
-        }
-    }
-
-    function maximizePlayer(event) {
-        if(event) event.stopPropagation();
-        const pContainer = document.querySelector('.player-container');
-        pContainer.classList.add('player-active');
-        document.getElementById('library-list').classList.add('player-active');
-        
-        // Mostrar la UI del reproductor principal de nuevo
-        document.getElementById('player-ui-container').style.display = 'block';
-        document.getElementById('quick-settings-row').style.display = 'flex';
-        
-        document.getElementById('mini-player').classList.remove('visible');
-        document.body.classList.remove('has-mini-player');
-    }
-
-    // Configurar swipe down seguro
-    document.addEventListener('DOMContentLoaded', () => {
-        const swipeArea = document.getElementById('library-container');
-        let startX = 0;
-        let startY = 0;
-        let isDragging = false;
-
-        const handleTouchStart = (e) => {
-            if (!document.querySelector('.player-container').classList.contains('player-active')) return;
-            startX = e.touches[0].clientX;
-            startY = e.touches[0].clientY;
-            isDragging = true;
-        };
-
-        const handleTouchMove = (e) => {
-            if (!isDragging) return;
-            const currentX = e.touches[0].clientX;
-            const currentY = e.touches[0].clientY;
-            const diffX = Math.abs(currentX - startX);
-            const diffY = currentY - startY;
-
-            // Cancelar si el gesto es más horizontal que vertical (evita conflicto al scrollear la librería)
-            if (diffX > diffY) {
-                if (diffX > 15) isDragging = false;
-                return;
-            }
-
-            if (diffY > 65) { 
-                minimizePlayer();
-                isDragging = false;
-            }
-        };
-
-        const handleTouchEnd = () => { isDragging = false; };
-
-        swipeArea.addEventListener('touchstart', handleTouchStart, {passive: true});
-        swipeArea.addEventListener('touchmove', handleTouchMove, {passive: true});
-        swipeArea.addEventListener('touchend', handleTouchEnd);        const uiContainer = document.getElementById('player-ui-container');
-        if(uiContainer) {
-            uiContainer.addEventListener('touchstart', handleTouchStart, {passive: true});
-            uiContainer.addEventListener('touchmove', handleTouchMove, {passive: true});
-            uiContainer.addEventListener('touchend', handleTouchEnd);
-        }
-    });
-
-    // --- MOTOR DE EXTRACCIÓN MAESTRA BINARIA ---
-    async function analyzeChaptersBinary(file) {
-        const chapStatus = document.getElementById('chapters-status-title');
-        const box = document.getElementById('chapters-list-box');
-        if (!file.name.toLowerCase().match(/\.(m4a|m4b|mp4)$/)) {
-            if(chapStatus) chapStatus.innerText = 'Formato sin capítulos binarios';
-            if(box) box.innerHTML = '<div style="padding:15px; color:#666; text-align:center; font-size:0.85rem;">Solo archivos M4B/M4A soportan esta tabla.</div>';
-            return;
-        }
-        try {
-            const mp4box = MP4Box.createFile();
-            const buffer = await file.arrayBuffer();
-            buffer.fileStart = 0;
-
-            mp4box.onReady = (info) => {
-                let parsedList = [];
-                if (info.chapters && info.chapters.length > 0) {
-                    parsedList = info.chapters.map(c => ({
-                        name: c.title,
-                        time: c.start_time / info.timescale
-                    }));
-                } else {
-                    const moov = mp4box.moov;
-                    if (moov) {
-                        const udta = moov.boxes.find(b => b.type === 'udta');
-                        const chpl = udta?.boxes.find(b => b.type === 'chpl');
-                        if (chpl && chpl.chapters) {
-                            parsedList = chpl.chapters.map((c, i) => ({
-                                name: c.title || `Capítulo ${i + 1}`,
-                                time: c.start_time / 10000000
-                            }));
-                        }
-                    }
-                }
-
-                if (parsedList.length === 0) {
-                    const view = new Uint8Array(buffer);
-                    let offset = -1;
-                    for (let i = 0; i < view.length - 4; i++) {
-                        if (view[i] === 99 && view[i+1] === 104 && view[i+2] === 112 && view[i+3] === 108) {
-                            offset = i;
-                            break;
-                        }
-                    }
-                    if (offset !== -1) {
-                        const data = new DataView(buffer);
-                        let pos = offset + 12;
-                        let count = data.getUint8(pos);
-                        if (count === 0 || count > 255) {
-                            pos = offset + 9;
-                            count = data.getUint8(pos);
-                        }
-                        if (count > 0 && count < 500) {
-                            pos++;
-                            for (let i = 0; i < count; i++) {
-                                const timeRaw = Number(data.getBigUint64(pos));
-                                const seconds = timeRaw / 10000000;
-                                pos += 8;
-                                const nameLen = data.getUint8(pos);
-                                pos++;
-                                const nameBytes = new Uint8Array(buffer, pos, nameLen);                                const name = new TextDecoder().decode(nameBytes) || `Capítulo ${i + 1}`;
-                                pos += nameLen;
-                                parsedList.push({ name: name, time: seconds });
-                            }
-                        }
-                    }
-                }
-
-                if (parsedList.length > 0) {
-                    renderChaptersUI(parsedList);
-                } else {
-                    if(chapStatus) chapStatus.innerText = 'Sin capítulos';
-                    if(box) box.innerHTML = '<div style="padding:15px; color:#666; text-align:center; font-size:0.85rem;">No se encontraron marcas de capítulos internas.</div>';
-                }
-            };
-            mp4box.appendBuffer(buffer);
-            mp4box.flush();
-        } catch (err) {
-            console.warn("Error analizando cabeceras:", err);
-            if(chapStatus) chapStatus.innerText = 'Error de lectura';
-            if(box) box.innerHTML = '<div style="padding:15px; color:#ff4757; text-align:center; font-size:0.85rem;">El archivo es demasiado pesado o ilegible.</div>';
-        }
-    }
-
-    function renderChaptersUI(list) {
-        const box = document.getElementById('chapters-list-box');
-        const chapStatus = document.getElementById('chapters-status-title');
-        if (!box) return;
-        if (chapStatus) chapStatus.innerText = `CAPÍTULOS DETECTADOS (${list.length})`;
-        box.innerHTML = '';
-        
-        // Determinar el capítulo actual activo basándonos en el tiempo de reproducción
-        let activeIndex = -1;
-        const curTime = audio.currentTime;
-        for (let i = 0; i < list.length; i++) {
-            const startTime = list[i].time;
-            const endTime = list[i + 1] ? list[i + 1].time : audio.duration;
-            if (curTime >= startTime && curTime < endTime) {
-                activeIndex = i;
-                break;
-            }
+            }, [trackPoints, carPositions, driverMap]);
+            return <canvas ref={canvasRef} style={{ width: '100%', height: 'auto' }} />;
         }
 
-        list.forEach((c, index) => {
-            const div = document.createElement('div');
-            div.className = 'chapter-row-item';
-            
-            // Resaltar visualmente si es el capítulo actual por el que va el usuario
-            if (index === activeIndex) {
-                div.style.background = 'color-mix(in srgb, var(--color-principal), transparent 85%)';
-                div.style.borderLeft = '4px solid var(--color-principal)';
-                div.style.color = '#ffffff';
-                div.style.fontWeight = '700';
-            }
-
-            const formatTime = (secs) => {
-                const h = Math.floor(secs / 3600);
-                const m = Math.floor((secs % 3600) / 60);
-                const s = Math.floor(secs % 60);
-                return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-            };
-
-            div.innerHTML = `<span style="flex:1; padding-right:10px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${c.name}</span>` +
-                            `<span class="ch-time">${formatTime(c.time)}</span>` +
-                            `<button class="stop-ch-btn" style="padding:4px 0 4px 12px; margin:0; color:${chapterStopPoint === (list[index+1]?.time || audio.duration) ? 'var(--color-principal)' : '#666'};" title="Detener al finalizar"><i class="material-icons" style="font-size:18px;">flag</i></button>`;
-
-            div.onclick = () => {
-                if (document.getElementById('lock-seek').checked) return;
-                audio.currentTime = c.time;
-                updateProgressFill();
-                closeChaptersModal();
-            };
-
-            const stopBtn = div.querySelector('.stop-ch-btn');
-            stopBtn.onclick = (e) => {
-                e.stopPropagation();
-                const nextC = list[index + 1];
-                const targetPoint = nextC ? nextC.time : audio.duration;
-
-                if (chapterStopPoint === targetPoint) {
-                    chapterStopPoint = null;
-                    if(timerMsg) timerMsg.textContent = "";
-                    stopBtn.style.color = '#666';
-                    if (navigator.vibrate) navigator.vibrate(30);
-                } else {
-                    chapterStopPoint = targetPoint;
-                    clearTimeout(sleepTimerTimeout);
-                    clearInterval(sleepTimerInterval);
-                    document.getElementById('timer-icon').style.color = '#888';
-                    if(timerMsg) timerMsg.textContent = "Se detendrá al finalizar: " + c.name;
-                    document.querySelectorAll('.stop-ch-btn').forEach(b => b.style.color = '#666');
-                    stopBtn.style.color = 'var(--color-principal)';
-                    if (navigator.vibrate) navigator.vibrate(50);
-                }
-                closeChaptersModal();
-            };
-
-            box.appendChild(div); 
-        });
-        
-        // Agregar evento para actualizar el resaltado en tiempo real mientras el audio avanza
-        audio.removeEventListener('timeupdate', window._updateActiveChapterHighlight);
-        window._updateActiveChapterHighlight = () => {
-            const currentT = audio.currentTime;
-            let currentIdx = -1;
-            for (let i = 0; i < list.length; i++) {
-                const startTime = list[i].time;
-                const endTime = list[i + 1] ? list[i + 1].time : audio.duration;
-                if (currentT >= startTime && currentT < endTime) {
-                    currentIdx = i;
-                    break;
-                }
-            }
-            const rows = box.querySelectorAll('.chapter-row-item');
-            rows.forEach((row, idx) => {
-                if (idx === currentIdx) {
-                    row.style.background = 'color-mix(in srgb, var(--color-principal), transparent 85%)';
-                    row.style.borderLeft = '4px solid var(--color-principal)';
-                    row.style.color = '#ffffff';
-                    row.style.fontWeight = '700';
-                } else {
-                    row.style.background = '';
-                    row.style.borderLeft = '';
-                    row.style.color = '#cccccc';
-                    row.style.fontWeight = '';
-                }
-            });
-        };
-        audio.addEventListener('timeupdate', window._updateActiveChapterHighlight);
-    }
-
-</script>
-
+        // ================================================================
+        // 8. RENDER
+        // ================================================================
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
 </body>
 </html>
