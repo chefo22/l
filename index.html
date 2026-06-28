@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Dashboard · 16:9 con Historial</title>
+    <!-- PWA Meta -->
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkRhc2hib2FyZCAxNjo5IiwKICAic2hvcnRfbmFtZSI6ICJEYXNoYm9hcmQiLAogICJkZXNjcmlwdGlvbiI6ICJEYXNoYm9hcmQgZGUgc3RyZWFtcyBjb24gaGlzdG9yaWFsIiwKICAic3RhcnRfdXJsIjogIi4iLAogICJkaXNwbGF5IjogInN0YW5kYWxvbmUiLAogICJiYWNrZ3JvdW5kX2NvbG9yIjogIiMwYTBhMGEiLAogICJ0aGVtZV9jb2xvciI6ICIjZmJiZDE0IiwKICAiaWNvbnMiOiBbCiAgICB7CiAgICAgICJzcmMiOiAiZGF0YTppbWFnZS9zdmcreG1sLDxzdmcgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJyB2aWV3Qm94PScwIDAgNTEyIDUxMic+PHJlY3Qgd2lkdGg9JzUxMicgaGVpZ2h0PSc1MTInIHJ4PSc2MCcgZmlsbD0nJTBhMGEwYScvPjxwYXRoIGQ9J00yNTYgMTI4Yy03MC43IDAtMTI4IDU3LjMtMTI4IDEyOHM1Ny4zIDEyOCAxMjggMTI4IDEyOC01Ny4zIDEyOC0xMjhTMzI2LjcgMTI4IDI1NiAxMjh6bTAgMjI0Yy01MyAwLTk2LTQzLTk2LTk2czQzLTk2IDk2LTk2IDk2IDQzIDk2IDk2LTQzIDk2LTk2IDk2eicgZmlsbD0nI2ZiYmQxNCcvPjxwYXRoIGQ9J00yNTYgNjRDMzUyIDY0IDQ0OCAxNjAgNDQ4IDI1NnMtOTYgMTkyLTE5MiAxOTJTNjQgMzUyIDY0IDI1NiAxNjAgNjQgMjU2IDY0em0wIDMyYy04OCAwLTE2MCA3Mi0xNjAgMTYwczcyIDE2MCAxNjAgMTYwIDE2MC03MiAxNjAtMTYwUzM0NCA5NiAyNTYgOTZ6JyBmaWxsPScjZmJiZDE0Jy8+PC9zdmc+IgogICAgfQogIF0KfQ==">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='60' fill='%230a0a0a'/%3E%3Cpath d='M256 128c-70.7 0-128 57.3-128 128s57.3 128 128 128 128-57.3 128-128S326.7 128 256 128zm0 224c-53 0-96-43-96-96s43-96 96-96 96 43 96 96-43 96-96 96z' fill='%23fbbd14'/%3E%3Cpath d='M256 64C352 64 448 160 448 256s-96 192-192 192S64 352 64 256 160 64 256 64zm0 32c-88 0-160 72-160 160s72 160 160 160 160-72 160-160S344 96 256 96z' fill='%23fbbd14'/%3E%3C/svg%3E">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        /* ===== ESTILOS EXISTENTES (sin cambios) ===== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             background: #0a0a0a;
             font-family: system-ui, -apple-system, sans-serif;
@@ -20,7 +20,6 @@
             display: flex;
             flex-direction: column;
         }
-
         #dashboard {
             display: flex;
             flex-wrap: wrap;
@@ -29,7 +28,6 @@
             align-content: flex-start;
             align-items: flex-start;
         }
-
         .card {
             position: relative;
             background: #16161e;
@@ -49,7 +47,6 @@
             border-color: #4a4a6a;
             box-shadow: 0 0 0 1px #4a4a6a;
         }
-
         .card-inner {
             position: absolute;
             top: 0;
@@ -63,10 +60,7 @@
             background: #16161e;
             pointer-events: none;
         }
-        .card-inner > * {
-            pointer-events: auto;
-        }
-
+        .card-inner > * { pointer-events: auto; }
         .card-header {
             display: flex;
             align-items: center;
@@ -80,9 +74,7 @@
             flex-shrink: 0;
             touch-action: none;
         }
-        .card-header:active {
-            cursor: grabbing;
-        }
+        .card-header:active { cursor: grabbing; }
         .card-header .label {
             font-size: 0.8rem;
             font-weight: 600;
@@ -125,7 +117,6 @@
         .card-header .controls button.close-btn:hover {
             background: #5a2222;
         }
-
         .card-body {
             flex: 1;
             position: relative;
@@ -160,7 +151,6 @@
             font-size: 2.5rem;
             color: #333;
         }
-
         .resize-handle {
             position: absolute;
             bottom: 0;
@@ -186,7 +176,6 @@
             border-color: #fbbd14;
             opacity: 1;
         }
-
         #minimizedBar {
             position: fixed;
             bottom: 0;
@@ -215,9 +204,7 @@
             transition: background 0.15s;
             user-select: none;
         }
-        #minimizedBar .minimized-item:hover {
-            background: #26263a;
-        }
+        #minimizedBar .minimized-item:hover { background: #26263a; }
         #minimizedBar .minimized-item .label-text {
             color: #fbbd14;
             font-size: 0.8rem;
@@ -233,10 +220,7 @@
             transition: color 0.15s;
             cursor: pointer;
         }
-        #minimizedBar .minimized-item .restore-icon:hover {
-            color: #fbbd14;
-        }
-
+        #minimizedBar .minimized-item .restore-icon:hover { color: #fbbd14; }
         .fab {
             position: fixed;
             bottom: 80px;
@@ -260,10 +244,7 @@
             transform: scale(1.08);
             background: #f5a800;
         }
-        .fab:active {
-            transform: scale(0.92);
-        }
-
+        .fab:active { transform: scale(0.92); }
         .empty-state {
             flex: 1;
             display: none;
@@ -293,7 +274,6 @@
             background: #f5a800;
             transform: scale(1.02);
         }
-
         .card.dragging {
             opacity: 0.4;
             border-color: #fbbd14;
@@ -304,8 +284,6 @@
             background: #1a1a2e;
             box-shadow: 0 0 0 2px #fbbd14;
         }
-
-        /* Historial desplegable */
         .history-panel {
             position: fixed;
             top: 20px;
@@ -325,9 +303,7 @@
             flex-direction: column;
             gap: 8px;
         }
-        .history-panel.open {
-            display: flex;
-        }
+        .history-panel.open { display: flex; }
         .history-panel h3 {
             color: #fbbd14;
             font-size: 0.9rem;
@@ -345,9 +321,7 @@
             cursor: pointer;
             font-size: 0.8rem;
         }
-        .history-panel h3 button:hover {
-            color: #fbbd14;
-        }
+        .history-panel h3 button:hover { color: #fbbd14; }
         .history-item {
             display: flex;
             justify-content: space-between;
@@ -360,9 +334,7 @@
             transition: background 0.15s;
             gap: 8px;
         }
-        .history-item:hover {
-            background: #1a1a2e;
-        }
+        .history-item:hover { background: #1a1a2e; }
         .history-item .h-label {
             color: #ddd;
             font-size: 0.8rem;
@@ -403,7 +375,6 @@
             padding: 16px;
             font-size: 0.9rem;
         }
-
         .history-toggle {
             position: fixed;
             top: 20px;
@@ -426,7 +397,6 @@
             background: #1a1a2e;
             border-color: #4a4a6a;
         }
-
         @media (max-width: 640px) {
             body { padding: 10px; padding-bottom: 70px; }
             .card {
@@ -434,9 +404,7 @@
                 min-width: 0;
                 flex-grow: 1;
             }
-            .resize-handle {
-                display: none;
-            }
+            .resize-handle { display: none; }
             .fab {
                 width: 56px;
                 height: 56px;
@@ -480,16 +448,13 @@
     <span class="material-symbols-outlined" style="font-size:2rem;">add</span>
 </button>
 
-<!-- Barra de minimizados -->
 <div id="minimizedBar"></div>
 
-<!-- Botón historial -->
 <button class="history-toggle" id="historyToggle">
     <span class="material-symbols-outlined" style="font-size:1rem;">history</span>
     Historial
 </button>
 
-<!-- Panel historial -->
 <div class="history-panel" id="historyPanel">
     <h3>
         <span>📺 Historial</span>
@@ -500,6 +465,16 @@
 
 <script>
     (function() {
+        "use strict";
+
+        // ===== REGISTRO DEL SERVICE WORKER =====
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+                .then(reg => console.log('✅ SW registrado:', reg))
+                .catch(err => console.warn('❌ SW falló:', err));
+        }
+
+        // ===== CÓDIGO DE LA APP (sin cambios funcionales) =====
         const dashboard = document.getElementById('dashboard');
         const emptyState = document.getElementById('emptyState');
         const fabAddBtn = document.getElementById('fabAddBtn');
@@ -512,7 +487,7 @@
 
         let cardCounter = 0;
 
-        // ---- HISTORIAL (localStorage) ----
+        // ---- HISTORIAL ----
         const HISTORY_KEY = 'streamHistory';
         let history = [];
 
@@ -533,7 +508,6 @@
 
         function addHistoryEntry(url, label) {
             if (!url || url === 'about:blank') return;
-            // Evitar duplicados exactos (misma URL) - mover al frente
             const existing = history.findIndex(h => h.url === url);
             if (existing !== -1) {
                 const entry = history.splice(existing, 1)[0];
@@ -542,7 +516,7 @@
             } else {
                 history.unshift({ url, label: label || 'Stream', timestamp: Date.now() });
             }
-            if (history.length > 50) history = history.slice(0, 50); // limitar
+            if (history.length > 50) history = history.slice(0, 50);
             saveHistory();
         }
 
@@ -563,7 +537,6 @@
                 </div>
             `).join('');
 
-            // Eventos en items
             historyList.querySelectorAll('.history-item').forEach(el => {
                 const idx = parseInt(el.dataset.index);
                 const item = history[idx];
@@ -588,14 +561,13 @@
             const card = createCard(item.url, item.label);
             dashboard.appendChild(card);
             updateEmptyState();
-            // mover al frente
             const entry = history.splice(index, 1)[0];
             history.unshift(entry);
             saveHistory();
             historyPanel.classList.remove('open');
         }
 
-        // ---- Funciones de UI ----
+        // ---- UI ----
         function updateEmptyState() {
             const cards = dashboard.querySelectorAll('.card:not([style*="display: none"])');
             if (cards.length === 0 && minimizedBar.children.length === 0) {
@@ -952,7 +924,6 @@
                 startDrag(e);
             }, { passive: false });
 
-            // Si hay URL, añadir al historial
             if (url && url !== 'about:blank') {
                 addHistoryEntry(url, label || 'Stream');
             }
@@ -960,7 +931,7 @@
             return card;
         }
 
-        // ---- Añadir stream con prompt ----
+        // ---- Añadir stream ----
         function addStreamFromPrompt() {
             const url = prompt('Introduce la URL del stream:');
             if (url !== null && url.trim() !== '') {
@@ -988,7 +959,6 @@
             }
         });
 
-        // Cerrar panel al hacer clic fuera
         document.addEventListener('click', (e) => {
             if (historyPanel.classList.contains('open')) {
                 if (!historyPanel.contains(e.target) && e.target !== historyToggle && !historyToggle.contains(e.target)) {
@@ -1001,7 +971,6 @@
         loadHistory();
         updateEmptyState();
 
-        // Precarga desde URL
         const params = new URLSearchParams(window.location.search);
         const preUrl = params.get('url');
         if (preUrl) {
@@ -1012,7 +981,7 @@
             }, 300);
         }
 
-        console.log('✅ Dashboard con historial persistente.');
+        console.log('✅ Dashboard PWA con historial persistente.');
     })();
 </script>
 </body>
