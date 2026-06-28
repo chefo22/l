@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Dashboard · Streams 16:9</title>
+    <title>Dashboard · 16:9 Independiente</title>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
     <style>
         * {
@@ -16,39 +16,42 @@
             font-family: system-ui, -apple-system, sans-serif;
             min-height: 100vh;
             padding: 20px;
+            padding-bottom: 80px;
             display: flex;
             flex-direction: column;
         }
 
+        /* ===== LAYOUT FLEXIBLE CON ALTURAS INDEPENDIENTES ===== */
         #dashboard {
             display: flex;
             flex-wrap: wrap;
             gap: 20px;
             flex: 1;
             align-content: flex-start;
+            align-items: flex-start;  /* ← CLAVE: cada tarjeta tiene su propia altura */
         }
 
-        /* Tarjeta con aspect-ratio 16/9 y redimensionable mediante handle */
+        /* Tarjeta con 16:9 fijo e independiente */
         .card {
             position: relative;
             background: #16161e;
             border-radius: 16px;
             border: 1px solid #2a2a3a;
-            overflow: visible;        /* para que el handle no se recorte */
-            min-width: 200px;
-            flex: 0 0 auto;           /* no crece, el ancho lo fijamos con JS */
-            width: 300px;             /* ancho inicial */
-            aspect-ratio: 16 / 9;
+            overflow: visible;
+            min-width: 180px;
+            width: 300px;
+            aspect-ratio: 16 / 9;      /* ← 16:9 siempre, independiente */
             transition: border-color 0.2s, box-shadow 0.2s;
             cursor: default;
-            touch-action: none;       /* evitamos scroll mientras arrastramos */
+            touch-action: none;
+            flex-shrink: 0;
+            flex-grow: 0;             /* no se estiran */
         }
         .card:hover {
             border-color: #4a4a6a;
             box-shadow: 0 0 0 1px #4a4a6a;
         }
 
-        /* Contenedor interno (borde redondeado para el contenido) */
         .card-inner {
             position: absolute;
             top: 0;
@@ -60,13 +63,13 @@
             border-radius: 16px;
             overflow: hidden;
             background: #16161e;
-            pointer-events: none;     /* para que los eventos pasen al handle y header */
+            pointer-events: none;
         }
         .card-inner > * {
-            pointer-events: auto;     /* restauramos eventos en hijos */
+            pointer-events: auto;
         }
 
-        /* Header arrastrable (para reordenar) */
+        /* Header arrastrable */
         .card-header {
             display: flex;
             align-items: center;
@@ -78,7 +81,7 @@
             cursor: grab;
             user-select: none;
             flex-shrink: 0;
-            touch-action: none;       /* para manejar nosotros el arrastre táctil */
+            touch-action: none;
         }
         .card-header:active {
             cursor: grabbing;
@@ -126,7 +129,6 @@
             background: #5a2222;
         }
 
-        /* Cuerpo: iframe */
         .card-body {
             flex: 1;
             position: relative;
@@ -162,18 +164,17 @@
             color: #333;
         }
 
-        /* Handle de redimensionado (esquina inferior derecha) */
+        /* ===== HANDLE DE REDIMENSIONADO ===== */
         .resize-handle {
             position: absolute;
             bottom: 0;
             right: 0;
-            width: 40px;
-            height: 40px;
-            cursor: nw-resize;        /* o se-resize, pero ambos */
+            width: 32px;
+            height: 32px;
+            cursor: nw-resize;
             touch-action: none;
             z-index: 10;
             background: transparent;
-            /* borde visual */
             border-right: 4px solid #888;
             border-bottom: 4px solid #888;
             border-radius: 0 0 14px 0;
@@ -190,10 +191,61 @@
             opacity: 1;
         }
 
-        /* Botón flotante */
+        /* ===== BARRA DE MINIMIZADOS ===== */
+        #minimizedBar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #0f0f18;
+            border-top: 1px solid #2a2a3a;
+            padding: 8px 16px;
+            display: none;
+            gap: 10px;
+            flex-wrap: wrap;
+            z-index: 1000;
+            align-items: center;
+            min-height: 48px;
+            backdrop-filter: blur(6px);
+        }
+        #minimizedBar .minimized-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 12px 4px 8px;
+            background: #1a1a26;
+            border-radius: 20px;
+            border: 1px solid #2a2a3a;
+            cursor: pointer;
+            transition: background 0.15s;
+            user-select: none;
+        }
+        #minimizedBar .minimized-item:hover {
+            background: #26263a;
+        }
+        #minimizedBar .minimized-item .label-text {
+            color: #fbbd14;
+            font-size: 0.8rem;
+            font-weight: 500;
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        #minimizedBar .minimized-item .restore-icon {
+            font-size: 1rem;
+            color: #888;
+            transition: color 0.15s;
+            cursor: pointer;
+        }
+        #minimizedBar .minimized-item .restore-icon:hover {
+            color: #fbbd14;
+        }
+
+        /* ===== BOTÓN FLOTANTE ===== */
         .fab {
             position: fixed;
-            bottom: 30px;
+            bottom: 80px;
             right: 30px;
             background: #fbbd14;
             color: #000;
@@ -208,7 +260,7 @@
             align-items: center;
             justify-content: center;
             transition: 0.2s;
-            z-index: 1000;
+            z-index: 1001;
         }
         .fab:hover {
             transform: scale(1.08);
@@ -218,7 +270,7 @@
             transform: scale(0.92);
         }
 
-        /* Estado vacío */
+        /* ===== ESTADO VACÍO ===== */
         .empty-state {
             flex: 1;
             display: none;
@@ -249,7 +301,7 @@
             transform: scale(1.02);
         }
 
-        /* Clases para drag & drop (reordenamiento) */
+        /* ===== DRAG & DROP ===== */
         .card.dragging {
             opacity: 0.4;
             border-color: #fbbd14;
@@ -261,21 +313,30 @@
             box-shadow: 0 0 0 2px #fbbd14;
         }
 
-        /* Responsive */
+        /* ===== RESPONSIVE ===== */
         @media (max-width: 640px) {
+            body { padding: 10px; padding-bottom: 70px; }
             .card {
-                width: 100% !important;   /* ancho completo en móvil */
+                width: 100% !important;
                 min-width: 0;
+                flex-grow: 1;          /* en móvil se estiran para ocupar */
             }
             .resize-handle {
-                display: none;            /* en móvil no redimensionamos */
+                display: none;
             }
             .fab {
                 width: 56px;
                 height: 56px;
                 font-size: 1.8rem;
-                bottom: 20px;
-                right: 20px;
+                bottom: 70px;
+                right: 16px;
+            }
+            #minimizedBar {
+                padding: 6px 10px;
+                min-height: 44px;
+            }
+            #minimizedBar .minimized-item .label-text {
+                max-width: 100px;
             }
         }
     </style>
@@ -294,19 +355,22 @@
     <span class="material-symbols-outlined" style="font-size:2rem;">add</span>
 </button>
 
+<!-- Barra de minimizados -->
+<div id="minimizedBar"></div>
+
 <script>
     (function() {
         const dashboard = document.getElementById('dashboard');
         const emptyState = document.getElementById('emptyState');
         const fabAddBtn = document.getElementById('fabAddBtn');
         const emptyAddBtn = document.getElementById('emptyAddBtn');
+        const minimizedBar = document.getElementById('minimizedBar');
 
         let cardCounter = 0;
 
-        // ---- Actualizar estado vacío ----
         function updateEmptyState() {
-            const cards = dashboard.querySelectorAll('.card');
-            if (cards.length === 0) {
+            const cards = dashboard.querySelectorAll('.card:not([style*="display: none"])');
+            if (cards.length === 0 && minimizedBar.children.length === 0) {
                 emptyState.style.display = 'flex';
                 dashboard.style.display = 'none';
             } else {
@@ -315,15 +379,65 @@
             }
         }
 
-        // ---- Crear una tarjeta ----
+        // ---- Minimizar / Restaurar ----
+        function minimizeCard(card) {
+            if (card.dataset.minimized === 'true') return;
+            card.dataset.minimized = 'true';
+            card.style.display = 'none';
+
+            const labelEl = card.querySelector('.label');
+            const labelText = labelEl ? labelEl.textContent.trim() : 'Stream';
+
+            const miniItem = document.createElement('div');
+            miniItem.className = 'minimized-item';
+            miniItem.dataset.cardId = card.dataset.id;
+            miniItem.innerHTML = `
+                <span class="material-symbols-outlined" style="font-size:1rem; color:#fbbd14;">play_arrow</span>
+                <span class="label-text">${labelText}</span>
+                <span class="material-symbols-outlined restore-icon">expand_content</span>
+            `;
+            miniItem.addEventListener('click', (e) => {
+                if (e.target.closest('.restore-icon')) return;
+                restoreCard(card);
+            });
+            const restoreIcon = miniItem.querySelector('.restore-icon');
+            restoreIcon.addEventListener('click', (e) => {
+                e.stopPropagation();
+                restoreCard(card);
+            });
+
+            minimizedBar.appendChild(miniItem);
+            minimizedBar.style.display = 'flex';
+            card._miniItem = miniItem;
+
+            updateEmptyState();
+        }
+
+        function restoreCard(card) {
+            if (card.dataset.minimized !== 'true') return;
+            card.dataset.minimized = 'false';
+            card.style.display = '';
+
+            const miniItem = card._miniItem;
+            if (miniItem) {
+                miniItem.remove();
+                delete card._miniItem;
+            }
+            if (minimizedBar.children.length === 0) {
+                minimizedBar.style.display = 'none';
+            }
+            updateEmptyState();
+        }
+
+        // ---- Crear tarjeta ----
         function createCard(url, label) {
             const card = document.createElement('div');
             card.className = 'card';
-            card.draggable = false;   // usamos nuestro propio drag
+            card.draggable = false;
             card.dataset.id = ++cardCounter;
-            card.style.width = '300px'; // ancho inicial
+            card.dataset.minimized = 'false';
+            card.style.width = '300px';
 
-            // Inner
             const inner = document.createElement('div');
             inner.className = 'card-inner';
 
@@ -338,6 +452,18 @@
             const controls = document.createElement('div');
             controls.className = 'controls';
 
+            const minBtn = document.createElement('button');
+            minBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:0.9rem;">minimize</span>';
+            minBtn.title = 'Minimizar (solo audio)';
+            minBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (card.dataset.minimized === 'true') {
+                    restoreCard(card);
+                } else {
+                    minimizeCard(card);
+                }
+            });
+
             const reloadBtn = document.createElement('button');
             reloadBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:0.9rem;">refresh</span>';
             reloadBtn.title = 'Recargar iframe';
@@ -351,6 +477,7 @@
             closeBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:0.9rem;">close</span>';
             closeBtn.title = 'Eliminar stream';
 
+            controls.appendChild(minBtn);
             controls.appendChild(reloadBtn);
             controls.appendChild(openBtn);
             controls.appendChild(closeBtn);
@@ -392,7 +519,6 @@
             handle.className = 'resize-handle';
             card.appendChild(handle);
 
-            // ---- Eventos del handle (redimensionar) ----
             let isResizing = false;
             let startX, startWidth;
 
@@ -404,7 +530,6 @@
                 startWidth = card.offsetWidth;
                 document.addEventListener('pointermove', onResize);
                 document.addEventListener('pointerup', stopResize);
-                // Para touch
                 document.addEventListener('touchmove', onResizeTouch, { passive: false });
                 document.addEventListener('touchend', stopResizeTouch);
                 handle.style.borderColor = '#fbbd14';
@@ -414,7 +539,7 @@
                 if (!isResizing) return;
                 const dx = e.clientX - startX;
                 let newWidth = startWidth + dx;
-                newWidth = Math.max(180, newWidth); // mínimo
+                newWidth = Math.max(180, newWidth);
                 card.style.width = newWidth + 'px';
             }
 
@@ -443,13 +568,12 @@
             }
 
             handle.addEventListener('pointerdown', startResize);
-            // También touch para compatibilidad
             handle.addEventListener('touchstart', (e) => {
                 e.preventDefault();
                 startResize(e);
             }, { passive: false });
 
-            // ---- Eventos de los botones ----
+            // ---- Eventos de botones ----
             reloadBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const currentSrc = iframe.src;
@@ -484,6 +608,16 @@
 
             closeBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
+                if (card.dataset.minimized === 'true') {
+                    const miniItem = card._miniItem;
+                    if (miniItem) {
+                        miniItem.remove();
+                        delete card._miniItem;
+                    }
+                    if (minimizedBar.children.length === 0) {
+                        minimizedBar.style.display = 'none';
+                    }
+                }
                 card.remove();
                 updateEmptyState();
             });
@@ -502,23 +636,19 @@
                 }
             });
 
-            // ---- Arrastre para reordenar (header) ----
+            // ---- Arrastre para reordenar ----
             let isDragging = false;
-            let dragStartX, dragStartY;
             let ghostCard = null;
             let dragOffsetX = 0, dragOffsetY = 0;
 
             function startDrag(e) {
-                if (e.target.closest('.controls')) return; // no arrastrar por botones
+                if (e.target.closest('.controls')) return;
                 const touch = e.touches ? e.touches[0] : e;
                 isDragging = true;
-                dragStartX = touch.clientX;
-                dragStartY = touch.clientY;
                 const rect = card.getBoundingClientRect();
                 dragOffsetX = touch.clientX - rect.left;
                 dragOffsetY = touch.clientY - rect.top;
 
-                // Clon para feedback visual
                 ghostCard = card.cloneNode(true);
                 ghostCard.style.position = 'fixed';
                 ghostCard.style.width = card.offsetWidth + 'px';
@@ -538,16 +668,13 @@
 
             function onDrag(e) {
                 if (!isDragging) return;
-                const touch = e;
-                ghostCard.style.left = (touch.clientX - dragOffsetX) + 'px';
-                ghostCard.style.top = (touch.clientY - dragOffsetY) + 'px';
+                ghostCard.style.left = (e.clientX - dragOffsetX) + 'px';
+                ghostCard.style.top = (e.clientY - dragOffsetY) + 'px';
 
-                // Detectar sobre qué tarjeta estamos
-                const elemBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+                const elemBelow = document.elementFromPoint(e.clientX, e.clientY);
                 const cardBelow = elemBelow ? elemBelow.closest('.card') : null;
-                // Quitar drag-over de todas
                 document.querySelectorAll('.card.drag-over').forEach(c => c.classList.remove('drag-over'));
-                if (cardBelow && cardBelow !== card) {
+                if (cardBelow && cardBelow !== card && cardBelow.dataset.minimized !== 'true') {
                     cardBelow.classList.add('drag-over');
                 }
             }
@@ -562,7 +689,7 @@
                 const elemBelow = document.elementFromPoint(touch.clientX, touch.clientY);
                 const cardBelow = elemBelow ? elemBelow.closest('.card') : null;
                 document.querySelectorAll('.card.drag-over').forEach(c => c.classList.remove('drag-over'));
-                if (cardBelow && cardBelow !== card) {
+                if (cardBelow && cardBelow !== card && cardBelow.dataset.minimized !== 'true') {
                     cardBelow.classList.add('drag-over');
                 }
             }
@@ -576,14 +703,12 @@
                     ghostCard = null;
                 }
 
-                // Obtener la tarjeta sobre la que soltamos
                 const touch = e.changedTouches ? e.changedTouches[0] : e;
                 const elemBelow = document.elementFromPoint(touch.clientX, touch.clientY);
                 const cardBelow = elemBelow ? elemBelow.closest('.card') : null;
                 document.querySelectorAll('.card.drag-over').forEach(c => c.classList.remove('drag-over'));
 
-                if (cardBelow && cardBelow !== card) {
-                    // Reordenar: insertar antes o después según posición vertical
+                if (cardBelow && cardBelow !== card && cardBelow.dataset.minimized !== 'true') {
                     const rect = cardBelow.getBoundingClientRect();
                     const midY = rect.top + rect.height / 2;
                     if (touch.clientY < midY) {
@@ -600,7 +725,6 @@
             }
 
             function endDragTouch(e) {
-                // similar a endDrag pero con touch
                 if (!isDragging) return;
                 isDragging = false;
                 card.classList.remove('dragging');
@@ -613,7 +737,7 @@
                 const cardBelow = elemBelow ? elemBelow.closest('.card') : null;
                 document.querySelectorAll('.card.drag-over').forEach(c => c.classList.remove('drag-over'));
 
-                if (cardBelow && cardBelow !== card) {
+                if (cardBelow && cardBelow !== card && cardBelow.dataset.minimized !== 'true') {
                     const rect = cardBelow.getBoundingClientRect();
                     const midY = rect.top + rect.height / 2;
                     if (touch.clientY < midY) {
@@ -628,7 +752,6 @@
                 document.removeEventListener('touchend', endDragTouch);
             }
 
-            // Iniciar arrastre en el header
             header.addEventListener('pointerdown', startDrag);
             header.addEventListener('touchstart', (e) => {
                 if (e.target.closest('.controls')) return;
@@ -670,7 +793,7 @@
             }, 300);
         }
 
-        console.log('✅ Dashboard de streams 16:9 con redimensionado táctil y reordenamiento.');
+        console.log('✅ Dashboard con 16:9 independiente por tarjeta.');
     })();
 </script>
 </body>
