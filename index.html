@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Dashboard · 16:9 Independiente</title>
+    <title>Dashboard · 16:9 con Historial</title>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
     <style>
         * {
@@ -21,17 +21,15 @@
             flex-direction: column;
         }
 
-        /* ===== LAYOUT FLEXIBLE CON ALTURAS INDEPENDIENTES ===== */
         #dashboard {
             display: flex;
             flex-wrap: wrap;
             gap: 20px;
             flex: 1;
             align-content: flex-start;
-            align-items: flex-start;  /* ← CLAVE: cada tarjeta tiene su propia altura */
+            align-items: flex-start;
         }
 
-        /* Tarjeta con 16:9 fijo e independiente */
         .card {
             position: relative;
             background: #16161e;
@@ -40,12 +38,12 @@
             overflow: visible;
             min-width: 180px;
             width: 300px;
-            aspect-ratio: 16 / 9;      /* ← 16:9 siempre, independiente */
+            aspect-ratio: 16 / 9;
             transition: border-color 0.2s, box-shadow 0.2s;
             cursor: default;
             touch-action: none;
             flex-shrink: 0;
-            flex-grow: 0;             /* no se estiran */
+            flex-grow: 0;
         }
         .card:hover {
             border-color: #4a4a6a;
@@ -69,7 +67,6 @@
             pointer-events: auto;
         }
 
-        /* Header arrastrable */
         .card-header {
             display: flex;
             align-items: center;
@@ -164,7 +161,6 @@
             color: #333;
         }
 
-        /* ===== HANDLE DE REDIMENSIONADO ===== */
         .resize-handle {
             position: absolute;
             bottom: 0;
@@ -191,7 +187,6 @@
             opacity: 1;
         }
 
-        /* ===== BARRA DE MINIMIZADOS ===== */
         #minimizedBar {
             position: fixed;
             bottom: 0;
@@ -242,7 +237,6 @@
             color: #fbbd14;
         }
 
-        /* ===== BOTÓN FLOTANTE ===== */
         .fab {
             position: fixed;
             bottom: 80px;
@@ -270,7 +264,6 @@
             transform: scale(0.92);
         }
 
-        /* ===== ESTADO VACÍO ===== */
         .empty-state {
             flex: 1;
             display: none;
@@ -301,7 +294,6 @@
             transform: scale(1.02);
         }
 
-        /* ===== DRAG & DROP ===== */
         .card.dragging {
             opacity: 0.4;
             border-color: #fbbd14;
@@ -313,13 +305,134 @@
             box-shadow: 0 0 0 2px #fbbd14;
         }
 
-        /* ===== RESPONSIVE ===== */
+        /* Historial desplegable */
+        .history-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 2000;
+            background: #16161e;
+            border: 1px solid #2a2a3a;
+            border-radius: 16px;
+            padding: 16px;
+            max-width: 320px;
+            width: 100%;
+            max-height: 70vh;
+            overflow-y: auto;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.8);
+            backdrop-filter: blur(8px);
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .history-panel.open {
+            display: flex;
+        }
+        .history-panel h3 {
+            color: #fbbd14;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #2a2a3a;
+            padding-bottom: 8px;
+        }
+        .history-panel h3 button {
+            background: none;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        .history-panel h3 button:hover {
+            color: #fbbd14;
+        }
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 8px;
+            border-radius: 8px;
+            background: #0f0f18;
+            border: 1px solid #222;
+            cursor: pointer;
+            transition: background 0.15s;
+            gap: 8px;
+        }
+        .history-item:hover {
+            background: #1a1a2e;
+        }
+        .history-item .h-label {
+            color: #ddd;
+            font-size: 0.8rem;
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .history-item .h-url {
+            color: #666;
+            font-size: 0.65rem;
+            max-width: 100px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .history-item .h-actions {
+            display: flex;
+            gap: 4px;
+        }
+        .history-item .h-actions button {
+            background: transparent;
+            border: none;
+            color: #555;
+            cursor: pointer;
+            font-size: 0.8rem;
+            padding: 2px;
+            border-radius: 4px;
+            transition: 0.15s;
+        }
+        .history-item .h-actions button:hover {
+            color: #fbbd14;
+            background: #222;
+        }
+        .history-empty {
+            color: #555;
+            text-align: center;
+            padding: 16px;
+            font-size: 0.9rem;
+        }
+
+        .history-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 2001;
+            background: #16161e;
+            border: 1px solid #2a2a3a;
+            border-radius: 40px;
+            padding: 8px 16px;
+            color: #fbbd14;
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            backdrop-filter: blur(4px);
+            transition: 0.15s;
+        }
+        .history-toggle:hover {
+            background: #1a1a2e;
+            border-color: #4a4a6a;
+        }
+
         @media (max-width: 640px) {
             body { padding: 10px; padding-bottom: 70px; }
             .card {
                 width: 100% !important;
                 min-width: 0;
-                flex-grow: 1;          /* en móvil se estiran para ocupar */
+                flex-grow: 1;
             }
             .resize-handle {
                 display: none;
@@ -337,6 +450,18 @@
             }
             #minimizedBar .minimized-item .label-text {
                 max-width: 100px;
+            }
+            .history-panel {
+                top: 70px;
+                right: 10px;
+                max-width: 280px;
+                max-height: 50vh;
+            }
+            .history-toggle {
+                top: 10px;
+                right: 10px;
+                padding: 4px 12px;
+                font-size: 0.7rem;
             }
         }
     </style>
@@ -358,6 +483,21 @@
 <!-- Barra de minimizados -->
 <div id="minimizedBar"></div>
 
+<!-- Botón historial -->
+<button class="history-toggle" id="historyToggle">
+    <span class="material-symbols-outlined" style="font-size:1rem;">history</span>
+    Historial
+</button>
+
+<!-- Panel historial -->
+<div class="history-panel" id="historyPanel">
+    <h3>
+        <span>📺 Historial</span>
+        <button id="clearHistoryBtn">Limpiar</button>
+    </h3>
+    <div id="historyList"></div>
+</div>
+
 <script>
     (function() {
         const dashboard = document.getElementById('dashboard');
@@ -365,9 +505,97 @@
         const fabAddBtn = document.getElementById('fabAddBtn');
         const emptyAddBtn = document.getElementById('emptyAddBtn');
         const minimizedBar = document.getElementById('minimizedBar');
+        const historyPanel = document.getElementById('historyPanel');
+        const historyList = document.getElementById('historyList');
+        const historyToggle = document.getElementById('historyToggle');
+        const clearHistoryBtn = document.getElementById('clearHistoryBtn');
 
         let cardCounter = 0;
 
+        // ---- HISTORIAL (localStorage) ----
+        const HISTORY_KEY = 'streamHistory';
+        let history = [];
+
+        function loadHistory() {
+            try {
+                const stored = localStorage.getItem(HISTORY_KEY);
+                history = stored ? JSON.parse(stored) : [];
+            } catch { history = []; }
+            renderHistory();
+        }
+
+        function saveHistory() {
+            try {
+                localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+            } catch {}
+            renderHistory();
+        }
+
+        function addHistoryEntry(url, label) {
+            if (!url || url === 'about:blank') return;
+            // Evitar duplicados exactos (misma URL) - mover al frente
+            const existing = history.findIndex(h => h.url === url);
+            if (existing !== -1) {
+                const entry = history.splice(existing, 1)[0];
+                entry.label = label || entry.label || 'Stream';
+                history.unshift(entry);
+            } else {
+                history.unshift({ url, label: label || 'Stream', timestamp: Date.now() });
+            }
+            if (history.length > 50) history = history.slice(0, 50); // limitar
+            saveHistory();
+        }
+
+        function renderHistory() {
+            if (!historyList) return;
+            if (history.length === 0) {
+                historyList.innerHTML = '<div class="history-empty">No hay historial aún.</div>';
+                return;
+            }
+            historyList.innerHTML = history.map((item, index) => `
+                <div class="history-item" data-index="${index}">
+                    <span class="h-label">${item.label || 'Stream'}</span>
+                    <span class="h-url" title="${item.url}">${item.url.replace(/^https?:\/\//, '').slice(0, 30)}</span>
+                    <div class="h-actions">
+                        <button class="h-load" title="Cargar">▶</button>
+                        <button class="h-remove" title="Eliminar">✕</button>
+                    </div>
+                </div>
+            `).join('');
+
+            // Eventos en items
+            historyList.querySelectorAll('.history-item').forEach(el => {
+                const idx = parseInt(el.dataset.index);
+                const item = history[idx];
+                if (!item) return;
+
+                el.querySelector('.h-load').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    loadFromHistory(idx);
+                });
+                el.querySelector('.h-remove').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    history.splice(idx, 1);
+                    saveHistory();
+                });
+                el.addEventListener('dblclick', () => loadFromHistory(idx));
+            });
+        }
+
+        function loadFromHistory(index) {
+            const item = history[index];
+            if (!item) return;
+            const card = createCard(item.url, item.label);
+            dashboard.appendChild(card);
+            updateEmptyState();
+            // mover al frente
+            const entry = history.splice(index, 1)[0];
+            history.unshift(entry);
+            saveHistory();
+            historyPanel.classList.remove('open');
+        }
+
+        // ---- Funciones de UI ----
         function updateEmptyState() {
             const cards = dashboard.querySelectorAll('.card:not([style*="display: none"])');
             if (cards.length === 0 && minimizedBar.children.length === 0) {
@@ -379,7 +607,6 @@
             }
         }
 
-        // ---- Minimizar / Restaurar ----
         function minimizeCard(card) {
             if (card.dataset.minimized === 'true') return;
             card.dataset.minimized = 'true';
@@ -409,7 +636,6 @@
             minimizedBar.appendChild(miniItem);
             minimizedBar.style.display = 'flex';
             card._miniItem = miniItem;
-
             updateEmptyState();
         }
 
@@ -417,10 +643,8 @@
             if (card.dataset.minimized !== 'true') return;
             card.dataset.minimized = 'false';
             card.style.display = '';
-
-            const miniItem = card._miniItem;
-            if (miniItem) {
-                miniItem.remove();
+            if (card._miniItem) {
+                card._miniItem.remove();
                 delete card._miniItem;
             }
             if (minimizedBar.children.length === 0) {
@@ -441,7 +665,6 @@
             const inner = document.createElement('div');
             inner.className = 'card-inner';
 
-            // Header
             const header = document.createElement('div');
             header.className = 'card-header';
 
@@ -454,19 +677,16 @@
 
             const minBtn = document.createElement('button');
             minBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:0.9rem;">minimize</span>';
-            minBtn.title = 'Minimizar (solo audio)';
+            minBtn.title = 'Minimizar';
             minBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                if (card.dataset.minimized === 'true') {
-                    restoreCard(card);
-                } else {
-                    minimizeCard(card);
-                }
+                if (card.dataset.minimized === 'true') restoreCard(card);
+                else minimizeCard(card);
             });
 
             const reloadBtn = document.createElement('button');
             reloadBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:0.9rem;">refresh</span>';
-            reloadBtn.title = 'Recargar iframe';
+            reloadBtn.title = 'Recargar / Editar URL';
 
             const openBtn = document.createElement('button');
             openBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:0.9rem;">open_in_new</span>';
@@ -485,7 +705,6 @@
             header.appendChild(labelSpan);
             header.appendChild(controls);
 
-            // Body
             const body = document.createElement('div');
             body.className = 'card-body';
 
@@ -514,7 +733,7 @@
             inner.appendChild(body);
             card.appendChild(inner);
 
-            // ---- Handle de redimensionado ----
+            // Handle resize
             const handle = document.createElement('div');
             handle.className = 'resize-handle';
             card.appendChild(handle);
@@ -573,50 +792,43 @@
                 startResize(e);
             }, { passive: false });
 
-            // ---- Eventos de botones ----
+            // ---- Botones ----
             reloadBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const currentSrc = iframe.src;
-                if (currentSrc && currentSrc !== 'about:blank') {
-                    iframe.src = 'about:blank';
-                    setTimeout(() => { iframe.src = currentSrc; }, 50);
-                } else {
-                    const newUrl = prompt('Introduce la URL del stream:', '');
-                    if (newUrl && newUrl.trim() !== '') {
-                        let final = newUrl.trim();
-                        if (!/^https?:\/\//i.test(final)) final = 'https://' + final;
-                        iframe.src = final;
-                        placeholder.style.display = 'none';
-                        const lbl = card.querySelector('.label');
-                        if (lbl) {
-                            const text = lbl.textContent.replace(/^[^\s]+\s*/, '').trim();
-                            lbl.innerHTML = `<span class="material-symbols-outlined" style="font-size:1rem;">play_circle</span> ${text || 'Stream'}`;
-                        }
+                const newUrl = prompt('Introduce la URL del stream:', currentSrc === 'about:blank' ? '' : currentSrc);
+                if (newUrl !== null && newUrl.trim() !== '') {
+                    let final = newUrl.trim();
+                    if (!/^https?:\/\//i.test(final)) final = 'https://' + final;
+                    iframe.src = final;
+                    placeholder.style.display = 'none';
+                    const lbl = card.querySelector('.label');
+                    if (lbl) {
+                        const text = lbl.textContent.replace(/^[^\s]+\s*/, '').trim();
+                        lbl.innerHTML = `<span class="material-symbols-outlined" style="font-size:1rem;">play_circle</span> ${text || 'Stream'}`;
                     }
+                    addHistoryEntry(final, labelSpan.textContent.replace(/^[^\s]+\s*/, '').trim());
+                } else if (newUrl === '') {
+                    iframe.src = 'about:blank';
+                    placeholder.style.display = 'flex';
                 }
             });
 
             openBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const src = iframe.src;
-                if (src && src !== 'about:blank') {
-                    window.open(src, '_blank');
-                } else {
-                    alert('No hay URL cargada.');
-                }
+                if (src && src !== 'about:blank') window.open(src, '_blank');
+                else alert('No hay URL cargada.');
             });
 
             closeBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 if (card.dataset.minimized === 'true') {
-                    const miniItem = card._miniItem;
-                    if (miniItem) {
-                        miniItem.remove();
+                    if (card._miniItem) {
+                        card._miniItem.remove();
                         delete card._miniItem;
                     }
-                    if (minimizedBar.children.length === 0) {
-                        minimizedBar.style.display = 'none';
-                    }
+                    if (minimizedBar.children.length === 0) minimizedBar.style.display = 'none';
                 }
                 card.remove();
                 updateEmptyState();
@@ -636,7 +848,7 @@
                 }
             });
 
-            // ---- Arrastre para reordenar ----
+            // ---- Drag reorder ----
             let isDragging = false;
             let ghostCard = null;
             let dragOffsetX = 0, dragOffsetY = 0;
@@ -648,7 +860,6 @@
                 const rect = card.getBoundingClientRect();
                 dragOffsetX = touch.clientX - rect.left;
                 dragOffsetY = touch.clientY - rect.top;
-
                 ghostCard = card.cloneNode(true);
                 ghostCard.style.position = 'fixed';
                 ghostCard.style.width = card.offsetWidth + 'px';
@@ -670,7 +881,6 @@
                 if (!isDragging) return;
                 ghostCard.style.left = (e.clientX - dragOffsetX) + 'px';
                 ghostCard.style.top = (e.clientY - dragOffsetY) + 'px';
-
                 const elemBelow = document.elementFromPoint(e.clientX, e.clientY);
                 const cardBelow = elemBelow ? elemBelow.closest('.card') : null;
                 document.querySelectorAll('.card.drag-over').forEach(c => c.classList.remove('drag-over'));
@@ -685,7 +895,6 @@
                 const touch = e.touches[0];
                 ghostCard.style.left = (touch.clientX - dragOffsetX) + 'px';
                 ghostCard.style.top = (touch.clientY - dragOffsetY) + 'px';
-
                 const elemBelow = document.elementFromPoint(touch.clientX, touch.clientY);
                 const cardBelow = elemBelow ? elemBelow.closest('.card') : null;
                 document.querySelectorAll('.card.drag-over').forEach(c => c.classList.remove('drag-over'));
@@ -698,26 +907,17 @@
                 if (!isDragging) return;
                 isDragging = false;
                 card.classList.remove('dragging');
-                if (ghostCard) {
-                    ghostCard.remove();
-                    ghostCard = null;
-                }
-
+                if (ghostCard) { ghostCard.remove(); ghostCard = null; }
                 const touch = e.changedTouches ? e.changedTouches[0] : e;
                 const elemBelow = document.elementFromPoint(touch.clientX, touch.clientY);
                 const cardBelow = elemBelow ? elemBelow.closest('.card') : null;
                 document.querySelectorAll('.card.drag-over').forEach(c => c.classList.remove('drag-over'));
-
                 if (cardBelow && cardBelow !== card && cardBelow.dataset.minimized !== 'true') {
                     const rect = cardBelow.getBoundingClientRect();
                     const midY = rect.top + rect.height / 2;
-                    if (touch.clientY < midY) {
-                        dashboard.insertBefore(card, cardBelow);
-                    } else {
-                        dashboard.insertBefore(card, cardBelow.nextSibling);
-                    }
+                    if (touch.clientY < midY) dashboard.insertBefore(card, cardBelow);
+                    else dashboard.insertBefore(card, cardBelow.nextSibling);
                 }
-
                 document.removeEventListener('pointermove', onDrag);
                 document.removeEventListener('pointerup', endDrag);
                 document.removeEventListener('touchmove', onDragTouch);
@@ -728,23 +928,16 @@
                 if (!isDragging) return;
                 isDragging = false;
                 card.classList.remove('dragging');
-                if (ghostCard) {
-                    ghostCard.remove();
-                    ghostCard = null;
-                }
+                if (ghostCard) { ghostCard.remove(); ghostCard = null; }
                 const touch = e.changedTouches[0];
                 const elemBelow = document.elementFromPoint(touch.clientX, touch.clientY);
                 const cardBelow = elemBelow ? elemBelow.closest('.card') : null;
                 document.querySelectorAll('.card.drag-over').forEach(c => c.classList.remove('drag-over'));
-
                 if (cardBelow && cardBelow !== card && cardBelow.dataset.minimized !== 'true') {
                     const rect = cardBelow.getBoundingClientRect();
                     const midY = rect.top + rect.height / 2;
-                    if (touch.clientY < midY) {
-                        dashboard.insertBefore(card, cardBelow);
-                    } else {
-                        dashboard.insertBefore(card, cardBelow.nextSibling);
-                    }
+                    if (touch.clientY < midY) dashboard.insertBefore(card, cardBelow);
+                    else dashboard.insertBefore(card, cardBelow.nextSibling);
                 }
                 document.removeEventListener('pointermove', onDrag);
                 document.removeEventListener('pointerup', endDrag);
@@ -759,10 +952,15 @@
                 startDrag(e);
             }, { passive: false });
 
+            // Si hay URL, añadir al historial
+            if (url && url !== 'about:blank') {
+                addHistoryEntry(url, label || 'Stream');
+            }
+
             return card;
         }
 
-        // ---- Añadir stream ----
+        // ---- Añadir stream con prompt ----
         function addStreamFromPrompt() {
             const url = prompt('Introduce la URL del stream:');
             if (url !== null && url.trim() !== '') {
@@ -779,10 +977,31 @@
         fabAddBtn.addEventListener('click', addStreamFromPrompt);
         emptyAddBtn.addEventListener('click', addStreamFromPrompt);
 
+        historyToggle.addEventListener('click', () => {
+            historyPanel.classList.toggle('open');
+        });
+
+        clearHistoryBtn.addEventListener('click', () => {
+            if (confirm('¿Eliminar todo el historial?')) {
+                history = [];
+                saveHistory();
+            }
+        });
+
+        // Cerrar panel al hacer clic fuera
+        document.addEventListener('click', (e) => {
+            if (historyPanel.classList.contains('open')) {
+                if (!historyPanel.contains(e.target) && e.target !== historyToggle && !historyToggle.contains(e.target)) {
+                    historyPanel.classList.remove('open');
+                }
+            }
+        });
+
         // ---- Inicialización ----
+        loadHistory();
         updateEmptyState();
 
-        // ---- Precarga desde URL ----
+        // Precarga desde URL
         const params = new URLSearchParams(window.location.search);
         const preUrl = params.get('url');
         if (preUrl) {
@@ -793,7 +1012,7 @@
             }, 300);
         }
 
-        console.log('✅ Dashboard con 16:9 independiente por tarjeta.');
+        console.log('✅ Dashboard con historial persistente.');
     })();
 </script>
 </body>
